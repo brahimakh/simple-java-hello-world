@@ -32,7 +32,6 @@ spec:
 """
     }
   }
-}
 
 
 // Configuration à modifier
@@ -45,6 +44,7 @@ spec:
         }
       }
     }
+
     stage('test') {
       steps {
         container('maven') {
@@ -52,6 +52,7 @@ spec:
         }
       }
     }
+
     stage('Docker') {
       steps {
         container('docker') {
@@ -59,6 +60,7 @@ spec:
         }
       }
     }
+
     stage('DockerRun') {
       steps {
         container('docker') {
@@ -67,8 +69,10 @@ spec:
       }
     }
   }
-    post {
-    always {
-      junit 'target/surefire-reports/*.xml'
-    }
+}
+
+post {
+  always {
+    junit 'target/surefire-reports/*.xml'
   }
+}
