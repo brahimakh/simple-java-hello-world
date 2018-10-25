@@ -32,7 +32,7 @@ spec:
 """
     }
   }
-
+}
 
 // Configuration à modifier
   stages {
