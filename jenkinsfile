@@ -33,8 +33,6 @@ spec:
     }
   }
 
-  //fds
-
 // Configuration à modifier
   stages {
 
