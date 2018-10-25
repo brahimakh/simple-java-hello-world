@@ -45,5 +45,11 @@ spec:
         }
       }
     }
-
+    stage('test') {
+      steps {
+        container('maven') {
+          sh 'mvn test'
+        }
+      }
+    }
 }
