@@ -69,7 +69,7 @@ spec:
       }
     }
   }
-}
+
 
 post {
   always {
