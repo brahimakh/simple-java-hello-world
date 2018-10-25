@@ -10,4 +10,4 @@
 Qu'est ce qu'un pod ? c'est des conteneurs sur une machine hote
 
 ## Ultra Hardcore
-La couleur de ma chemise au premier cours ? bleu 
+La couleur de ma chemise au premier cours ? bleu
