@@ -44,7 +44,7 @@ spec:
        }
      }
    }
-}
+
    stage('Test') {
      steps {
        container('maven') {
@@ -60,6 +60,7 @@ spec:
            branch 'develop'
          }
        }
+
      steps {
        container('docker') {
          sh 'docker build -t my-app:$BUILD_NUMBER .'
@@ -77,7 +78,6 @@ spec:
        }
      }
    }
-
  }
  post {
    always {
