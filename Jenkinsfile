@@ -44,7 +44,7 @@ spec:
        }
      }
    }
-
+}
    stage('Test') {
      steps {
        container('maven') {
@@ -77,7 +77,7 @@ spec:
        }
      }
    }
-}
+
  }
  post {
    always {
