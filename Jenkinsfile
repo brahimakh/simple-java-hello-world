@@ -77,7 +77,7 @@ spec:
        }
      }
    }
-
+}
  }
  post {
    always {
