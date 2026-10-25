@@ -1,6 +1,6 @@
 {
   "name": "resonance-industrielle",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -10,5 +10,8 @@
     "balance": "node scripts/balance.mjs",
     "start": "node scripts/server.mjs"
   },
-  "devDependencies": { "typescript": "5.9.3" }
+  "devDependencies": {
+    "happy-dom": "^21.0.4",
+    "typescript": "5.9.3"
+  }
 }

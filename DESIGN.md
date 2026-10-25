@@ -1,4 +1,14 @@
-# Design — Résonance industrielle, MVP 0.1
+# Design — Résonance industrielle, MVP 0.2
+
+## Mise à jour du 25 octobre 2026 : accueil et anglais
+
+Le retour du joueur porte sur la compréhension du rôle et de la boucle, pas encore sur l’équilibrage. Les règles du moteur restent donc inchangées. L’accueil montre une boucle courte « ressources → machines → composants/déblocages → autre idée » et une seule action guidée à la fois. Les cinq étapes s’accomplissent avec des interactions réelles : sélectionner l’injecteur, sélectionner la presse, installer un module librement choisi, consulter le débit après un traitement effectif, enregistrer un plan.
+
+Le guide ne choisit pas de recette optimale, n’achète rien et ne donne aucune ressource. Il peut être masqué, repris ou revu. Les étapes apprises sont mémorisées même si le joueur démonte ensuite son module. Une page permanente explique les objectifs, les trois mesures principales, les blocages et les déblocages ; elle inclut un lexique bilingue.
+
+La langue est un réglage d’affichage français/anglais, mémorisé séparément avec les préférences du guide. L’état de simulation et le format de sauvegarde v1 ne changent pas. Les descriptions et messages canoniques français sont traduits au rendu par `i18n.ts`, y compris les interpolations et attributs accessibles. Les noms personnels sont isolés dans le DOM pour ne pas les traduire. Les éléments de règles contenant des nombres ont un test de parité entre langues. Si une règle ou une description change, maintenir aussi sa traduction.
+
+`onboarding.ts` contient le suivi du guide et la validation des préférences, `guide-view.ts` ses sections, `onboarding.css` leur présentation. Les tests d’interface Happy DOM exercent de vraies commandes DOM mais ne remplacent pas une vérification visuelle dans un navigateur.
 
 ## Promesse et choix retenus
 

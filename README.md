@@ -1,6 +1,6 @@
 # Résonance industrielle
 
-Un jeu incremental solo en français : construire des chaînes de procédés, comprendre leurs interactions et réutiliser ses inventions. Tout reste sur le PC, sans compte ni service distant.
+Un jeu incremental solo en français ou en anglais : construire des chaînes de procédés, comprendre leurs interactions et réutiliser ses inventions. Tout reste sur le PC, sans compte ni service distant.
 
 ## Jouer sous Windows
 
@@ -17,6 +17,14 @@ Le jeu compilé fonctionne sans Internet, CDN, API ou clé. Il n’est pas néce
 Le port 4317 et l’adresse 127.0.0.1 restent fixes pour conserver l’origine des sauvegardes. Si le jeu fonctionne déjà, le lanceur réutilise son serveur. Si une autre application occupe le port, il le signale et ne change pas silencieusement de port.
 
 ## Prendre en main l’atelier
+
+Depuis la version 0.2, un panneau **Premiers pas** explique votre rôle et accompagne cinq gestes : inspecter l’injecteur, inspecter la presse, choisir un module, observer son effet et enregistrer une configuration. Il suit les actions réellement effectuées. Il est facultatif ; **Explorer librement** le masque, et la rubrique **Premiers pas** permet de le reprendre ou de le revoir. Aucun achat automatique, cadeau ou changement d’équilibrage n’est ajouté par le guide.
+
+La rubrique **Premiers pas** explique également la boucle globale, les différences entre stock, production cumulée et débit, les messages d’attente et les prochains déblocages. Un petit lexique anglais/français aide à retrouver les termes du jeu.
+
+Le sélecteur **Langue / Language**, en haut de l’écran, permet de passer à **English** à tout moment. Les règles des machines, descriptions, expériences, messages et dialogues sont traduits ; les nombres suivent la langue choisie. Les noms que vous donnez aux configurations et inventions restent les vôtres. Le choix de langue et la progression du guide sont mémorisés localement, séparément de la sauvegarde de partie : changer de langue ne demande pas de recommencer. Ils ne sont pas transférés dans l’export JSON de partie.
+
+Pour charger cette mise à jour dans un onglet déjà ouvert, actualisez la page. Vos anciennes sauvegardes v1 restent compatibles.
 
 - Sélectionner une carte affiche ses règles et ses réglages. Cliquer une flèche ouvre ou ferme sa connexion.
 - Ajouter un module l’insère du bon côté de la presse. Les boutons de déplacement changent l’ordre entre modificateurs compatibles.
@@ -58,6 +66,8 @@ Le moteur de test reste dans le processus courant pour fonctionner dans l’envi
 
 Huit familles de modules, deux installations, plans de configurations, encapsulation, six expériences, objectif final et poursuite libre. L’atelier utilise des chaînes linéaires parallèles plutôt qu’un graphe de routage arbitraire. Pas de prestige, de son ou de récursion d’inventions.
 
-Compilation, typage, 30 tests automatisés et mesures de progression vérifiés. **Le parcours visuel dans un navigateur n’a pas pu être validé** : le navigateur intégré refuse l’adresse locale et l’outil Windows a arrêté l’essai faute d’identification fiable de l’URL. Le lancement par double-clic et la lisibilité sur votre écran restent à confirmer avec vous.
+Compilation, typage, **37 tests automatisés** et mesures de progression vérifiés. Les nouveaux tests exécutent les boutons, formulaires et changements de langue dans un DOM simulé avec Happy DOM, dépendance de développement uniquement. Ils couvrent le parcours guidé, les pages anglaises, les règles chiffrées bilingues, les noms personnels, la mémorisation des préférences et la conservation de la sauvegarde.
+
+**Le parcours visuel dans un vrai navigateur reste à confirmer** : lors de la première version, le navigateur intégré refusait l’adresse locale et l’outil Windows a arrêté l’essai faute d’identification fiable de l’URL. Les tests DOM ajoutés ne mesurent pas la mise en page sur votre écran. Aucun outil supplémentaire n’est requis pour jouer à la version compilée.
 
 La cible de découverte de 2–4 heures n’est pas atteinte comme résultat établi : une politique automatisée simple termine en environ 45 minutes, et des assemblages plus puissants peuvent aller plus vite. Aucun playtest humain de plusieurs heures n’est revendiqué. Voir `DESIGN.md`, `BALANCE.md` et `PASSATION.md` pour les hypothèses et la suite.
