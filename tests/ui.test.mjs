@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Window} from 'happy-dom';
-import {createState,simulate,insertModule,encapsulate,saveConfiguration,addLane} from '../src/engine.ts';
+import {createState,simulate,insertModule,encapsulate,saveConfiguration,addLane,configureRouter} from '../src/engine.ts';
 import {t,EN} from '../src/i18n.ts';
 import {serialize,SAVE_KEY} from '../src/save.ts';
 import {defaultPreferences,PREFERENCES_KEY} from '../src/onboarding.ts';
@@ -60,7 +60,7 @@ test('interface anglais : parcours avancé, noms personnels préservés et dialo
      const french=[];const walker=d.createTreeWalker(d.querySelector('main'),4);let node;
      while(node=walker.nextNode())if(!node.parentElement.closest('[data-user-text],script,style')&&/[a-zà-ÿ]{2}/i.test(node.textContent))french.push(node.textContent.trim());
      ui.lang('en');
-     const uncovered=french.filter(x=>t(x)===x&&EN[x]!==x&&!/^\d+ \/ 10 machines$/.test(x));
+     const uncovered=french.filter(x=>t(x)===x&&EN[x]!==x&&!/^\d+(?: \/ 10)? machines$/.test(x));
      assert.deepEqual(uncovered,[],view+' has untranslated visible text');
    }
    click('resource','[data-resource="energy"]');assert.match(d.querySelector('#dialog').textContent,/Base generation/);click('close');
@@ -68,5 +68,26 @@ test('interface anglais : parcours avancé, noms personnels préservés et dialo
    click('plant','[data-plant="B"]');assert.match(d.querySelector('.topbar').textContent,/Catalytic greenhouse/);
    click('nav','[data-view="guide"]');click('detailed-rules');assert.match(d.querySelector('#dialog').textContent,/Prototype limits: six lines/);click('close');
    click('reset');assert.match(d.querySelector('#dialog').textContent,/Start a new game/);click('confirm-reset');assert.equal(d.documentElement.lang,'en');assert.match(d.querySelector('#onboarding').textContent,/1. Where does material/);
+ }finally{await ui.close();}
+});
+test('interface réseau : réglages réels de branche, schéma et progression visibles dans les deux langues',async()=>{
+ const s=createState();s.produced=2000;s.plants.A.stock.components=10000;addLane(s,'A');const [a,b]=s.plants.A.lanes;insertModule(s,'A',a.id,'router');const router=a.machines.find(m=>m.kind==='router');configureRouter(s,'A',a.id,router.id,{target:b.id});s.paused=true;
+ const prefs=defaultPreferences();prefs.language='en';prefs.guide.hidden=true;
+ const ui=await mount({state:s,preferences:prefs});try{
+   const {document:d,click,lang}=ui;assert.equal(d.querySelectorAll('.branch-link').length,1);assert.equal(d.querySelectorAll('.milestone-track .achieved').length,7);
+   click('select-module',`[data-id="${router.id}"]`);assert.match(d.querySelector('.routing-settings').textContent,/Destination line/);
+   const mode=d.querySelector('[data-route="mode"]');mode.value='alternate';mode.dispatchEvent(new ui.window.Event('change',{bubbles:true}));click('router-source');click('save');
+   const saved=JSON.parse(ui.window.localStorage.getItem(SAVE_KEY));assert.equal(saved.plants.A.lanes[0].machines.find(m=>m.kind==='router').routing.mode,'alternate');assert.equal(saved.plants.A.lanes[1].machines[0].connected,false);
+   lang('fr');assert.match(d.querySelector('.routing-settings').textContent,/Un lot sur deux/);assert.match(d.querySelector('.network-caption').textContent,/SCHÉMA VIVANT/);
+ }finally{await ui.close();}
+});
+test('interface banc : capture, modification d’ordre, vraie comparaison, bilinguisme et partie intacte',async()=>{
+ const s=createState();s.produced=2000;s.plants.A.stock.components=10000;const l=s.plants.A.lanes[0];for(const k of ['stamp','batch','weave'])insertModule(s,'A',l.id,k);l.machines.find(m=>m.kind==='batch').param=80;s.paused=true;
+ const prefs=defaultPreferences();prefs.language='en';prefs.guide.hidden=true;
+ const ui=await mount({state:s,preferences:prefs});try{
+   const {document:d,click,lang}=ui;click('nav','[data-view="bench"]');click('bench-record');click('nav','[data-view="atelier"]');click('select-module',`[data-id="${l.machines[1].id}"]`);click('move','[data-dir="1"]');click('save');const before=ui.window.localStorage.getItem(SAVE_KEY);
+   click('nav','[data-view="bench"]');click('bench-run');assert.equal(d.querySelector('.trial-gain strong').textContent,'×0.25');assert.equal(d.querySelectorAll('.bench-table tbody tr').length,9);assert.equal(ui.window.localStorage.getItem(SAVE_KEY),before);assert.match(d.querySelector('.bench-results').textContent,/Tested configuration/);
+   lang('fr');assert.equal(d.querySelector('.trial-gain strong').textContent,'×0,25');assert.match(d.querySelector('.bench-results').textContent,/Configuration testée/);
+   const french=[];const walker=d.createTreeWalker(d.querySelector('main'),4);let node;while(node=walker.nextNode())if(!node.parentElement.closest('[data-user-text],script,style')&&/[a-zà-ÿ]{2}/i.test(node.textContent))french.push(node.textContent.trim());lang('en');assert.deepEqual(french.filter(x=>t(x)===x&&EN[x]!==x),[]);
  }finally{await ui.close();}
 });

@@ -1,5 +1,6 @@
 import {writeFile} from 'node:fs/promises';
-import {createState,machine,simulate,measuredRate,addLane,claim,upgrade,insertModule} from '../src/engine.ts';
+import {createState,machine,simulate,measuredRate,addLane,claim,upgrade,insertModule,clone,configureRouter} from '../src/engine.ts';
+import {compareLayouts} from '../src/bench.ts';
 import {MODULES} from '../src/content.ts';
 const recipes={reference:['intake','press'],cadence:['intake','cadence','press'],lots:['intake','batch','press'],recuperation:['intake','press','recovery','exchanger'],composee:['intake','cadence','batch','press','recovery','exchanger'],doubleAccord:['intake','cadence','cadence','batch','press','recovery','exchanger']};
 const results=[];
@@ -29,5 +30,16 @@ for(let second=1;second<=7200;second++){
  if(second%30===0){upgrade(progression,'A','oreLevel');upgrade(progression,'A','energyLevel');}
  if(progression.produced>=500000)break;
 }
-const report={comparison:'Même alimentation (12 matières/s, 8 énergie/s), une ligne, modules différents, chauffe de 600 s puis mesure sur 120 s. Les coûts des modules sont indiqués ; ce ne sont pas des comparaisons à budget égal.',results,recoveryContext,progression:{policy:'Un résonateur, accumulateur 80, récupération, Serre de base, amélioration des deux alimentations toutes les 30 s si finançable, expériences validées automatiquement.',firstCadenceSeconds:firstCadence,firstBatchSeconds:firstBatch,secondPlantSeconds:serdeAt,elapsedSeconds:progression.tick*.1,produced:progression.produced,finished:progression.produced>=500000,fault:progression.fault}};
+const orderReference=createState();orderReference.produced=2000;orderReference.plants.A.stock.components=10000;
+orderReference.plants.A.lanes[0].machines=['intake','batch','stamp','weave','press'].map(k=>machine(orderReference,k));
+orderReference.plants.A.lanes[0].machines[1].param=80;
+const orderCandidate=clone(orderReference);const orderMachines=orderCandidate.plants.A.lanes[0].machines;[orderMachines[1],orderMachines[2]]=[orderMachines[2],orderMachines[1]];
+const orderTrial=compareLayouts(orderReference,orderCandidate,'A',180);
+const routeReference=createState();routeReference.produced=2000;routeReference.plants.A.stock.components=10000;
+const routeCandidate=clone(routeReference),routeLine=routeCandidate.plants.A.lanes[0];insertModule(routeCandidate,'A',routeLine.id,'router');addLane(routeCandidate,'A');
+const destination=routeCandidate.plants.A.lanes[1];destination.machines[0].connected=false;configureRouter(routeCandidate,'A',routeLine.id,routeLine.machines[1].id,{mode:'alternate',target:destination.id});
+const routeTrial=compareLayouts(routeReference,routeCandidate,'A',180);
+const brief=r=>({referenceRate:r.reference.rate,candidateRate:r.candidate.rate,referenceCost:r.reference.cost,candidateCost:r.candidate.cost,ratio:r.ratio,duration:r.duration,warmup:r.warmup,referenceFault:r.reference.fault,candidateFault:r.candidate.fault});
+const inventions={order:brief(orderTrial),routing:brief(routeTrial)};
+const report={comparison:'Même alimentation (12 matières/s, 8 énergie/s), une ligne, modules différents, chauffe de 600 s puis mesure sur 120 s. Les coûts des modules sont indiqués ; ce ne sont pas des comparaisons à budget égal.',results,recoveryContext,inventions,progression:{policy:'Un résonateur, accumulateur 80, récupération, Serre de base, amélioration des deux alimentations toutes les 30 s si finançable, expériences validées automatiquement.',firstCadenceSeconds:firstCadence,firstBatchSeconds:firstBatch,secondPlantSeconds:serdeAt,elapsedSeconds:progression.tick*.1,produced:progression.produced,finished:progression.produced>=500000,fault:progression.fault}};
 await writeFile('balance-results.json',JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report,null,2));

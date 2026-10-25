@@ -92,6 +92,30 @@
       "fault": null
     }
   ],
+  "inventions": {
+    "order": {
+      "referenceRate": 19.2,
+      "candidateRate": 76.8,
+      "referenceCost": 195,
+      "candidateCost": 195,
+      "ratio": 4,
+      "duration": 180,
+      "warmup": 120,
+      "referenceFault": null,
+      "candidateFault": null
+    },
+    "routing": {
+      "referenceRate": 0.599999999999909,
+      "candidateRate": 1.199999999999818,
+      "referenceCost": 45,
+      "candidateCost": 145,
+      "ratio": 2,
+      "duration": 180,
+      "warmup": 120,
+      "referenceFault": null,
+      "candidateFault": null
+    }
+  },
   "progression": {
     "policy": "Un résonateur, accumulateur 80, récupération, Serre de base, amélioration des deux alimentations toutes les 30 s si finançable, expériences validées automatiquement.",
     "firstCadenceSeconds": 17,

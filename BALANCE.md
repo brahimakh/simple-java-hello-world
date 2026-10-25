@@ -2,6 +2,23 @@
 
 Document de développement contenant des configurations révélatrices. Ne sert pas de tutoriel imposant une solution. Source des chiffres : `node scripts/balance.mjs`, sortie conservée dans `balance-results.json`.
 
+## Nouveaux essais 0.3 : ordre et routage
+
+Même protocole que le banc accessible au joueur : réserves, alimentations et progression de référence identiques, machines froides, 120 s de stabilisation puis 180 s de mesure. Injecteur 6, extraction 12 matières/s, génération 8 énergies/s, aucune catalyse.
+
+| Essai | Référence / s | Variante / s | Coût référence / variante | Rapport |
+|---|---:|---:|---:|---:|
+| Changement d’ordre uniquement | 19,2 | 76,8 | 195 / 195 | ×4 |
+| Répartition alternée entre deux presses | 0,6 | 1,2 | 45 / 145 | ×2 |
+
+Dans le premier essai, injecteur → accumulateur 80 → marqueur → tisseur → presse devient injecteur → marqueur → accumulateur 80 → tisseur → presse. Les mêmes cinq machines utilisent la même alimentation : la différence vient des empreintes conservées avant réunion des lots. Une seule empreinte donne ×2 ; plusieurs livraisons réunies atteignent le facteur maximal ×8 du tisseur. Aucun module supplémentaire n’a été acheté pour ce rapport ×4.
+
+Dans le second essai, l’aiguillage partage les lots entre la presse locale et une deuxième ligne dont l’injecteur est suspendu. L’alimentation est inchangée, mais deux presses traitent les livraisons en parallèle. Le coût supérieur est affiché ; ce rapport n’est pas une comparaison à budget égal.
+
+Les essais n’ont déclenché aucun diagnostic. Les tests vérifient également qu’un lot divisé conserve ses empreintes au prorata, qu’elles ne peuvent pas être réactivées après consommation et qu’un cycle entre lignes conserve la matière en consommant du temps.
+
+Les résultats historiques ci-dessous restent valides pour les mêmes configurations. La politique de progression historique n’utilise pas les nouveaux modules : elle reste un repère et ne mesure pas la durée de découverte de cette version.
+
 ## Protocole
 
 Une ligne, injecteur réglé sur 6, 12 matières/s et 8 énergies/s générées, aucun niveau d’amélioration, aucun catalyseur. La production cumulée de départ est réglée à 2 000 uniquement pour autoriser le contenu dans le script de développement. Les résultats mesurent la production ajoutée, pas cette dotation. Chauffe de 600 s puis mesure de 120 s, soit plusieurs dizaines de cycles de lots. Aucun achat pendant la mesure. Pas de temps identique à la partie normale.

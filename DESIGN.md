@@ -1,8 +1,22 @@
-# Design — Résonance industrielle, MVP 0.2
+# Design — Résonance industrielle, MVP 0.3
 
-## Mise à jour du 25 octobre 2026 : accueil et anglais
+## Mise à jour 0.3 : composition, branches et mesure
 
-Le retour du joueur porte sur la compréhension du rôle et de la boucle, pas encore sur l’équilibrage. Les règles du moteur restent donc inchangées. L’accueil montre une boucle courte « ressources → machines → composants/déblocages → autre idée » et une seule action guidée à la fois. Les cinq étapes s’accomplissent avec des interactions réelles : sélectionner l’injecteur, sélectionner la presse, installer un module librement choisi, consulter le débit après un traitement effectif, enregistrer un plan.
+Les trois priorités choisies avec le joueur sont implémentées ensemble : aiguillages entre lignes, marqueur/tisseur sensibles à l’ordre et banc d’essai comparatif. Les anciennes constructions restent valides ; les sauvegardes v1 acceptent les nouveaux champs optionnels. Aucun reset requis.
+
+Les aiguillages ne copient pas les événements : ils déplacent un paquet entier vers la suite locale ou la première carte après l’injecteur d’une autre ligne. Toute livraison d’aiguillage est différée au pas suivant, y compris la sortie locale. Sa destination réserve sa capacité dès l’émission pour empêcher plusieurs sources de surcharger le même tampon. L’alternance change de côté uniquement après une émission réussie. Un aiguillage vers lui-même est refusé. Les cycles entre lignes sont permis : chaque trajet prend du temps, conserve la matière et peut saturer normalement. Un démontage rembourse les matières en transit destinées à la machine retirée.
+
+Le marqueur attribue une empreinte à une livraison qui n’a encore jamais été marquée. Un accumulateur additionne les fractions d’empreintes proportionnellement à la matière utilisée ; le reste conserve sa part. Le tisseur multiplie la qualité par 1 + empreintes, jusqu’à ×8, puis consomme ces empreintes. L’indicateur de marquage persiste : ni un deuxième tisseur ni un nouveau marqueur ne réactive un lot déjà exploité. Une réunion contenant de la matière marquée est considérée marquée ; aucune empreinte gratuite ne peut être créée en la mélangeant avec une matière non marquée.
+
+L’encapsulation active conserve exactement tous les états et destinations. Une nouvelle instance de bibliothèque paie ses machines mais laisse ses branches externes à reconnecter. Une configuration d’installation conserve ses liens relatifs et les remappe aux nouveaux identifiants lors de sa restauration atomique.
+
+Le banc travaille sur deux copies isolées. Les conditions initiales sont celles de la référence : réserves, niveaux d’alimentation, progression et transferts. Les tampons, charges, accords et événements sont remis à zéro de façon égale. Seule la disposition de l’installation choisie diffère. Après 120 s de stabilisation, le joueur mesure 60, 180 ou 600 s. Le tableau distingue les coûts, les variations de réserves et les débits ; une réserve qui se vide produit un avertissement. Le blocage le plus observé porte sur une machine active et une cause précise. Les injecteurs désactivés volontairement sont exclus. Un essai numérique interrompu n’est jamais présenté comme complet. Aucun gain simulé ne passe dans la partie.
+
+Graphiquement : pictogrammes SVG propres aux familles, couleurs de procédé, schéma des lignes et des branches avec flèches directionnelles, impulsions déclenchées par les dernières livraisons, chiffres de tampon et derniers lots. La progression montre le prochain déblocage réel et une frise de jalons. La pause et la préférence de réduction des mouvements arrêtent les animations. Le rendu est local, sans asset distant ni police externe. `visuals.ts`, `routing-view.ts`, `bench-view.ts` et `atelier.css` séparent ces présentations du moteur.
+
+## Historique 0.2 — 25 octobre 2026 : accueil et anglais
+
+Dans la version 0.2, le retour du joueur portait sur la compréhension du rôle et de la boucle. Les règles du moteur avaient donc été conservées. L’accueil montre une boucle courte « ressources → machines → composants/déblocages → autre idée » et une seule action guidée à la fois. Les cinq étapes s’accomplissent avec des interactions réelles : sélectionner l’injecteur, sélectionner la presse, installer un module librement choisi, consulter le débit après un traitement effectif, enregistrer un plan.
 
 Le guide ne choisit pas de recette optimale, n’achète rien et ne donne aucune ressource. Il peut être masqué, repris ou revu. Les étapes apprises sont mémorisées même si le joueur démonte ensuite son module. Une page permanente explique les objectifs, les trois mesures principales, les blocages et les déblocages ; elle inclut un lexique bilingue.
 
@@ -31,9 +45,9 @@ Aucun texte, code ou asset des jeux de référence n’a été repris. Interface
 
 ## Grammaire et contraintes
 
-Une ligne a un injecteur en tête, des modificateurs de matière, une presse, puis des lecteurs de fin de cycle. Un module a une entrée et une sortie typées. Les lignes fonctionnent en parallèle sur les réserves de leur installation. Les flèches sont des connexions effectives ; les modificateurs d’un même type peuvent être réordonnés avec des boutons. Un branchement arbitraire, la fusion de deux lignes et les circuits de paquets cycliques ne font pas partie de cette version.
+Une ligne a un injecteur en tête, des modificateurs de matière, une presse, puis des lecteurs de fin de cycle. Un module a une entrée et une sortie typées. Les lignes fonctionnent en parallèle sur les réserves de leur installation. Les flèches sont des connexions effectives ; les modificateurs d’un même type peuvent être réordonnés avec des boutons. Les aiguillages permettent une fusion contrôlée à l’entrée d’une autre ligne et des cycles différés. Le routage arbitraire entre n’importe quelles cartes reste hors périmètre.
 
-Les huit familles : injecteur, résonateur, accumulateur, chambre de charge, presse, récupérateur, échangeur, synchroniseur. La recette de la presse dépend de l’installation. Les valeurs et descriptions de référence sont dans `src/content.ts` ; l’interface affiche les mêmes données.
+Les onze familles : injecteur, résonateur, accumulateur, chambre de charge, presse, récupérateur, échangeur, synchroniseur, marqueur, tisseur et aiguillage. La recette de la presse dépend de l’installation. Les valeurs et descriptions de référence sont dans `src/content.ts` ; l’interface affiche les mêmes données.
 
 - Stocks : 10¹² par ressource et installation. Une sortie pleine arrête le procédé avant consommation. Les générateurs cessent d’accumuler au plafond.
 - Tampon : 800 matières par machine ; lot maximal 160. L’accumulateur livre exactement son seuil en conservant la qualité moyenne pondérée.
@@ -47,7 +61,7 @@ La réutilisation d’un modificateur reste autorisée. La répétition des réc
 
 Pas fixe de 100 ms, indépendant de l’affichage. À chaque pas :
 
-1. Créditer les sorties différées du pas précédent.
+1. Créditer les sorties différées du pas précédent et livrer les lots en transit à leurs tampons réservés.
 2. Alimenter les réserves par les générateurs, dans leur capacité.
 3. Transférer les résidus A → B, puis les catalyseurs B → A, selon les limites annoncées.
 4. Visiter Fonderie puis Serre, lignes par ordre d’installation, machines de droite à gauche. Une livraison ne peut donc pas traverser plusieurs cartes dans le même pas.

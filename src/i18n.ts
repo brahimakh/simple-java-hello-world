@@ -39,7 +39,7 @@ export const EN:Record<string,string>={
  'Réorganisation gratuite · démontage remboursé':'Free rearrangement · dismantling refunded','{0} / 10 machines':'{0} / 10 machines',
  'Une installation attend sa première chaîne.':'This facility is waiting for its first chain.','Construisez une ligne pour la mettre en service.':'Build a line to start it.',
  'réserve matière':'material stock','réserve résidus':'residue stock','matières · qualité':'material · quality','fin de cycle':'cycle completion','lot':'batch','récupération':'recovery','cycle':'cycle','réserve':'stock',
- '{0} → {1}':'{0} → {1}',
+ '{0} → {1}':'{0} → {1}','{0} · {1}':'{0} · {1}',
  'accord ×{0}':'harmony ×{0}','{0} cycles':'{0} cycles','Tampon : {0} / {1}':'Buffer: {0} / {1}',
  'Déconnecter la sortie':'Disconnect output','Relier la sortie':'Connect output','Déconnecter la sortie de {0}':'Disconnect output of {0}','Relier la sortie de {0}':'Connect output of {0}',
  'OBSERVER → COMPRENDRE':'OBSERVE → UNDERSTAND','Chaque règle est visible.':'Every rule is visible.',
@@ -170,6 +170,9 @@ export const EN:Record<string,string>={
 };
 
 const modules:Record<Kind,[string,string]>={
+ stamp:['Delivery marker','Marks an unmarked delivery with 1 imprint. A batch can only be marked once, even after amplification. The accumulator adds imprints in proportion to the material collected. Cycle: 0.1 s.'],
+ weave:['Weaver','Consumes batch imprints to multiply quality by (1 + imprints), up to ×8. Without imprints: ×1. A consumed imprint cannot be reactivated. Cycle: 0.2 s.'],
+ router:['Router','Routes each batch to the local continuation or to the first card after the injector of another line in the same facility. Modes: small batches, large batches, alternating, or overflow when the local output is blocked. The batch arrives on the next step, without copying. Cycle: 0.2 s. A missing or full destination stops the batch.'],
  intake:['Injector','Every 0.5 s: takes 6 or 12 material (adjustable) from local stock. Waits if stock or output is unavailable. In the greenhouse, takes residue. Maximum rate: 24 material/s per injector.'],
  cadence:['Resonator','On each delivery of ≤ 12 material, gains one harmony if the previous delivery was ≤ 2 s ago. Quality × (1 + harmonies), maximum ×5. A delivery > 12 or a gap > 2 s breaks the sequence. Cycle: 0.1 s.'],
  batch:['Accumulator','Collects material up to the chosen threshold, then delivers exactly that batch. Preserves weighted average quality. At most 1 delivery/s. The press rewards batches of 80 or more.'],
@@ -180,10 +183,108 @@ const modules:Record<Kind,[string,string]>={
  sync:['Synchroniser','On delivery, if local stock holds at least 10 catalysts: uses 1 catalyst and multiplies quality by 3. Otherwise waits. Cycle: 0.5 s. Also works before a catalysed press.']
 };
 for(const k of Object.keys(modules) as Kind[]){EN[MODULES[k].name]=modules[k][0];EN[MODULES[k].description]=modules[k][1];EN[MODULES[k].description.split('. ')[0]+'.']=modules[k][1].split('. ')[0]+'.';}
-const unlocks=['Resonator available · deliveries can resonate.','Accumulator available · batch size becomes a choice.','Charging chamber available · time becomes a raw material.','Recovery available · outputs can feed inputs.','Greenhouse, synchroniser and encapsulation available.'];
-UNLOCKS.forEach((u,i)=>EN[u.text]=unlocks[i]);
+const unlocks:Record<number,string>={10:'Resonator available · deliveries can resonate.',30:'Delivery marker available · each delivery can leave an imprint.',50:'Accumulator available · batch size becomes a choice.',60:'Router available · lines can cooperate.',80:'Weaver available · process order changes the result.',160:'Charging chamber available · time becomes a raw material.',400:'Recovery available · outputs can feed inputs.',1000:'Greenhouse, synchroniser and encapsulation available.'};
+UNLOCKS.forEach(u=>EN[u.text]=unlocks[u.at]);
 const experiments=[['First harmony','Produce 50 lifetime components.'],['Critical mass','Press at least one batch of 80 material.'],['Nothing wasted','Recover 500 material.'],['Industrial dialogue','Produce 30 catalysts in the greenhouse.'],['Steady state','Measure at least 300 components/s over a full 60 s window.'],['The Resonance core','Produce 500,000 lifetime components. No reset: the workshop stays open.']];
 EXPERIMENTS.forEach((e,i)=>{EN[e.name]=experiments[i][0];EN[e.description]=experiments[i][1];});
+Object.assign(EN,{
+  "PROTOTYPE 0.3 / AUCUN GAIN HORS LIGNE": "PROTOTYPE 0.3 / NO OFFLINE PROGRESS",
+  "Banc d’essai": "Test bench",
+  "Configurer l’aiguillage": "Configure router",
+  "Choisir une ligne de destination": "Choose a destination line",
+  "Destination en transit absente": "Missing transit destination",
+  "Règle d’orientation": "Routing rule",
+  "Gros lots vers la branche": "Large batches to branch",
+  "Petits lots vers la branche": "Small batches to branch",
+  "Un lot sur deux": "Every other batch",
+  "Surplus si la sortie locale est pleine": "Overflow when local output is full",
+  "Seuil de taille": "Size threshold",
+  "Ligne de destination": "Destination line",
+  "Choisir une autre ligne": "Choose another line",
+  "Local : {0}": "Local: {0}",
+  "Branche : {0}": "Branch: {0}",
+  "Suspendre l’injecteur de destination": "Suspend destination injector",
+  "Réactiver l’injecteur de destination": "Resume destination injector",
+  "Construisez une deuxième ligne, puis choisissez-la ici.": "Build a second line, then choose it here.",
+  "L’entrée de branche est la première carte après l’injecteur. Une ligne peut recevoir sa propre matière et celle de la branche. Les flèches locales restent actives.": "A branch enters at the first card after the injector. A line can receive both its own material and branch material. Local connections remain active.",
+  "Progression du laboratoire": "Laboratory progression",
+  "LE LABORATOIRE PREND FORME": "YOUR LABORATORY TAKES SHAPE",
+  "Prochaine possibilité": "Next possibility",
+  "Prochain déblocage": "Next unlock",
+  "composants cumulés": "lifetime components",
+  "Objectif industriel : 500 000 composants cumulés. Les dépenses ne retirent aucun déblocage.": "Industrial goal: 500,000 lifetime components. Spending never removes unlocks.",
+  "Démarrage": "Start",
+  "Cadence": "Cadence",
+  "Empreintes": "Imprints",
+  "Réseau": "Network",
+  "Tissage": "Weaving",
+  "Récupération": "Recovery",
+  "Coopération": "Cooperation",
+  "SCHÉMA VIVANT": "LIVE SCHEMATIC",
+  "Les impulsions correspondent aux livraisons réelles.": "Pulses represent actual deliveries.",
+  "Connexions entre les lignes de production": "Connections between production lines",
+  "{0} machines": "{0} machines",
+  "Flux local": "Local flow",
+  "Branche entre lignes": "Branch between lines",
+  "surplus": "overflow",
+  "＋ {0} en transit": "＋ {0} in transit",
+  "Dernier lot : {0} · qualité ×{1} · {2} empreintes": "Last batch: {0} · quality ×{1} · {2} imprints",
+  "EXPÉRIMENTER SANS ATTENDRE": "EXPERIMENT WITHOUT WAITING",
+  "Le banc d’essai": "The test bench",
+  "Gardez une référence, modifiez votre atelier, puis comparez les deux idées dans les mêmes conditions. La simulation ne touche jamais votre partie.": "Keep a reference, change your workshop, then compare both ideas under the same conditions. Simulation never changes your real game.",
+  "Mémoriser une référence": "Capture a reference",
+  "Modifier l’ordre, les réglages ou les branches": "Change the order, settings or branches",
+  "Comparer et comprendre": "Compare and understand",
+  "Remplacer la référence": "Replace reference",
+  "Mémoriser la configuration actuelle": "Capture current configuration",
+  "Fenêtre de mesure": "Measurement window",
+  "▶ Comparer avec mon atelier": "▶ Compare with my workshop",
+  "Les deux essais repartent avec les réserves, alimentations, transferts et progression de la référence, des tampons vides et 120 s de stabilisation. Seules les lignes de l’installation sélectionnée changent. Les coûts peuvent différer : ce n’est pas une comparaison à budget égal.": "Both trials start with the reference stocks, supplies, transfers and progression, empty buffers and 120 s of warm-up. Only the selected facility’s lines change. Costs may differ: this is not an equal-budget comparison.",
+  "Référence mémorisée · {0} composants cumulés": "Reference captured · {0} lifetime components",
+  "Une référence est un point de départ pour vos essais, pas un score à battre. Vous pouvez la remplacer à tout moment.": "A reference is a starting point for experiments, not a score to beat. You can replace it at any time.",
+  "Référence mémorisée. Modifiez votre atelier avant de comparer.": "Reference captured. Change your workshop before comparing.",
+  "Banc d’essai indisponible": "Test bench unavailable",
+  "Ce que votre idée change": "What your idea changes",
+  "sur le débit de cet essai": "on this trial’s rate",
+  "Comparaison des débits simulés": "Simulated production rate comparison",
+  "Début de mesure": "Start of measurement",
+  "Échelle commune · pic {0}/s": "Shared scale · peak {0}/s",
+  "Fin de mesure": "End of measurement",
+  "Référence": "Reference",
+  "Configuration actuelle": "Current configuration",
+  "Configuration testée": "Tested configuration",
+  "Mesure": "Measurement",
+  "Débit moyen / s": "Average rate / s",
+  "Composants / s · laboratoire": "Components / s · laboratory",
+  "Catalyseurs / s · laboratoire": "Catalysts / s · laboratory",
+  "Variation matière / s": "Material stock change / s",
+  "Variation énergie / s": "Energy stock change / s",
+  "Cycles de presse": "Press cycles",
+  "Temps bloqué · machines": "Time blocked · machines",
+  "Coût théorique des machines": "Theoretical machine cost",
+  "Essai interrompu par un diagnostic moteur. Les résultats sont incomplets.": "Trial interrupted by an engine diagnostic. Results are incomplete.",
+  "Une réserve diminue pendant cet essai : ce débit peut dépendre du stock initial. Essayez une fenêtre plus longue.": "A stock decreases during this trial: the rate may rely on initial reserves. Try a longer window.",
+  "Les variations indiquent l’évolution des réserves, après génération et échanges. Une hausse sur cette fenêtre ne garantit pas un régime permanent. Revenez à l’atelier pour poursuivre votre invention.": "Changes describe stock trends after generation and transfers. An increase over this window does not guarantee a steady state. Return to the workshop to develop your invention.",
+  "{0} / {1} s + {2} s": "{0} / {1} s + {2} s",
+  "aiguillage": "routing",
+  "empreintes": "imprints",
+  "transit": "transit",
+  "destination": "destination",
+  "Les nouvelles instances laissent les branches externes à reconnecter. Les configurations conservent les connexions entre leurs lignes.": "New instances leave external branches to reconnect. Configurations preserve connections between their lines."
+});
+Object.assign(EN,{'Principal frein observé':'Main observed bottleneck'});
+Object.assign(EN,{
+  "Relier et comparer vos idées": "Connect and compare your ideas",
+  "Des lignes qui coopèrent": "Cooperating lines",
+  "Ajoutez un aiguillage, construisez une deuxième ligne et choisissez sa destination dans les réglages. Vous pouvez suspendre son injecteur pour ne traiter que les lots reçus de la branche.": "Add a router, build a second line and choose it as the destination in the settings. You can suspend its injector to process only batches received from the branch.",
+  "Un ordre qui compte": "Order matters",
+  "Le marqueur laisse une empreinte sur une livraison. L’accumulateur conserve les empreintes de la matière réunie. Le tisseur les consomme pour amplifier la qualité. Essayez différents ordres et observez ce qui change.": "The marker leaves an imprint on a delivery. The accumulator preserves the imprints of the collected material. The weaver consumes them to amplify quality. Try different orders and see what changes.",
+  "Un essai sans risque": "A risk-free trial",
+  "Dans le banc d’essai, mémorisez une référence avant de modifier l’atelier. Comparez ensuite les configurations avec les mêmes réserves de départ. Aucun stock simulé n’est ajouté à la partie.": "In the test bench, capture a reference before changing the workshop. Then compare configurations with the same starting stocks. Simulated stock is never added to your game.",
+  "Ouvrir le banc d’essai": "Open the test bench"
+});
+Object.assign(EN,{'Temps bloqué · machines actives':'Time blocked · active machines'});
+Object.assign(EN,{'Pour comparer la Serre, capturez une référence où elle est déjà débloquée.':'To compare the greenhouse, capture a reference where it is already unlocked.'});
 const escapeRE=(s:string)=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const patterns=Object.entries(EN).filter(([k])=>k.includes('{0}')).sort((a,b)=>b[0].length-a[0].length).map(([key,value])=>({regex:new RegExp('^'+key.split(/\{\d+\}/).map(escapeRE).join('(.+?)')+'$','u'),value,raw:key.startsWith('Invention «')}));
 export function t(text:string):string {

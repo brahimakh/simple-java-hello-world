@@ -14,6 +14,26 @@ Les fichiers compilés sont déjà présents dans `dist/`. Node.js 24 ou plus r�
 
 Le jeu compilé fonctionne sans Internet, CDN, API ou clé. Il n’est pas nécessaire d’installer les dépendances pour jouer. La première installation des outils de développement peut demander Internet.
 
+## Nouveautés 0.3 : inventer, relier, mesurer
+
+Trois modules élargissent les possibilités sans modifier vos anciennes constructions :
+
+- **Marqueur** : disponible à 30 composants cumulés. Il laisse une empreinte sur une livraison. Les empreintes suivent la matière lorsque des lots sont réunis ou divisés.
+- **Aiguillage** : à 60 composants. Dans ses réglages, choisissez une autre ligne et une règle : petits lots, gros lots, alternance ou surplus. La branche entre après l’injecteur de destination. Un bouton permet de suspendre cet injecteur si vous souhaitez une ligne alimentée uniquement par la branche.
+- **Tisseur** : à 80 composants. Il consomme les empreintes reçues pour amplifier la qualité. L’endroit où vous placez le marqueur et le tisseur compte : expérimentez avec l’ordre des cartes.
+
+Le schéma au-dessus des cartes représente toutes les lignes et leurs branches. Les impulsions correspondent à des livraisons réelles ; les chiffres sous les machines indiquent la matière en tampon, y compris les entrées en transit réservées. Sélectionner une machine sur le schéma ouvre ses détails. Les cartes affichent aussi le dernier lot, sa qualité et ses empreintes. La frise de progression distingue les acquis et les prochains paliers, avec une barre pour le prochain déblocage.
+
+**Banc d’essai :**
+
+1. Ouvrez sa rubrique et mémorisez une référence.
+2. Revenez à l’atelier et modifiez votre configuration.
+3. Choisissez une fenêtre de 60, 180 ou 600 secondes et lancez la comparaison.
+
+Les deux essais utilisent les réserves et alimentations de la référence et redémarrent à vide, avec 120 secondes de stabilisation. Seules les lignes de l’installation sélectionnée sont remplacées par celles de votre atelier actuel. Les résultats montrent les débits, les courbes sur une échelle commune, les variations des réserves, les blocages et le coût des machines. Les injecteurs volontairement suspendus ne sont pas comptés comme un goulot. Un avertissement signale un débit qui vide une réserve. Ce résultat décrit une fenêtre simulée, pas une garantie de production perpétuelle.
+
+Le banc ne produit rien dans la partie réelle et n’y prélève rien. Sa référence est mémorisée séparément de votre sauvegarde de partie et peut être remplacée. Pour comparer la Serre, capturez une référence où elle est déjà débloquée. Les branches d’une configuration complète sont conservées à la restauration ; les branches externes d’une invention nouvellement construite restent à reconnecter.
+
 Le port 4317 et l’adresse 127.0.0.1 restent fixes pour conserver l’origine des sauvegardes. Si le jeu fonctionne déjà, le lanceur réutilise son serveur. Si une autre application occupe le port, il le signale et ne change pas silencieusement de port.
 
 ## Prendre en main l’atelier
@@ -60,14 +80,14 @@ node scripts/balance.mjs
 node scripts/server.mjs --open
 ```
 
-Le moteur de test reste dans le processus courant pour fonctionner dans l’environnement Windows restreint. Les accélérations de simulation sont uniquement dans les tests et le script de mesures, jamais dans les commandes de la partie normale.
+Le moteur de test reste dans le processus courant pour fonctionner dans l’environnement Windows restreint. L’accélération du banc d’essai s’exécute sur des copies isolées ; il n’existe aucun bouton d’accélération ou de déblocage de la partie réelle.
 
 ## État du prototype
 
-Huit familles de modules, deux installations, plans de configurations, encapsulation, six expériences, objectif final et poursuite libre. L’atelier utilise des chaînes linéaires parallèles plutôt qu’un graphe de routage arbitraire. Pas de prestige, de son ou de récursion d’inventions.
+Onze familles de modules, deux installations, branches entre lignes, banc d’essai, plans de configurations, encapsulation, six expériences, objectif final et poursuite libre. Chaque ligne reste ordonnée et typée ; les aiguillages relient les lignes d’une même installation. Pas de routage libre entre cartes arbitraires, de prestige, de son ou de récursion d’inventions.
 
-Compilation, typage, **37 tests automatisés** et mesures de progression vérifiés. Les nouveaux tests exécutent les boutons, formulaires et changements de langue dans un DOM simulé avec Happy DOM, dépendance de développement uniquement. Ils couvrent le parcours guidé, les pages anglaises, les règles chiffrées bilingues, les noms personnels, la mémorisation des préférences et la conservation de la sauvegarde.
+Compilation, typage, **54 tests automatisés** et mesures de progression vérifiés. Les tests exécutent aussi les boutons, formulaires et changements de langue dans un DOM simulé avec Happy DOM, dépendance de développement uniquement. Ils couvrent le guide, les pages anglaises, les règles chiffrées bilingues, les branches et leur capacité, les empreintes, les boucles, les sauvegardes, les configurations et le banc d’essai sans mutation de la partie.
 
-**Le parcours visuel dans un vrai navigateur reste à confirmer** : lors de la première version, le navigateur intégré refusait l’adresse locale et l’outil Windows a arrêté l’essai faute d’identification fiable de l’URL. Les tests DOM ajoutés ne mesurent pas la mise en page sur votre écran. Aucun outil supplémentaire n’est requis pour jouer à la version compilée.
+**Le parcours visuel dans un vrai navigateur reste à confirmer** : lors de cette mise à jour, la fenêtre du jeu dans Brave a été repérée, mais la capture a échoué avec `Computer Use app approval timed out`. Aucune commande de jeu n’a été envoyée dans votre navigateur. Les tests DOM ne mesurent pas la mise en page sur votre écran. Aucun outil supplémentaire n’est requis pour jouer à la version compilée.
 
 La cible de découverte de 2–4 heures n’est pas atteinte comme résultat établi : une politique automatisée simple termine en environ 45 minutes, et des assemblages plus puissants peuvent aller plus vite. Aucun playtest humain de plusieurs heures n’est revendiqué. Voir `DESIGN.md`, `BALANCE.md` et `PASSATION.md` pour les hypothèses et la suite.
