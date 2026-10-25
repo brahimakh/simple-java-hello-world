@@ -2,6 +2,8 @@
 
 Un jeu incremental solo en français ou en anglais : construire des chaînes de procédés, comprendre leurs interactions et réutiliser ses inventions. Tout reste sur le PC, sans compte ni service distant.
 
+Pour comprendre le rôle du joueur et faire un premier essai : lire [le guide des bases](GUIDE-JOUEUR.md). Il comprend aussi un petit cadre pour partager ses remarques.
+
 ## Jouer sous Windows
 
 Dossier : **E:\ChatGPTWork\Resonance-Industrielle**.
