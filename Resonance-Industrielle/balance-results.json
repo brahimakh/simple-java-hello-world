@@ -1,0 +1,129 @@
+{
+  "comparison": "Même alimentation (12 matières/s, 8 énergie/s), une ligne, modules différents, chauffe de 600 s puis mesure sur 120 s. Les coûts des modules sont indiqués ; ce ne sont pas des comparaisons à budget égal.",
+  "results": [
+    {
+      "name": "reference",
+      "moduleCost": 45,
+      "oreLevel": 0,
+      "energyLevel": 0,
+      "measurementSeconds": 120,
+      "average": 0.599999999999909,
+      "last60": 0.599999999999909,
+      "peakPerCycle": 0.6,
+      "recovered": 0,
+      "fault": null
+    },
+    {
+      "name": "cadence",
+      "moduleCost": 75,
+      "oreLevel": 0,
+      "energyLevel": 0,
+      "measurementSeconds": 120,
+      "average": 2.999999999999996,
+      "last60": 2.9999999999999925,
+      "peakPerCycle": 3,
+      "recovered": 0,
+      "fault": null
+    },
+    {
+      "name": "lots",
+      "moduleCost": 90,
+      "oreLevel": 0,
+      "energyLevel": 0,
+      "measurementSeconds": 120,
+      "average": 9.6,
+      "last60": 9.6,
+      "peakPerCycle": 64,
+      "recovered": 0,
+      "fault": null
+    },
+    {
+      "name": "recuperation",
+      "moduleCost": 225,
+      "oreLevel": 0,
+      "energyLevel": 0,
+      "measurementSeconds": 120,
+      "average": 0.599999999999909,
+      "last60": 0.599999999999909,
+      "peakPerCycle": 0.6,
+      "recovered": 3456.0000000000396,
+      "fault": null
+    },
+    {
+      "name": "composee",
+      "moduleCost": 300,
+      "oreLevel": 0,
+      "energyLevel": 0,
+      "measurementSeconds": 120,
+      "average": 47.99999999999997,
+      "last60": 48,
+      "peakPerCycle": 320,
+      "recovered": 6912,
+      "fault": null
+    },
+    {
+      "name": "doubleAccord",
+      "moduleCost": 330,
+      "oreLevel": 0,
+      "energyLevel": 0,
+      "measurementSeconds": 120,
+      "average": 240,
+      "last60": 240,
+      "peakPerCycle": 1600,
+      "recovered": 6848,
+      "fault": null
+    }
+  ],
+  "recoveryContext": [
+    {
+      "recover": false,
+      "lanes": 6,
+      "moduleCost": 270,
+      "average": 1.199999999999818,
+      "recovered": 0,
+      "fault": null
+    },
+    {
+      "recover": true,
+      "lanes": 6,
+      "moduleCost": 1350,
+      "average": 3.600000000002183,
+      "recovered": 38164.79999999977,
+      "fault": null
+    }
+  ],
+  "inventions": {
+    "order": {
+      "referenceRate": 19.2,
+      "candidateRate": 76.8,
+      "referenceCost": 195,
+      "candidateCost": 195,
+      "ratio": 4,
+      "duration": 180,
+      "warmup": 120,
+      "referenceFault": null,
+      "candidateFault": null
+    },
+    "routing": {
+      "referenceRate": 0.599999999999909,
+      "candidateRate": 1.199999999999818,
+      "referenceCost": 45,
+      "candidateCost": 145,
+      "ratio": 2,
+      "duration": 180,
+      "warmup": 120,
+      "referenceFault": null,
+      "candidateFault": null
+    }
+  },
+  "progression": {
+    "policy": "Un résonateur, accumulateur 80, récupération, Serre de base, amélioration des deux alimentations toutes les 30 s si finançable, expériences validées automatiquement.",
+    "firstCadenceSeconds": 17,
+    "firstBatchSeconds": 46,
+    "secondPlantSeconds": 95,
+    "elapsedSeconds": 2686,
+    "produced": 500350.8,
+    "finished": true,
+    "fault": null
+  }
+}

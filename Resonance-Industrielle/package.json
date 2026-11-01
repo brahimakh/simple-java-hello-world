@@ -1,0 +1,17 @@
+{
+  "name": "resonance-industrielle",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc && node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test --test-isolation=none tests/*.test.mjs",
+    "balance": "node scripts/balance.mjs",
+    "start": "node scripts/server.mjs"
+  },
+  "devDependencies": {
+    "happy-dom": "^21.0.4",
+    "typescript": "5.9.3"
+  }
+}
