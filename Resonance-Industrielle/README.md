@@ -4,6 +4,22 @@ Un jeu incremental solo en français ou en anglais : construire des chaînes de 
 
 Pour comprendre le rôle du joueur et faire un premier essai : lire [le guide des bases](GUIDE-JOUEUR.md). Il comprend aussi un petit cadre pour partager ses remarques.
 
+## Jouer sans rien installer (nouveau)
+
+Double-cliquez sur **Resonance-Industrielle.html**. Le jeu complet tient dans ce fichier : pas de Node.js, de serveur ni de connexion. Les sauvegardes sont propres au navigateur et à ce fichier : celles de la version servie sur http://127.0.0.1:4317 n’y apparaissent pas. Pour transférer une partie, utilisez **Exporter** puis **Importer**.
+
+## Nouveautés 0.5 : une usine qui se sent vivre
+
+- **Chiffres qui comptent** : les réserves, la production cumulée et le débit défilent en douceur au lieu de sauter toutes les 0,8 s. Les barres de cycle des machines avancent en continu.
+- **Chaque pressage se voit** : un « +N ⬡ » s’élève de la presse, d’autant plus grand que le lot est gros. Les lots de 80+ (prime ×8) et les lots catalysés sont dorés et étincellent ; un lot qui bat nettement le record l’annonce.
+- **Déblocages célébrés** : une carte présente chaque nouvelle possibilité, avec un bouton qui amène directement au module dans le catalogue.
+- **Ordres de grandeur** : chaque fois que le débit moyen gagne un chiffre (10, 100, 1 000 composants/s…), le jeu le salue et vous demande ce qui l’a rendu possible.
+- **Son facultatif** : bouton « ♪ Son » en haut. Sons synthétisés, accordés sur une gamme pentatonique, désactivés par défaut et limités en fréquence.
+- **Clics fiables** : l’interface n’est plus reconstruite pendant un clic ; auparavant, un clic tombant pendant un rafraîchissement pouvait être perdu.
+- Catalogue trié par ordre de déblocage, en-tête plus compact, champ d’import qui n’apparaît plus en bas de page.
+
+Les effets ne lisent que l’état de la simulation : ils ne changent ni les règles, ni l’équilibrage, ni les sauvegardes. La préférence « réduire les animations » du système les désactive.
+
 ## Nouveautés 0.4 : comprendre chaque changement
 
 - Le guide propose un premier réglage gratuit de l’injecteur, puis une seule expérience accompagnée à la fois : qualité, ordre des empreintes, branche et coopération. Les achats restent libres.
@@ -88,6 +104,7 @@ Commandes équivalentes dans le dossier du projet :
 node node_modules/typescript/bin/tsc --noEmit
 node node_modules/typescript/bin/tsc
 node scripts/build.mjs
+node scripts/standalone.mjs
 node --test --test-isolation=none tests/*.test.mjs
 node scripts/balance.mjs
 node scripts/server.mjs --open

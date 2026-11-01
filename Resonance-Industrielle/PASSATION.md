@@ -1,3 +1,20 @@
+# Passation — Résonance industrielle 0.5.0
+
+Mise à jour du 1er novembre 2026. Le projet vit désormais dans le dossier `Resonance-Industrielle/` du dépôt Git, historique d’origine conservé.
+
+## 0.5 : sensation de jeu
+
+- `src/juice.ts` + `src/effects.css` : couche de retours visuels et sonores en lecture seule (compteurs interpolés, chiffres flottants des presses, étincelles, cartes de déblocage, ordres de grandeur du débit, sons WebAudio facultatifs). Préférence son séparée (`resonance-industrielle-effects-v1`).
+- `src/app.ts` : plus de reconstruction de l’interface pendant un appui (clics perdus), bouton son, catalogue trié par déblocage.
+- `scripts/standalone.mjs` (esbuild, dépendance de développement) : génère `Resonance-Industrielle.html`, jouable par double-clic.
+- 69 tests passent (Node 22 : `--experimental-test-isolation=none` ; Node 24 : `--test-isolation=none`).
+
+## Prochain chantier proposé
+
+La partie se termine en 6 à 14 minutes simulées alors que la cible est de 2 à 4 heures, et la répétition de résonateurs reste la voie la plus rapide. Avant de rééquilibrer, recueillir le ressenti du joueur sur la 0.5.
+
+---
+
 # Passation — Résonance industrielle 0.4.0
 
 Mise à jour du 28 octobre 2026. Projet : E:\ChatGPTWork\Resonance-Industrielle.

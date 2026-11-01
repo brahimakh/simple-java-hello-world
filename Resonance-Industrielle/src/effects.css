@@ -1,0 +1,46 @@
+/* Feedback layer: floating outputs, sparks, celebrations. Purely decorative; pointer events pass through. */
+[hidden]{display:none!important}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.fx-float{position:absolute;transform:translate(-50%,0);font-weight:650;font-variant-numeric:tabular-nums;color:var(--teal);white-space:nowrap;text-shadow:0 2px 10px #0009;animation:fx-rise 1.5s cubic-bezier(.2,.7,.3,1) forwards;letter-spacing:-.3px}
+.fx-float.special{color:#f2cf8e}
+.fx-float.record{color:#ffe08a;text-shadow:0 0 14px #ffcf5c88,0 2px 8px #000a}
+.fx-float.catalyst{color:#d2b4f5}
+.fx-float.record-tag{font-size:11px!important;letter-spacing:1.5px;text-transform:uppercase;color:#ffe08a;font-weight:600}
+@keyframes fx-rise{0%{opacity:0;transform:translate(-50%,8px) scale(.7)}12%{opacity:1;transform:translate(-50%,-4px) scale(1.12)}25%{transform:translate(-50%,-12px) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--drift,0px)),-70px) scale(.95)}}
+.fx-spark{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px currentColor;color:var(--teal);animation:fx-spark .9s ease-out forwards}
+.fx-spark.special,.fx-spark.gold{background:#ffd479;color:#ffd479}
+.fx-spark.catalyst{background:#d2b4f5;color:#d2b4f5}
+@keyframes fx-spark{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(.3)}}
+.fx-bump{animation:fx-bump .45s ease-out}
+@keyframes fx-bump{0%{box-shadow:0 0 0 0 #91ddc066}30%{box-shadow:0 0 0 3px #91ddc055;transform:translateY(-1px)}100%{box-shadow:0 0 0 0 #91ddc000;transform:none}}
+.fx-press{animation:fx-press .5s ease-out}
+@keyframes fx-press{0%{box-shadow:0 0 0 0 #91ddc0aa;border-color:var(--teal)}100%{box-shadow:0 0 0 14px #91ddc000}}
+.fx-glow strong{animation:fx-glow 1.6s ease-out}
+@keyframes fx-glow{0%{text-shadow:0 0 0 #ffe08a00;color:#ffe08a}30%{text-shadow:0 0 22px #ffe08acc;color:#ffe08a}100%{text-shadow:none}}
+.fx-highlight{animation:fx-highlight 2.4s ease-out}
+@keyframes fx-highlight{0%,40%{box-shadow:0 0 0 2px var(--teal),0 0 24px #91ddc055}100%{box-shadow:0 0 0 0 #91ddc000}}
+.resource strong,.lifetime-total strong{font-variant-numeric:tabular-nums}
+
+#celebration{position:fixed;right:24px;bottom:24px;z-index:70;display:flex;gap:16px;align-items:flex-start;max-width:420px;padding:18px 18px 16px;background:linear-gradient(135deg,#1d2e2c,#162224);border:1px solid #91ddc077;border-radius:10px;box-shadow:0 18px 50px #000a,0 0 0 1px #0004;opacity:0;transform:translateY(24px) scale(.97);pointer-events:none;transition:opacity .35s,transform .45s cubic-bezier(.2,1.3,.4,1)}
+#celebration.visible{opacity:1;transform:none;pointer-events:auto}
+#celebration.big{border-color:#ffd47999;background:linear-gradient(135deg,#2e2a1d,#1a2223)}
+#celebration .celebration-icon{flex:none;display:grid;place-items:center;width:54px;height:54px;border-radius:10px;background:#91ddc01a;color:var(--teal);font-size:22px;font-weight:700}
+#celebration.big .celebration-icon{background:#ffd4791f;color:#ffd479}
+#celebration .celebration-icon svg{width:30px;height:30px}
+#celebration .eyebrow{display:block;font-size:10px;letter-spacing:2px;color:var(--teal);margin-bottom:4px}
+#celebration.big .eyebrow{color:#ffd479}
+#celebration strong{display:block;font-size:18px;margin-bottom:4px}
+#celebration p{margin:0 0 12px;color:var(--muted);line-height:1.45;font-size:13px}
+#celebration .celebration-actions{display:flex;gap:8px}
+#celebration button{padding:7px 12px}
+
+.sound-button{opacity:.75}
+.sound-button.on{opacity:1;color:var(--teal);border-color:#91ddc077}
+
+/* A more compact header leaves room for the workshop on the first screen. */
+.hero{margin-bottom:16px}
+.hero h1{font-size:clamp(22px,1.8vw,28px);margin:4px 0}
+.hero .live-yield strong{font-size:40px}
+
+@media (prefers-reduced-motion:reduce){#fx{display:none}#celebration{transition:none}}
+@media (max-width:700px){#celebration{left:12px;right:12px;bottom:12px;max-width:none}}

@@ -7,6 +7,8 @@ let language:Language='fr';
 export function setLanguage(value:Language) {language=value;}
 export function getLanguage() {return language;}
 export function formatNumber(n:number) {return new Intl.NumberFormat(language==='fr'?'fr-FR':'en-GB',{maximumFractionDigits:1}).format(n);}
+// Short form shared by the interface and the live counters.
+export function formatCompact(n:number) {if(n>=1e12)return formatNumber(n/1e12)+' T';if(n>=1e9)return formatNumber(n/1e9)+' G';if(n>=1e6)return formatNumber(n/1e6)+' M';if(n>=10000)return formatNumber(n/1000)+' k';return formatNumber(n);}
 
 // French is the canonical UI copy. Saved simulation data and player names are never translated.
 export const EN:Record<string,string>={
@@ -287,6 +289,7 @@ Object.assign(EN,{
 Object.assign(EN,{'Temps bloqué · machines actives':'Time blocked · active machines'});
 Object.assign(EN,{'Pour comparer la Serre, capturez une référence où elle est déjà débloquée.':'To compare the greenhouse, capture a reference where it is already unlocked.'});
 Object.assign(EN,LEARNING_EN);
+Object.assign(EN,{'PROTOTYPE 0.5 / AUCUN GAIN HORS LIGNE':'PROTOTYPE 0.5 / NO OFFLINE GAINS','♪ Son actif':'♪ Sound on','♪ Son coupé':'♪ Sound off','NOUVELLE POSSIBILITÉ':'NEW POSSIBILITY','Voir le module':'Show the module','Record de lot':'Batch record','OBJECTIF INDUSTRIEL':'INDUSTRIAL GOAL','Le cœur de Résonance bat':'The heart of Resonance beats','500 000 composants cumulés. L’atelier reste ouvert : continuez à inventer.':'500,000 lifetime components. The workshop stays open: keep inventing.','ORDRE DE GRANDEUR':'ORDER OF MAGNITUDE','Plus de {0} composants/s':'Over {0} components/s','Votre débit moyen vient de gagner un chiffre. Qu’est-ce qui l’a rendu possible ?':'Your average rate just gained a digit. What made it possible?'});
 const escapeRE=(s:string)=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const patterns=Object.entries(EN).filter(([k])=>k.includes('{0}')).sort((a,b)=>b[0].length-a[0].length).map(([key,value])=>({regex:new RegExp('^'+key.split(/\{\d+\}/).map(escapeRE).join('(.+?)')+'$','u'),value,raw:key.startsWith('Invention «')}));
 export function t(text:string):string {

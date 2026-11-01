@@ -79,3 +79,11 @@ test('banc et défi : alimentation habituelle identique, aucune validation ni mu
  const s=factory();upgrade(s,'A','energyLevel');simulate(s,120);const normal=compareLayouts(s,s,'A',60);startChallenge(s,'economy');const raw=serialize(s);
  const during=compareLayouts(s,s,'A',60);assert.deepEqual(during,normal);assert.equal(serialize(s),raw);assert.equal(s.challenges.completed.length,0);
 });
+
+test('compact numbers and effect preferences are safe defaults', async()=>{
+ const {formatCompact,setLanguage}=await import('../src/i18n.ts');const {readEffects,EFFECTS_KEY}=await import('../src/juice.ts');
+ setLanguage('en');assert.equal(formatCompact(12345),'12.3 k');assert.equal(formatCompact(2.5e6),'2.5 M');assert.equal(formatCompact(3e12),'3 T');setLanguage('fr');
+ const store=new Map();const storage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v)};
+ assert.deepEqual(readEffects(storage),{sound:false,volume:.5});store.set(EFFECTS_KEY,'{oops');assert.equal(readEffects(storage).sound,false);
+ store.set(EFFECTS_KEY,JSON.stringify({sound:true,volume:9}));assert.deepEqual(readEffects(storage),{sound:true,volume:.5});
+});
