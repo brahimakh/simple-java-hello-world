@@ -1,5 +1,6 @@
 import {MODULES, LIMITS, type Kind} from './content.ts';
 import {type State} from './engine.ts';
+import {CHALLENGES} from './challenges.ts';
 export const SAVE_KEY='resonance-industrielle-v1';
 export const BACKUP_KEY=SAVE_KEY+'-precedente';
 function requireValue(ok:unknown,message:string):asserts ok {if(!ok)throw Error(`Sauvegarde invalide : ${message}`);}
@@ -40,6 +41,7 @@ export function validate(value:unknown):State {
      requireValue(number(m.clock,8)&&integer(m.streak,4)&&typeof m.last==='number'&&Number.isFinite(m.last)&&m.last>=-1000&&m.last<=s.tick*.1+1e-6&&label(m.status)&&integer(m.processed,1e15),'cycle');
      if(m.routing){requireValue(typeof m.routing.turn==='boolean'&&integer(m.routing.main,1e15)&&integer(m.routing.branch,1e15)&&(m.routing.lastBranch===undefined||typeof m.routing.lastBranch==='boolean')&&(m.routing.target===0||p.lanes.some(dest=>dest.id===m.routing!.target&&dest.id!==l.id)),'aiguillage');}
      if(m.lastPacket){const a=m.lastPacket;requireValue(integer(a.tick)&&a.tick<=s.tick&&number(a.qty,160)&&number(a.quality,LIMITS.quality)&&number(a.marks,160),'mesure');}
+     if(m.lastPacket?.result!==undefined){const a=m.lastPacket;requireValue(m.kind==='press'&&number(a.result)&&[1,8].includes(a.bulk!)&&[1,4].includes(a.catalysis!),'facteurs de pressage');}
      if(m.made!==undefined)requireValue(number(m.made),'mesure');
    }}
  }
@@ -51,6 +53,12 @@ export function validate(value:unknown):State {
  requireValue(Array.isArray(s.history)&&s.history.length>=1&&s.history.length<=121,'historique');let t=-1,total=-1;for(const h of s.history){requireValue(h&&integer(h.tick)&&h.tick<=s.tick&&h.tick>t&&number(h.total)&&h.total>=total&&h.total<=s.produced,'mesure');t=h.tick;total=h.total;}
  requireValue(Array.isArray(s.log)&&s.log.length<=14,'journal');for(const l of s.log)requireValue(l&&integer(l.tick)&&l.tick<=s.tick&&label(l.text),'entrée de journal');
  requireValue(Array.isArray(s.claimed)&&s.claimed.length<=6&&new Set(s.claimed).size===s.claimed.length&&s.claimed.every(x=>['first','lot','loop','duet','flow','final'].includes(x)),'expériences');
+ if(s.challenges!==undefined){
+   const c=s.challenges;const known=(id:unknown)=>CHALLENGES.some(x=>x.id===id);
+   requireValue(c&&Array.isArray(c.completed)&&c.completed.length<=CHALLENGES.length&&new Set(c.completed).size===c.completed.length&&c.completed.every(known),'défis');
+   if(c.result){requireValue(known(c.result.id)&&typeof c.result.success==='boolean'&&['changed','targets','success'].includes(c.result.reason),'résultat de défi');if(c.result.values!==undefined)requireValue(Array.isArray(c.result.values)&&c.result.values.length===3&&c.result.values.every(n=>number(n)),'mesures de défi');}
+   if(c.active!==null){const r=c.active;requireValue(r&&known(r.id)&&integer(r.start)&&r.start<=s.tick&&s.tick-r.start<=600&&typeof r.signature==='string'&&r.signature.length<=10000,'essai de défi');for(const k of ['produced','catalysts','recovered','energy','returned','main','branch'] as const)requireValue(number(r[k]),'mesure de défi');requireValue(r.presses&&typeof r.presses==='object'&&!Array.isArray(r.presses)&&Object.keys(r.presses).length<=6&&Object.entries(r.presses).every(([id,n])=>/^\d+$/.test(id)&&number(n)),'presses de défi');}
+ }
  return s;
 }
 export function serialize(s:State) {validate(s);return JSON.stringify(s);}

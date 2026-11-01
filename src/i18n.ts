@@ -1,5 +1,6 @@
 import {MODULES, UNLOCKS, type Kind} from './content.ts';
 import {EXPERIMENTS} from './engine.ts';
+import {LEARNING_EN} from './learning-en.ts';
 
 export type Language = 'fr' | 'en';
 let language:Language='fr';
@@ -188,7 +189,7 @@ UNLOCKS.forEach(u=>EN[u.text]=unlocks[u.at]);
 const experiments=[['First harmony','Produce 50 lifetime components.'],['Critical mass','Press at least one batch of 80 material.'],['Nothing wasted','Recover 500 material.'],['Industrial dialogue','Produce 30 catalysts in the greenhouse.'],['Steady state','Measure at least 300 components/s over a full 60 s window.'],['The Resonance core','Produce 500,000 lifetime components. No reset: the workshop stays open.']];
 EXPERIMENTS.forEach((e,i)=>{EN[e.name]=experiments[i][0];EN[e.description]=experiments[i][1];});
 Object.assign(EN,{
-  "PROTOTYPE 0.3 / AUCUN GAIN HORS LIGNE": "PROTOTYPE 0.3 / NO OFFLINE PROGRESS",
+  "PROTOTYPE 0.4 / AUCUN GAIN HORS LIGNE": "PROTOTYPE 0.4 / NO OFFLINE PROGRESS",
   "Banc d’essai": "Test bench",
   "Configurer l’aiguillage": "Configure router",
   "Choisir une ligne de destination": "Choose a destination line",
@@ -285,6 +286,7 @@ Object.assign(EN,{
 });
 Object.assign(EN,{'Temps bloqué · machines actives':'Time blocked · active machines'});
 Object.assign(EN,{'Pour comparer la Serre, capturez une référence où elle est déjà débloquée.':'To compare the greenhouse, capture a reference where it is already unlocked.'});
+Object.assign(EN,LEARNING_EN);
 const escapeRE=(s:string)=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 const patterns=Object.entries(EN).filter(([k])=>k.includes('{0}')).sort((a,b)=>b[0].length-a[0].length).map(([key,value])=>({regex:new RegExp('^'+key.split(/\{\d+\}/).map(escapeRE).join('(.+?)')+'$','u'),value,raw:key.startsWith('Invention «')}));
 export function t(text:string):string {

@@ -1,6 +1,20 @@
 # Résonance industrielle — comprendre et commencer
 
-Guide des bases pour la version 0.3. Il explique les règles et les commandes, sans proposer une construction optimale.
+Guide des bases pour la version 0.4. Il explique les règles et les commandes, sans proposer une construction optimale.
+
+## Les nouveaux repères pour tes essais
+
+Commence par sélectionner l’injecteur et comparer ses livraisons de **6 puis 12** : c’est gratuit. Les améliorations d’extraction ou de génération ne sont utiles au débit que si ces alimentations limitent ta chaîne ; leur panneau indique si une pénurie est observée.
+
+Après une modification, lis **Observer ma modification**. L’avant et l’après utilisent des fenêtres de production réelles : laisse le temps aux anciens lots de sortir. Une barre suit ceux qui attendaient déjà devant les presses. Le bouton de comparaison ouvre un essai accéléré des deux plans ; il montre leur potentiel avec des files réinitialisées, pas le délai de transition de ton atelier.
+
+Sélectionne une presse et regarde **Comprendre un lot**. Le résultat de son dernier pressage est décomposé en facteurs. Un marqueur prépare une interaction avec le tisseur ; il ne multiplie pas la production tout seul. À la Fonderie, un accumulateur réglé sur 80 permet d’activer la prime de gros lot. Comparer deux ordres de machines peut changer le résultat sans nouvel achat.
+
+Pour une branche, choisis **Nouvelle ligne → Réception de branche** : son injecteur est suspendu. Sélectionne ensuite cette ligne comme destination dans l’aiguillage. Les nouveaux modificateurs sont ajoutés avant le premier aiguillage ; place les récupérateurs après la presse qui reçoit les lots, y compris si elle est sur la destination. Le diagnostic permet d’examiner un frein ; le schéma montre les trajets récents et atténue les machines que le flux contourne.
+
+À 1 000 composants cumulés, **Expériences → Défis d’invention** propose trois objectifs différents du simple total de production. Prépare ton plan, lance une mesure de 60 secondes et garde les réglages stables pendant cet essai. La pause suspend le chronomètre ; une modification interrompt l’essai. Les résultats expliquent ce qui a été atteint, et tu peux réessayer. Le défi de sobriété plafonne temporairement la génération de Fonderie à 8 énergie/s, puis rétablit les niveaux achetés. Aucun reset ni inscription payante.
+
+Les premières actions restent accompagnées par le guide ; ensuite il propose une expérience à la fois, validée par ce qui s’est réellement passé. Tu peux toujours masquer le guide et explorer librement.
 
 ## 1. Ce que le jeu attend de toi
 

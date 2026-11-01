@@ -10,6 +10,8 @@ function rebuild(s:State,id:PlantId,lanes:Lane[]) {
 }
 function trial(reference:State,layout:State,id:PlantId,duration:number,warmup:number):Trial {
  const s=clone(reference);s.paused=false;s.fault=null;s.pending=[];s.transit=[];s.history=[{tick:s.tick,total:s.produced}];
+ // The bench compares normal layouts; a timed trial must not alter its supplies.
+ if(s.challenges)s.challenges.active=null;
  for(const pid of ['A','B'] as const)rebuild(s,pid,clone(pid===id?layout.plants[pid].lanes:reference.plants[pid].lanes));
  const totalTicks=Math.round((duration+warmup)/DT);let start=s.produced,cat=s.catalystProduced,ore=0,energy=0,blocked=0,observed=0,peak=0,last=0,cycles=0;const series:number[]=[];
  const waits=new Map<string,{kind:Kind;status:string;ticks:number}>();

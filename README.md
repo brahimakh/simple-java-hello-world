@@ -4,6 +4,17 @@ Un jeu incremental solo en français ou en anglais : construire des chaînes de 
 
 Pour comprendre le rôle du joueur et faire un premier essai : lire [le guide des bases](GUIDE-JOUEUR.md). Il comprend aussi un petit cadre pour partager ses remarques.
 
+## Nouveautés 0.4 : comprendre chaque changement
+
+- Le guide propose un premier réglage gratuit de l’injecteur, puis une seule expérience accompagnée à la fois : qualité, ordre des empreintes, branche et coopération. Les achats restent libres.
+- Les infrastructures indiquent si une pénurie est observée. Acheter de l’alimentation ne change pas la vitesse propre des machines.
+- Après un achat, déplacement ou réglage, **Observer ma modification** montre le débit avant/après, le nombre d’anciens lots encore devant les presses et les cycles des machines ajoutées. Son bouton compare directement les plans au banc, sans modifier la partie. La référence créée par ce bouton remplace celle du banc ; elle reste temporaire jusqu’à une mémorisation manuelle.
+- Dans l’inspecteur, **Comprendre un lot** montre les propriétés réelles de la dernière sortie. Pour une presse, les facteurs et le résultat exact sont conservés : matière, qualité, prime de gros lot et catalyse. Les lots des différentes machines ne sont pas nécessairement le même lot.
+- Une nouvelle ligne demande son rôle : alimentation propre ou réception de branche avec injecteur suspendu. Les nouveaux modificateurs s’insèrent avant le premier aiguillage. Les branches sans destination sont prioritaires dans le diagnostic ; le schéma signale les trajets récents et les machines contournées. La récupération reste à placer après la presse qui reçoit effectivement les lots.
+- Trois **défis d’invention** facultatifs ouvrent à 1 000 composants cumulés, dans **Expériences** : sobriété, distribution entre deux presses et symbiose entre usines. Chacun mesure 60 secondes actives, conserve un badge et les résultats mesurés, sans dotation. Modifier la configuration interrompt l’essai ; la pause suspend sa durée. Le défi de sobriété limite temporairement la génération de Fonderie à 8 énergie/s, puis rend vos niveaux habituels, y compris sur une partie déjà améliorée.
+
+Les sauvegardes v1 restent compatibles. Le suivi avant/après est temporaire et repart après la prochaine modification lors d’un rechargement ; les essais de défis en cours et badges sont sauvegardés. Les résonateurs et leurs multiplicateurs sont conservés. Aucun reset requis.
+
 ## Jouer sous Windows
 
 Dossier : **E:\ChatGPTWork\Resonance-Industrielle**.
@@ -88,8 +99,8 @@ Le moteur de test reste dans le processus courant pour fonctionner dans l’envi
 
 Onze familles de modules, deux installations, branches entre lignes, banc d’essai, plans de configurations, encapsulation, six expériences, objectif final et poursuite libre. Chaque ligne reste ordonnée et typée ; les aiguillages relient les lignes d’une même installation. Pas de routage libre entre cartes arbitraires, de prestige, de son ou de récursion d’inventions.
 
-Compilation, typage, **54 tests automatisés** et mesures de progression vérifiés. Les tests exécutent aussi les boutons, formulaires et changements de langue dans un DOM simulé avec Happy DOM, dépendance de développement uniquement. Ils couvrent le guide, les pages anglaises, les règles chiffrées bilingues, les branches et leur capacité, les empreintes, les boucles, les sauvegardes, les configurations et le banc d’essai sans mutation de la partie.
+Compilation, typage, **68 tests automatisés** et mesures de progression vérifiés. Les tests exécutent aussi les boutons, formulaires et changements de langue dans un DOM simulé avec Happy DOM, dépendance de développement uniquement. Ils couvrent le guide, les pages anglaises, les règles chiffrées bilingues, les branches et leur capacité, les empreintes, les boucles, les sauvegardes, les configurations et le banc d’essai sans mutation de la partie.
 
-**Le parcours visuel dans un vrai navigateur reste à confirmer** : lors de cette mise à jour, la fenêtre du jeu dans Brave a été repérée, mais la capture a échoué avec `Computer Use app approval timed out`. Aucune commande de jeu n’a été envoyée dans votre navigateur. Les tests DOM ne mesurent pas la mise en page sur votre écran. Aucun outil supplémentaire n’est requis pour jouer à la version compilée.
+Le navigateur intégré a permis de contrôler réellement l’atelier, le réglage de l’injecteur, le panneau avant/après, le dialogue du rôle d’une ligne et les défis en anglais. Les essais actifs et leurs résultats sont également couverts par les tests DOM. La lisibilité sur toutes les tailles d’écran et une partie humaine prolongée restent à évaluer. Aucun outil supplémentaire n’est requis pour jouer à la version compilée.
 
 La cible de découverte de 2–4 heures n’est pas atteinte comme résultat établi : une politique automatisée simple termine en environ 45 minutes, et des assemblages plus puissants peuvent aller plus vite. Aucun playtest humain de plusieurs heures n’est revendiqué. Voir `DESIGN.md`, `BALANCE.md` et `PASSATION.md` pour les hypothèses et la suite.

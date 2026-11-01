@@ -6,6 +6,7 @@ import {createState,simulate,insertModule,encapsulate,saveConfiguration,addLane,
 import {t,EN} from '../src/i18n.ts';
 import {serialize,SAVE_KEY} from '../src/save.ts';
 import {defaultPreferences,PREFERENCES_KEY} from '../src/onboarding.ts';
+import {startChallenge} from '../src/challenges.ts';
 
 // DOM integration, not a visual browser test. Timers are deliberately disabled.
 async function mount({state,preferences}={}) {
@@ -35,6 +36,50 @@ test('interface : premiers pas, sélection réelle, aide globale, langue révers
    assert.equal(JSON.parse(ui.window.localStorage.getItem(PREFERENCES_KEY)).language,'fr');
  }finally{await ui.close();}
 });
+
+function translatedScreen(ui,root='main') {
+ ui.lang('fr');const french=[];const d=ui.document;const walker=d.createTreeWalker(d.querySelector(root),4);let node;
+ while(node=walker.nextNode())if(!node.parentElement.closest('[data-user-text],script,style')&&/[a-zà-ÿ]{2}/i.test(node.textContent))french.push(node.textContent.trim());
+ ui.lang('en');assert.deepEqual(french.filter(x=>t(x)===x&&EN[x]!==x&&!/^\d+(?: \/ 10)? (?:machines|cycles)$/.test(x)),[],root+' contains untranslated copy');
+}
+
+test('interface apprentissage : réglage gratuit, observation, comparaison et choix du rôle de ligne',async()=>{
+ const s=createState();simulate(s,45);s.paused=true;
+ const ui=await mount({state:s});try{
+   const {document:d,click}=ui;click('guide-intake');const select=d.querySelector('[data-param]');select.value='12';select.dispatchEvent(new ui.window.Event('change',{bubbles:true}));
+   assert.match(d.querySelector('.change-panel').textContent,/Observer ma modification/);assert.match(d.querySelector('.change-panel').textContent,/45/);translatedScreen(ui);
+   click('change-compare');assert.ok(d.querySelector('.bench-results'));assert.match(d.querySelector('.bench-intro').textContent,/old batches keep/);
+   click('nav','[data-view="atelier"]');ui.lang('fr');click('add-lane');assert.match(d.querySelector('#dialog').textContent,/Alimentation propre/);translatedScreen(ui,'#dialog');click('close');click('add-lane');assert.match(d.querySelector('#dialog').textContent,/Own supply/);click('add-branch-line');click('save');
+   const saved=JSON.parse(ui.window.localStorage.getItem(SAVE_KEY));assert.equal(saved.plants.A.lanes[1].machines[0].connected,false);assert.ok(d.querySelector('.change-panel'));
+ }finally{await ui.close();}
+});
+
+test('interface explication : calcul réel, diagnostic de destination et défis bilingues',async()=>{
+ const s=createState();s.produced=2000;s.plants.A.stock.components=10000;const l=s.plants.A.lanes[0];
+ for(const k of ['cadence','stamp','batch','weave'])insertModule(s,'A',l.id,k);l.machines.find(m=>m.kind==='batch').param=80;simulate(s,120);s.paused=true;
+ const ui=await mount({state:s});try{
+   const {document:d,click}=ui;
+   for(const kind of ['press','batch','stamp','weave']){click('select-module',`[data-id="${l.machines.find(m=>m.kind===kind).id}"]`);translatedScreen(ui);}
+   assert.match(d.querySelector('.lot-study').textContent,/imprints/);
+   ui.lang('fr');click('add-module','[data-kind="router"]');assert.match(d.querySelector('.diagnosis').textContent,/Choisir une ligne de destination/);click('save');const routerId=JSON.parse(ui.window.localStorage.getItem(SAVE_KEY)).plants.A.lanes[0].machines.find(m=>m.kind==='router').id;click('network-module',`[data-id="${routerId}"]`);translatedScreen(ui);
+   click('nav','[data-view="experiments"]');assert.equal(d.querySelectorAll('.challenge-grid article').length,3);translatedScreen(ui);click('challenge-start','[data-id="economy"]');assert.match(d.querySelector('.challenge-grid').textContent,/Energy preserved/);translatedScreen(ui);click('challenge-stop');
+ }finally{await ui.close();}
+});
+
+test('interface défi terminé : valeurs mesurées et résultat conservés dans les deux langues',async()=>{
+ const s=createState();s.produced=2000;startChallenge(s,'network');simulate(s,60);s.paused=true;
+ const ui=await mount({state:s});try{ui.click('nav','[data-view="experiments"]');assert.equal(ui.document.querySelectorAll('.challenge-result li').length,3);translatedScreen(ui);assert.match(ui.document.querySelector('.challenge-result').textContent,/Local batches/);}finally{await ui.close();}
+});
+
+test('interface défi actif : plafond et chronomètre restent explicites hors du carnet',async()=>{
+ const s=createState();s.produced=2000;s.plants.A.energyLevel=2;startChallenge(s,'economy');s.paused=true;
+ const ui=await mount({state:s});try{
+   assert.match(ui.document.querySelector('.trial-notice').textContent,/8 énergie\/s/);assert.match(ui.document.querySelector('.resource-energy').textContent,/\+8\/s/);translatedScreen(ui);
+   ui.click('nav','[data-view="overview"]');assert.match(ui.document.querySelector('.trial-notice').textContent,/Foundry generation limited/);translatedScreen(ui);
+   ui.click('nav','[data-view="atelier"]');ui.click('select-module',`[data-id="${s.plants.A.lanes[0].machines[0].id}"]`);const el=ui.document.querySelector('[data-param]');el.value='12';el.dispatchEvent(new ui.window.Event('change',{bubbles:true}));assert.equal(ui.document.querySelector('.trial-notice'),null);
+   ui.click('nav','[data-view="experiments"]');assert.match(ui.document.querySelector('.trial-warning').textContent,/Trial interrupted/);
+ }finally{await ui.close();}
+});
 test('interface : une partie existante reste identique au changement de langue ; guide achevable par sauvegarde',async()=>{
  const s=createState();simulate(s,18);insertModule(s,'A',s.plants.A.lanes[0].id,'cadence');simulate(s,3);s.paused=true;
  const prefs=defaultPreferences();prefs.language='en';prefs.guide.intake=prefs.guide.press=prefs.guide.rate=true;
@@ -43,7 +88,7 @@ test('interface : une partie existante reste identique au changement de langue ;
    assert.match(d.querySelector('#onboarding').textContent,/5. Keep an idea/);
    lang('fr');lang('en');assert.equal(ui.window.localStorage.getItem(SAVE_KEY),raw);
    click('save-config');const input=d.querySelector('#name-form input');input.value='Presse & <my plan>';d.querySelector('#name-form').dispatchEvent(new ui.window.Event('submit',{bubbles:true,cancelable:true}));
-   assert.match(d.querySelector('#onboarding').textContent,/The workshop is yours/);
+   assert.match(d.querySelector('#onboarding').textContent,/Deliver an improved batch/);
    click('nav','[data-view="library"]');assert.equal(d.querySelector('.config-row [data-user-text]').textContent,'Presse & <my plan>');
    assert.ok(JSON.parse(ui.window.localStorage.getItem(SAVE_KEY)).configurations.some(x=>x.name==='Presse & <my plan>'));
    lang('fr');assert.equal(d.querySelector('.config-row [data-user-text]').textContent,'Presse & <my plan>');
