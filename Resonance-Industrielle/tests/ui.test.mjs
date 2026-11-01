@@ -136,3 +136,16 @@ test('interface banc : capture, modification d’ordre, vraie comparaison, bilin
    const french=[];const walker=d.createTreeWalker(d.querySelector('main'),4);let node;while(node=walker.nextNode())if(!node.parentElement.closest('[data-user-text],script,style')&&/[a-zà-ÿ]{2}/i.test(node.textContent))french.push(node.textContent.trim());lang('en');assert.deepEqual(french.filter(x=>t(x)===x&&EN[x]!==x),[]);
  }finally{await ui.close();}
 });
+
+test('interface mobile : tiroir de machine refermable, menu complet et retour sonore désactivé par défaut',async()=>{
+ const ui=await mount();try{
+   const {document:d,click}=ui;
+   assert.match(d.querySelector('.sound-button').textContent,/Son coupé/);
+   click('select-module',`[data-id="${d.querySelectorAll('.node')[1].dataset.id}"]`);assert.ok(d.querySelector('.inspector.has-machine'));click('deselect');assert.equal(d.querySelector('.inspector.has-machine'),null);
+   click('menu');const menu=d.querySelector('#dialog .mobile-menu');assert.ok(menu);
+   for(const action of ['save','export','import','help','reset','sound'])assert.ok(menu.querySelector(`[data-action="${action}"]`),action);
+   assert.ok(menu.querySelector('[data-language]'));
+   menu.querySelector('[data-action="save"]').click();assert.equal(d.querySelector('#dialog').open,false,'a menu action closes the menu');
+   assert.ok(d.querySelector('[data-live="rate"]')&&d.querySelector('[data-live="stock"][data-resource="components"]'));
+ }finally{await ui.close();}
+});

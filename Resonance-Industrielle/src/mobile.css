@@ -1,0 +1,112 @@
+/* Phone layout: bottom tab bar, compact sticky header, horizontally scrolling strips, machine details in a bottom sheet. */
+.mobile-hud,.plant-switch,.menu-button,.sheet-close{display:none}
+button,select,a{touch-action:manipulation}
+
+@media (max-width:760px){
+ :root{--tabbar:calc(60px + env(safe-area-inset-bottom,0px))}
+ body{overflow-x:hidden;-webkit-text-size-adjust:100%}
+ main{margin:0;padding-bottom:var(--tabbar)}
+
+ /* Bottom navigation */
+ .sidebar{position:fixed;inset:auto 0 0 0;width:auto;height:var(--tabbar);padding:0 0 env(safe-area-inset-bottom,0px);flex-direction:row;align-items:stretch;border:0;border-top:1px solid var(--border);background:#121c1fee;backdrop-filter:blur(14px);z-index:45}
+ .sidebar .brand,.sidebar-section,.plant-nav,.sidebar-bottom{display:none!important}
+ .sidebar nav{display:flex;flex-direction:row;flex:1;margin:0;gap:0}
+ .sidebar nav button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 2px;font-size:9.5px;line-height:1.15;text-align:center;border:0;border-radius:0;background:transparent;position:relative;white-space:normal}
+ .sidebar nav button span{display:block!important;font-size:17px;line-height:1}
+ .sidebar nav button.active{color:var(--teal);background:#91ddc012;box-shadow:inset 0 2px var(--teal)}
+ .sidebar nav .notification{position:absolute;top:7px;right:calc(50% - 16px)}
+
+ /* Sticky compact header */
+ .topbar{position:sticky;top:0;z-index:30;height:auto;min-height:54px;padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top,0px));gap:8px}
+ .topbar>div:first-child{display:none}
+ .topbar>div{width:100%;display:flex;align-items:center;gap:8px;justify-content:flex-end}
+ .topbar .language-picker,.topbar .sound-button,.topbar .session-time,.topbar .engine-status{display:none}
+ .mobile-hud{display:flex;gap:14px;align-items:baseline;margin-right:auto;font-variant-numeric:tabular-nums}
+ .mobile-hud strong{font-size:20px;font-weight:600;color:var(--teal)}
+ .mobile-hud span:last-child strong{color:var(--text);font-size:16px}
+ .mobile-hud small{color:var(--muted);margin-left:2px}
+ .mobile-hud i{font-style:normal;color:var(--muted);margin-right:4px}
+ .plant-switch{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
+ .plant-switch button{border:0;border-radius:0;padding:7px 9px;font-size:11px;min-height:36px}
+ .plant-switch button.active{background:#91ddc022;color:var(--teal)}
+ .pause-button,.menu-button{min-height:38px;min-width:42px;padding:6px 10px}
+ .menu-button{display:inline-block;font-size:18px}
+
+ .content{padding:12px 12px 20px}
+ .hero{display:none}
+ footer{display:none}
+
+ /* Resources: one swipeable row */
+ .resources{display:flex;overflow-x:auto;gap:8px;margin:0 -12px 12px;padding:0 12px 4px;scroll-snap-type:x proximity;scrollbar-width:none}
+ .resources::-webkit-scrollbar{display:none}
+ .resource{flex:0 0 auto;min-width:118px;padding:10px 12px;scroll-snap-align:start}
+ .resource strong{font-size:21px}
+ .resource-label{font-size:9px}
+ .resource>.muted{font-size:9px}
+
+ /* Progress: keep the next unlock, swipe the milestones */
+ .progress-deck{padding:14px;margin-bottom:12px}
+ .progress-heading h2{font-size:15px}
+ .lifetime-total strong{font-size:20px}
+ .milestone-track{display:flex;overflow-x:auto;gap:14px;padding-bottom:6px;scrollbar-width:none}
+ .milestone-track::-webkit-scrollbar{display:none}
+ .milestone-track li{flex:0 0 auto}
+ .industrial-goal{display:none}
+
+ /* Guide: shorter */
+ .game-loop{display:none}
+ .guide-intro p,.guide-task p{font-size:13px}
+
+ .diagnosis{font-size:12px;padding:10px 12px;flex-wrap:wrap;gap:6px}
+ .atelier-grid{display:block}
+ .right-column{display:block}
+ .right-column>*{margin-top:12px}
+ .panel{padding:14px}
+ .section-head{flex-wrap:wrap;gap:8px}
+ .section-head h2{font-size:18px}
+
+ /* Workshop */
+ .network-frame{overflow-x:auto}
+ .network-map{min-width:560px}
+ .lane-tabs{display:flex;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+ .lane-tabs button{flex:0 0 auto}
+ .line-toolbar{flex-direction:column;align-items:flex-start;gap:8px}
+ .line-toolbar>div{display:flex;flex-wrap:wrap;gap:6px}
+ .node-strip{scroll-snap-type:x mandatory;min-height:0;margin:0 -14px;padding:4px 14px 14px;scroll-padding:14px}
+ .node-wrap{scroll-snap-align:start}
+ .node{width:150px;min-height:200px;padding:12px}
+ .node .node-io,.node .packet-detail{display:none}
+ .connection{min-width:34px;min-height:44px}
+ .workshop-footer{flex-wrap:wrap;gap:6px}
+
+ /* Catalog: compact list, big add buttons */
+ .catalog-grid{grid-template-columns:1fr!important;gap:8px}
+ .module-offer{padding:12px}
+ .module-offer p{font-size:12px}
+ .module-offer.locked p,.module-offer.locked .offer-hint{display:none}
+ .module-offer.locked h3::after{content:" · 🔒";color:var(--muted);font-weight:400}
+ .module-offer.locked{padding:10px 12px;opacity:.7}
+ .offer-actions button{min-height:40px;min-width:44px}
+
+ /* Machine details as a bottom sheet */
+ .inspector:not(.has-machine){display:none}
+ .inspector.has-machine{position:fixed;left:0;right:0;bottom:var(--tabbar);z-index:40;max-height:64vh;overflow-y:auto;margin:0!important;border-radius:16px 16px 0 0;border:1px solid #91ddc055;border-bottom:0;box-shadow:0 -18px 50px #000b;padding:18px 16px 20px;overscroll-behavior:contain}
+ .inspector.has-machine::before{content:"";display:block;width:40px;height:4px;border-radius:2px;background:#ffffff33;margin:-8px auto 10px}
+ .sheet-close{display:block;position:sticky;top:0;float:right;margin:-6px -4px 0 8px;min-width:40px;min-height:40px;z-index:2;background:#1b282b}
+ .inspector select,.inspector button{min-height:40px}
+
+ /* Dialogs, toasts, celebrations above the tab bar */
+ dialog{width:calc(100vw - 20px);max-width:none;max-height:calc(100vh - var(--tabbar) - 30px);padding:18px;margin:auto}
+ #toast{left:50%;bottom:calc(var(--tabbar) + 12px);max-width:calc(100vw - 24px)}
+ #celebration{left:10px;right:10px;bottom:calc(var(--tabbar) + 10px);max-width:none}
+ .mobile-menu{display:flex;flex-direction:column;gap:10px}
+ .mobile-menu .menu-row{display:flex;gap:8px}
+ .mobile-menu .menu-row button{flex:1;min-height:42px}
+ .mobile-menu .wide{width:100%;min-height:42px}
+ .mobile-menu .language-picker{display:flex;align-items:center;gap:10px}
+ .mobile-menu select{margin:0}
+
+ /* Other pages */
+ .library-grid,.experiment-grid,.challenge-grid,.guide-columns{grid-template-columns:1fr!important}
+ table{display:block;overflow-x:auto}
+}

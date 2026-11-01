@@ -9,6 +9,13 @@ Mise à jour du 1er novembre 2026. Le projet vit désormais dans le dossier `Res
 - `scripts/standalone.mjs` (esbuild, dépendance de développement) : génère `Resonance-Industrielle.html`, jouable par double-clic.
 - 69 tests passent (Node 22 : `--experimental-test-isolation=none` ; Node 24 : `--test-isolation=none`).
 
+## Mobile
+
+- `src/mobile.css` (≤ 760 px) : barre d’onglets, en-tête compact collant (débit, composants, Fonderie/Serre, pause, menu ☰), bandeaux défilants, tiroir de machine (`.inspector.has-machine`, action `deselect`), menu (`menu`).
+- Les positions de défilement des bandeaux et du tiroir sont conservées entre deux reconstructions.
+- Sur claude.ai, l’export passe par la capacité `downloads`.
+- Liste d’idées : `IDEES.md`.
+
 ## Prochain chantier proposé
 
 La partie se termine en 6 à 14 minutes simulées alors que la cible est de 2 à 4 heures, et la répétition de résonateurs reste la voie la plus rapide. Avant de rééquilibrer, recueillir le ressenti du joueur sur la 0.5.

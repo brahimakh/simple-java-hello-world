@@ -8,6 +8,10 @@ Pour comprendre le rôle du joueur et faire un premier essai : lire [le guide de
 
 Double-cliquez sur **Resonance-Industrielle.html**. Le jeu complet tient dans ce fichier : pas de Node.js, de serveur ni de connexion. Les sauvegardes sont propres au navigateur et à ce fichier : celles de la version servie sur http://127.0.0.1:4317 n’y apparaissent pas. Pour transférer une partie, utilisez **Exporter** puis **Importer**.
 
+## Jouer sur mobile
+
+La mise en page s’adapte aux téléphones : onglets en bas d’écran, compteurs en haut, schéma et machines qui défilent au doigt, réglages d’une machine dans un tiroir, menu ☰ pour la langue, le son, les sauvegardes et la nouvelle partie. Le plus simple est d’ouvrir la page du jeu sur claude.ai depuis le téléphone ; `node scripts/artifact.mjs` régénère cette version.
+
 ## Nouveautés 0.5 : une usine qui se sent vivre
 
 - **Chiffres qui comptent** : les réserves, la production cumulée et le débit défilent en douceur au lieu de sauter toutes les 0,8 s. Les barres de cycle des machines avancent en continu.
