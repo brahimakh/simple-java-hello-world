@@ -149,3 +149,14 @@ test('interface mobile : tiroir de machine refermable, menu complet et retour so
    assert.ok(d.querySelector('[data-live="rate"]')&&d.querySelector('[data-live="stock"][data-resource="components"]'));
  }finally{await ui.close();}
 });
+
+test('interface puzzles : la partie est mise de côté, le puzzle se résout, puis la partie reprend intacte',async()=>{
+ const s=createState();simulate(s,30);const ui=await mount({state:s});try{
+   const {document:d,click}=ui;const before=JSON.parse(ui.window.localStorage.getItem(SAVE_KEY)).tick;
+   click('nav','[data-view="experiments"]');assert.equal(d.querySelectorAll('.puzzle').length,6);click('puzzle-start','[data-id="p1"]');
+   assert.match(d.querySelector('.puzzle-banner').textContent,/Premier accord/);assert.equal(d.querySelectorAll('[data-action="add-module"]:not([disabled])').length,1);
+   click('add-module','[data-kind="cadence"]');click('save');assert.equal(JSON.parse(ui.window.localStorage.getItem(SAVE_KEY)).tick,before,'the real game is saved, not the puzzle');
+   click('puzzle-exit');assert.equal(d.querySelector('.puzzle-banner'),null);click('nav','[data-view="atelier"]');assert.equal(d.querySelectorAll('.node').length,2);
+   click('puzzle-start','[data-id="daily"]');click('daily-measure');assert.match(d.querySelector('#dialog').textContent,/composants\/s/);click('close');click('puzzle-exit');
+ }finally{await ui.close();}
+});

@@ -37,6 +37,8 @@ export function validate(value:unknown):State {
  for(const k of ['tick','nextId'] as const)requireValue(integer(s[k]),k);
  for(const k of ['produced','catalystProduced','recovered','largestLot','peak','totalSpent'] as const)requireValue(number(s[k]),k);
  requireValue(s.plasmaProduced===undefined||number(s.plasmaProduced),'plasma');
+ requireValue(s.allowed===undefined||Array.isArray(s.allowed)&&s.allowed.length<=20&&s.allowed.every(k=>Object.hasOwn(MODULES,k)),'modules permis');
+ requireValue(s.puzzle===undefined||typeof s.puzzle==='string'&&s.puzzle.length<=32,'puzzle');
  requireValue(s.variant===undefined||['standard','slow','small','nores'].includes(s.variant),'variante');
  requireValue(typeof s.paused==='boolean'&&(s.fault===null||label(s.fault)),'état du moteur');
  requireValue(s.plants&&Object.keys(s.plants).length===3,'installations');

@@ -18,7 +18,7 @@ export interface Sample {tick:number; total:number;}
 export interface Transit {plant:PlantId;target:number;packet:Packet;}
 export type Variant='standard'|'slow'|'small'|'nores';
 export interface State {version:1; tick:number; nextId:number; plants:Record<PlantId,Plant>; produced:number; catalystProduced:number; recovered:number; largestLot:number; peak:number; totalSpent:number; library:Blueprint[]; configurations:Configuration[]; transfers:Transfer[]; pending:Pending[]; history:Sample[]; log:{tick:number;text:string}[]; claimed:string[]; paused:boolean; fault:string|null;transit?:Transit[];challenges?:ChallengeState;
- plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState;}
+ plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string;}
 export const clone = <T>(x:T):T => structuredClone(x);
 export const TRANSFERS:Omit<Transfer,'enabled'|'moved'>[] = [
  {resource:'residue',from:'A',to:'B',rate:20},{resource:'catalyst',from:'B',to:'A',rate:4},
@@ -40,7 +40,7 @@ export function discover(s:State,id:string) {const d=(s.discoveries??=[]);if(!d.
 // Rules that depend on the run: variant, patents and refoundations. All of them are shown in the interface.
 export const variantOf=(s:State):Variant=>s.variant??'standard';
 export function unlockAt(s:State,k:Kind) {if(variantOf(s)==='nores'){if(k==='cadence')return Infinity;if(k==='harmonic')return 10;}return MODULES[k].unlock;}
-export function unlocked(s:State,k:Kind) {return s.produced>=unlockAt(s,k);}
+export function unlocked(s:State,k:Kind) {if(s.allowed&&k!=='intake'&&k!=='press'&&!s.allowed.includes(k))return false;return s.produced>=unlockAt(s,k);}
 export function plantUnlockAt(s:State,id:PlantId) {return id==='C'&&(s.progress?.refounds??0)>0?1e4:PLANT_UNLOCK[id];}
 export function plantUnlocked(s:State,id:PlantId) {return s.produced>=plantUnlockAt(s,id);}
 export const lanesMax=(s:State)=>LIMITS.lanes+(hasPatent(s,'lanes')?2:0);

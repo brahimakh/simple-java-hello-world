@@ -62,3 +62,13 @@
 .contract p{text-wrap:pretty}
 @media (max-width:760px){.topbar>div{flex-wrap:nowrap}.mobile-hud strong{font-size:17px}}
 @media (max-width:760px){.topbar .showcase-button{display:none}}
+.puzzle-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:12px}
+.puzzle{padding:14px;border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.puzzle h3{margin:0;font-size:15px}.puzzle p{margin:0;color:var(--muted);font-size:12px;line-height:1.45;flex:1}
+.puzzle.solved{border-color:#91ddc066}.puzzle.solved .eyebrow{color:var(--teal)}
+.puzzle.daily{border-color:#ffd47966;background:#ffd4790a}.puzzle button{align-self:flex-start}
+.puzzle-banner{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 18px;margin-bottom:14px;border:1px solid #ffd47977;border-radius:10px;background:linear-gradient(135deg,#2e2a1d,#162224)}
+.puzzle-banner h2{margin:4px 0;font-size:18px}.puzzle-banner .eyebrow{color:#ffd479}.puzzle-banner p{margin:4px 0;font-size:13px}
+.puzzle-banner progress{width:min(320px,100%)}
+.puzzle-actions{display:flex;gap:8px;flex-wrap:wrap}
+:root.puzzle-mode .sidebar nav button:not([data-view="atelier"]):not([data-view="guide"]),:root.puzzle-mode .plant-nav,:root.puzzle-mode .plant-switch,:root.puzzle-mode #onboarding{display:none!important}

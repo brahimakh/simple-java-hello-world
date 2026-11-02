@@ -35,5 +35,7 @@ await screen(s,async({d,click,collect})=>{
  for(const p of ['B','C']){click(`[data-view="atelier"]`);click(`.plant-nav [data-plant="${p}"]`);collect('#app');}
  const dialogs=[['[data-view="atelier"]','[data-action="estimate"]'],['[data-view="library"]','[data-action="share-blueprint"]'],['[data-view="library"]','[data-action="import-code"]'],['[data-view="experiments"]','[data-action="refound"]'],['[data-view="atelier"]','[data-action="reset"]'],['[data-view="atelier"]','[data-action="menu"]'],['[data-view="atelier"]','[data-resource="plasma"]'],['[data-view="atelier"]','[data-action="rate"]'],['[data-view="atelier"]','[data-action="add-lane"]']];
  for(const [nav,btn] of dialogs){click('#dialog [data-action="close"]');click(nav);click(btn);if(d.querySelector('#dialog').open)collect('#dialog');click('#dialog [data-action="close"]');}
+ click('#dialog [data-action="close"]');click('[data-view="experiments"]');click('[data-action="puzzle-start"][data-id="p1"]');collect('#app');click('[data-action="puzzle-exit"]');
+ click('[data-view="experiments"]');click('[data-action="puzzle-start"][data-id="daily"]');collect('#app');click('[data-action="daily-measure"]');if(d.querySelector('#dialog').open)collect('#dialog');
 });
 console.log([...missing].map(x=>JSON.stringify(x)).join('\n')||'Aucun texte manquant.');
