@@ -61,3 +61,4 @@
 @media (max-width:420px){.discovery-grid,.badge-grid,.patent-grid,.contract-grid{grid-template-columns:1fr}}
 .contract p{text-wrap:pretty}
 @media (max-width:760px){.topbar>div{flex-wrap:nowrap}.mobile-hud strong{font-size:17px}}
+@media (max-width:760px){.topbar .showcase-button{display:none}}
