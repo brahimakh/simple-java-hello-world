@@ -15,6 +15,7 @@ export function timelineLabel(text:string) {
  if(kind==='brevet')return `${t('Brevet')} · ${t(PATENTS.find(d=>d.id===id)?.name??id)}`;
  if(kind==='contrat')return t('Contrat rempli');
  if(kind==='refondation')return t('Refondation du laboratoire');
+ if(kind==='eureka')return t('Eurêka');if(kind==='spécialité')return `${t('Spécialité')} · ${t(id)}`;
  return t(text);
 }
 
@@ -38,6 +39,7 @@ export function notebookPage(s:State,meta:Meta,ghostBase:Meta) {
  <p class="tiny muted">${t('Échelle logarithmique : chaque trait est un ordre de grandeur. Les points marquent vos découvertes, badges et déblocages. La ligne pointillée est votre record.')}</p>
  ${delta?`<p class="ghost-note ${delta.delta<=0?'ahead':''}">${delta.delta<=0?t('En avance sur votre record'):t('En retard sur votre record')} · ${power(delta.order)} · ${clock(Math.abs(delta.delta)*10)}</p>`:''}
  <div class="tier-row">${(s.tierTicks??[]).map((tick,i)=>`<span><b>${power(i+1)}</b> ${clock(tick)}</span>`).join('')}</div></section>
+ ${(s.eurekas??[]).length?`<section class="panel"><h3>Moments Eurêka</h3><div class="eureka-list">${[...(s.eurekas??[])].reverse().map(e=>`<div><b>×${fmt(e.ratio)}</b><span>${fmt(e.before)}/s → ${fmt(e.after)}/s</span><small>${clock(e.tick)}</small></div>`).join('')}</div></section>`:''}
  <section class="panel"><h3>Découvertes</h3><p class="muted">${t('Le carnet reconnaît les combinaisons remarquables quand elles se produisent réellement. Les découvertes manquantes restent masquées ; seule la famille concernée est indiquée quand vous la possédez.')}</p>
  <div class="discovery-grid">${DISCOVERIES.map(d=>found.has(d.id)?`<article class="discovery found"><span class="eyebrow">✦ ${clock(found.get(d.id)!)}</span><h4>${t(d.name)}</h4><p>${t(d.text)}</p></article>`:`<article class="discovery"><span class="eyebrow">???</span><h4>${unlocked(s,d.hint)?t('Concerne') +' : '+t(MODULES[d.hint].name):t('Indice verrouillé')}</h4></article>`).join('')}</div>
  ${p.legacy>1?`<p class="rule-note">${t('Mémoire du laboratoire')} : ×${fmt(p.legacy)} ${t('sur chaque presse de Fonderie (refondation).')}</p>`:''}</section>

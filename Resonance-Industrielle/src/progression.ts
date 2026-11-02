@@ -1,7 +1,8 @@
 // Long-term goals layered on top of the simulation: contracts, patents, badges, discoveries and one refoundation.
 // Everything here is deterministic and derived from real production; nothing is random or timed against the player.
 import type {State,Variant} from './engine.ts';
-import {measuredRate,createState,clone,mark,variantOf} from './engine.ts';
+import {measuredRate,createState,clone,mark,variantOf,unlocked,unlockAt,plantUnlocked} from './engine.ts';
+import {journeyActive} from './journey.ts';
 import type {Kind} from './content.ts';
 export interface Contract {kind:string;goal:number;base:number;reward:number;patents:number;start:number;level:number;}
 export interface ProgressState {points:number;patents:string[];contract:Contract|null;done:number;badges:string[];refounds:number;legacy:number;}
@@ -26,6 +27,7 @@ export function buyPatent(s:State,id:string) {
 // ---------- Discoveries: notable combinations, recognized by the engine, never listed in advance ----------
 export const DISCOVERIES:{id:string;name:string;text:string;hint:Kind}[]=[
  {id:'accord',name:'Accord parfait',text:'Un résonateur atteint 4 accords : ×5 sur la qualité.',hint:'cadence'},
+ {id:'accord5',name:'Accord serré',text:'Un résonateur à fenêtre courte atteint 5 accords : ×6.',hint:'cadence'},
  {id:'bulk',name:'Masse critique',text:'Un lot de 80 matières déclenche la prime ×8 de la presse.',hint:'batch'},
  {id:'order',name:'L’ordre compte',text:'Des empreintes réunies avant le tisseur : au moins ×4 d’un coup.',hint:'weave'},
  {id:'weave8',name:'Tissage complet',text:'Sept empreintes sur un même lot : le tisseur donne ×8.',hint:'weave'},
@@ -105,8 +107,16 @@ export function contractText(c:Contract) {
  const g=compact(c.goal);
  return c.kind==='quality'?`Presser ${g} lots de qualité ≥ ×${compact(10**c.level)}`:c.kind==='bulk'?`Presser ${g} lots avec prime de gros lot`:c.kind==='rate'?`Mesurer ${g} composants/s sur 60 s`:c.kind==='catalyst'?`Produire ${g} catalyseurs`:c.kind==='loops'?`Renvoyer ${g} lots par un filtre`:c.kind==='harmony'?`Obtenir ${g} harmonies`:c.kind==='bicolor'?`Tisser ${g} lots bicolores`:`Produire ${g} plasma`;
 }
+// Eureka: a change followed, 30 to 180 s later, by a stable rate at least ×5 the rate before it.
+export const EUREKA_RATIO=5;
+export function checkEureka(s:State) {
+ const c=s.lastChange;if(!c||s.puzzle)return;const age=s.tick-c.tick;if(age>1800){delete s.lastChange;return;}if(age<300)return;
+ const now=measuredRate(s,30).rate;const ratio=now/Math.max(.5,c.rate);if(ratio<EUREKA_RATIO)return;
+ const reward=now*20*Math.log2(ratio);s.plants.A.stock.components=Math.min(1e21,s.plants.A.stock.components+reward);
+ (s.eurekas??=[]).push({tick:s.tick,ratio,before:c.rate,after:now});if(s.eurekas.length>30)s.eurekas.shift();delete s.lastChange;mark(s,'eureka');
+}
 export function updateProgress(s:State) {
- const p=progressOf(s);
+ const p=progressOf(s);checkEureka(s);
  if(p.contract&&contractProgress(s,p.contract).ratio>=1){
   s.plants.A.stock.components=Math.min(1e21,s.plants.A.stock.components+p.contract.reward);p.points+=p.contract.patents;p.done++;
   mark(s,'contrat:'+p.contract.kind);p.contract=null;
@@ -126,3 +136,35 @@ export function refound(s:State,variant?:Variant):State|null {
  next.plants.A.stock.components=1000;
  mark(next,'refondation');return next;
 }
+
+// ---------- Pistes: three open leads toward undiscovered combinations. A question, never a recipe. ----------
+export const PISTE_HINTS:Record<string,string>={
+ accord:'Un résonateur peut-il monter jusqu’à ×5 ?',accord5:'Et si l’on raccourcissait la fenêtre d’accord ?',bulk:'Que fait la presse d’un très gros lot ?',
+ order:'Des empreintes réunies valent-elles plus que des empreintes isolées ?',weave8:'Jusqu’où le tisseur peut-il multiplier ?',
+ catalysis:'La Serre peut-elle rendre service à la Fonderie ?',branch:'Une ligne peut-elle en nourrir une autre ?',
+ split:'Un gros lot peut-il redevenir assez petit pour un résonateur ?',refine:'Un lot trop faible mérite-t-il une seconde chance ?',
+ 'charge-loop':'Un lot peut-il être chargé deux fois ?','sync-loop':'Que se passe-t-il si un lot recyclé croise un synchroniseur ?',
+ mirror:'Un lot pauvre peut-il emprunter la qualité d’un lot riche ?',blaze:'Combien de matière faut-il pour faire rougir un four ?',
+ compress:'Plusieurs lots peuvent-ils n’en faire qu’un ?',harmony:'Deux lignes peuvent-elles jouer ensemble ?',
+ bicolor:'Deux couleurs valent-elles mieux qu’une ?','greenhouse-loop':'La Serre gaspille-t-elle ses résidus ?',
+ plasma:'Que peut apporter la troisième installation ?',quality6:'Un lot peut-il atteindre une qualité d’un million ?',
+ press9:'Une seule presse peut-elle produire un milliard d’un coup ?',nested:'Une invention peut-elle en enrichir une autre ?'
+};
+function pisteOpen(s:State,id:string,hint:string) {
+ if(id==='catalysis'||id==='greenhouse-loop')return plantUnlocked(s,'B');if(id==='plasma')return plantUnlocked(s,'C');
+ if(id==='quality6')return s.produced>=1e6;if(id==='press9')return s.produced>=1e9;if(id==='nested')return s.library.length>0;
+ if(id==='accord5'||id==='weave8')return s.produced>=300;
+ return unlocked(s,hint as never);
+}
+export function pistes(s:State) {
+ if(journeyActive(s)||s.puzzle)return [];
+ const found=new Set((s.discoveries??[]).map(d=>d.id));
+ const open=DISCOVERIES.filter(d=>!found.has(d.id)&&PISTE_HINTS[d.id]&&pisteOpen(s,d.id,d.hint));
+ if(!open.length)return [];
+ // The newest mechanic first (to introduce it), then the oldest leads still open.
+ const byUnlock=[...open].sort((a,b)=>unlockAt(s,a.hint as never)-unlockAt(s,b.hint as never));
+ const newest=byUnlock.at(-1)!;const AREA:Record<string,string>={catalysis:'Serre catalytique','greenhouse-loop':'Serre catalytique',plasma:'Forge à plasma',quality6:'Presse',press9:'Presse',nested:'Inventions'};
+ return [newest,...byUnlock.filter(d=>d!==newest)].slice(0,3).map(d=>({...d,area:AREA[d.id],question:PISTE_HINTS[d.id],fresh:d===newest&&s.produced<unlockAt(s,d.hint as never)*4}));
+}
+export const SPECIALTIES=[{kind:'cadence',name:'Cadence',text:'Le résonateur double son effet.'},{kind:'batch',name:'Masse',text:'La prime de gros lot double : ×16 au lieu de ×8.'},{kind:'weave',name:'Empreinte',text:'Le tisseur double son effet.'}] as const;
+export function chooseSpecialty(s:State,kind:string) {if(s.specialty||!SPECIALTIES.some(x=>x.kind===kind))return false;s.specialty=kind as State['specialty'];mark(s,'spécialité:'+kind);return true;}

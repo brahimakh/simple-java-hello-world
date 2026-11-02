@@ -5,9 +5,9 @@ export const DT = 0.1;
 export interface Packet {qty:number; quality:number; kind:'matter'|'exhaust'; recovered:boolean; exchanged:boolean; energy:number; origin:PlantId; marks?:number; stamped?:boolean; colors?:number; res?:number; loops?:number; charged?:number; split?:boolean;}
 export type RouteMode='small'|'large'|'alternate'|'overflow';
 export interface Routing {target:number;mode:RouteMode;threshold:number;turn:boolean;main:number;branch:number;lastBranch?:boolean;}
-export interface LastPacket {tick:number;qty:number;quality:number;marks:number;result?:number;bulk?:number;catalysis?:number;plasma?:number;legacy?:number;bicolor?:boolean;}
+export interface LastPacket {tick:number;qty:number;quality:number;marks:number;result?:number;bulk?:number;catalysis?:number;plasma?:number;legacy?:number;bicolor?:boolean;synergy?:number;}
 export interface Machine {id:number; kind:Kind; param:number; queue:Packet[]; clock:number; streak:number; last:number; working:Packet|null; connected:boolean; paid:number; status:string; processed:number; routing?:Routing;lastPacket?:LastPacket;made?:number;variant?:number;manual?:boolean;memory?:number;memoryAt?:number;heat?:number;}
-export interface Lane {id:number; name:string; machines:Machine[]; capsule:boolean; fee?:number;}
+export interface Lane {id:number; name:string; machines:Machine[]; capsule:boolean; fee?:number; syn?:Record<string,number>;}
 export interface Plant {stock:Record<Resource,number>; lanes:Lane[]; oreLevel:number; energyLevel:number; catalystOn:boolean; plasmaOn?:boolean;}
 export interface MachineSpec {kind:Kind;param:number;connected:boolean;variant?:number;routing?:{target:number;mode:RouteMode;threshold:number}}
 export interface Blueprint {name:string; machines:MachineSpec[];}
@@ -18,7 +18,7 @@ export interface Sample {tick:number; total:number;}
 export interface Transit {plant:PlantId;target:number;packet:Packet;}
 export type Variant='standard'|'slow'|'small'|'nores';
 export interface State {version:1; tick:number; nextId:number; plants:Record<PlantId,Plant>; produced:number; catalystProduced:number; recovered:number; largestLot:number; peak:number; totalSpent:number; library:Blueprint[]; configurations:Configuration[]; transfers:Transfer[]; pending:Pending[]; history:Sample[]; log:{tick:number;text:string}[]; claimed:string[]; paused:boolean; fault:string|null;transit?:Transit[];challenges?:ChallengeState;
- plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string; mastery?:Partial<Record<Kind,number>>; journey?:import('./journey.ts').JourneyState;}
+ plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string; mastery?:Partial<Record<Kind,number>>; journey?:import('./journey.ts').JourneyState; specialty?:Kind; lastChange?:{tick:number;rate:number}; eurekas?:{tick:number;ratio:number;before:number;after:number}[];}
 export const clone = <T>(x:T):T => structuredClone(x);
 export const TRANSFERS:Omit<Transfer,'enabled'|'moved'>[] = [
  {resource:'residue',from:'A',to:'B',rate:20},{resource:'catalyst',from:'B',to:'A',rate:4},
@@ -36,7 +36,17 @@ export function createState(variant:Variant='standard'):State {
 export function note(s:State,text:string) {s.log.unshift({tick:s.tick,text});s.log.length=Math.min(14,s.log.length);}
 export function mark(s:State,text:string) {(s.timeline??=[]).push({tick:s.tick,text});if(s.timeline.length>80)s.timeline.splice(0,s.timeline.length-80);}
 export function stat(s:State,key:string,n=1) {const st=(s.stats??={});st[key]=(st[key]??0)+n;}
-export function discover(s:State,id:string) {const d=(s.discoveries??=[]);if(!d.some(x=>x.id===id)){d.push({id,tick:s.tick});mark(s,'découverte:'+id);}}
+export function discover(s:State,id:string) {const d=(s.discoveries??=[]);if(!d.some(x=>x.id===id)){d.push({id,tick:s.tick});mark(s,'découverte:'+id);
+ // A discovery pays one minute of current production at once (at least 100 components).
+ if(!s.puzzle){const r=Math.max(100,measuredRate(s).rate*TUNING.discoveryReward);s.plants.A.stock.components=Math.min(LIMITS.stock,s.plants.A.stock.components+r);stat(s,'discoveryReward',r);}}}
+// Synergy: each distinct interaction that really acted on a line in the last 10 s multiplies its presses.
+// Balance knobs in one place (measured by scripts/campaign.mjs; see BALANCE.md).
+export const TUNING={synergy:1.2,synergyMax:12,discovery:1.05,discoveryReward:30,masteryGrowth:4,masteryFactor:2};
+export const SYNERGY_WINDOW=100;
+function syn(s:State,lane:Lane,key:string) {(lane.syn??={})[key]=s.tick;}
+export function synergyKeys(s:State,lane:Lane) {return Object.entries(lane.syn??{}).filter(([,t])=>s.tick-t<=SYNERGY_WINDOW).map(([k])=>k);}
+export function synergyFactor(s:State,lane:Lane) {return TUNING.synergy**Math.min(TUNING.synergyMax,synergyKeys(s,lane).length);}
+export const discoveryFactor=(s:State)=>TUNING.discovery**(s.discoveries?.length??0);
 // Rules that depend on the run: variant, patents and refoundations. All of them are shown in the interface.
 export const variantOf=(s:State):Variant=>s.variant??'standard';
 export function unlockAt(s:State,k:Kind) {if(variantOf(s)==='nores'){if(k==='cadence')return Infinity;if(k==='harmonic')return 10;}return MODULES[k].unlock;}
@@ -52,11 +62,11 @@ export const transferFactor=(s:State)=>hasPatent(s,'transfer')?4:1;
 export const legacyFactor=(s:State)=>s.progress?.legacy??1;
 export const masteryLevel=(s:State,k:Kind)=>s.mastery?.[k]??0;
 export const MASTERY_FACTOR=2;
-const mf=(s:State,k:Kind)=>MASTERY_FACTOR**masteryLevel(s,k);
+const mf=(s:State,k:Kind)=>TUNING.masteryFactor**(masteryLevel(s,k)+(s.specialty===k?1:0));
 // One shared price ladder: every level bought, in any family, raises the price of the next one.
 export const MASTERY_GROWTH=3.2;
 export const masteryTotal=(s:State)=>Object.values(s.mastery??{}).reduce((n,v)=>n+(v??0),0);
-export function masteryCost(s:State,_k?:Kind) {return Math.round(MASTERY_AT*MASTERY_GROWTH**masteryTotal(s));}
+export function masteryCost(s:State,_k?:Kind) {return Math.round(MASTERY_AT*TUNING.masteryGrowth**masteryTotal(s));}
 export function buyMastery(s:State,k:Kind) {
  if(!MASTERY_FAMILIES.includes(k)||s.produced<MASTERY_AT||!unlocked(s,k)||masteryLevel(s,k)>=40)return false;
  const cost=masteryCost(s,k);if(!spend(s.plants.A,'components',cost))return false;(s.mastery??={})[k]=masteryLevel(s,k)+1;s.totalSpent+=cost;return true;
@@ -125,7 +135,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    p={...p,...merged,qty:total/m.param,quality:Math.min(LIMITS.quality,merged.quality!*m.param*.75*mf(s,'compress')),marks:Math.min(160,parts.reduce((n,x)=>n+(x.p.marks??0),0))};
    if(!next){m.status='Relier une sortie';return;}
    if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
-   m.queue.splice(0,m.param);send(p);m.clock=1;stat(s,'compress');discover(s,'compress');return;
+   m.queue.splice(0,m.param);send(p);m.clock=1;stat(s,'compress');discover(s,'compress');syn(s,lane,'compress');return;
  }
  if(m.kind==='router') {
    const r=m.routing;if(!r){m.status='Configurer l’aiguillage';return;}
@@ -142,7 +152,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    if(p.quality+1e-9<m.param&&(p.loops??0)<8&&back&&back!==m){
      const returned={...p,loops:(p.loops??0)+1};
      if(!canSend(s,back,returned)){m.status='Retour saturé · le lot attend';return;}
-     (s.transit??=[]).push({plant:id,target:back.id,packet:returned});m.queue.shift();m.clock=.1;stat(s,'loops');record(returned);m.status='Lot renvoyé en amont';return;
+     (s.transit??=[]).push({plant:id,target:back.id,packet:returned});m.queue.shift();m.clock=.1;stat(s,'loops');syn(s,lane,'refine');record(returned);m.status='Lot renvoyé en amont';return;
    }
    if((p.loops??0)>0&&p.quality+1e-9>=m.param)discover(s,'refine');
    if(!next){m.status='Relier une sortie';return;}
@@ -153,7 +163,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    if(!next){m.status='Relier une sortie';return;}
    if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
    const half:Packet={...p,qty:p.qty/2,marks:(p.marks??0)/2,split:true};
-   m.queue.shift();push(next,{...half});push(next,{...half});record(half);m.clock=.2;stat(s,'split');return;
+   m.queue.shift();push(next,{...half});push(next,{...half});record(half);m.clock=.2;stat(s,'split');syn(s,lane,'split');return;
  }
  if(!next&&p.kind==='matter'&&m.kind!=='press'){m.status='Relier une sortie';return;}
  if(!canSend(s,next,{...p,kind:MODULES[m.kind].output})){m.status=blocked(next,{...p,kind:MODULES[m.kind].output});return;}
@@ -161,36 +171,37 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    const bit=m.variant===1?2:1;const colors=colorsOf(p);
    if(!(colors&bit)){p.marks=(p.marks??0)+1;p.colors=colors|bit;p.stamped=true;}m.clock=.1;
  } else if(m.kind==='weave') {
-   const marks=Math.min(7,p.marks??0);p.quality*=1+marks;if(marks>0)p.quality*=mf(s,'weave');
-   const bicolor=colorsOf(p)===3&&marks>0;if(bicolor){p.quality*=2;stat(s,'bicolor');discover(s,'bicolor');}
+   const marks=Math.min(7,p.marks??0);p.quality*=1+marks;if(marks>0){p.quality*=mf(s,'weave');syn(s,lane,'weave');}
+   const bicolor=colorsOf(p)===3&&marks>0;if(bicolor){p.quality*=2;stat(s,'bicolor');syn(s,lane,'bicolor');discover(s,'bicolor');}
    if(marks>=7)discover(s,'weave8');if(marks>=3&&!p.split)discover(s,'order');
    p.marks=0;m.clock=.2;
  } else if(m.kind==='cadence') {
-   m.streak=p.qty<=12?(now-m.last<=2.00001?Math.min(4,m.streak+1):1):0;
+   const win=m.variant===1?1:m.variant===2?4:2,maxAccord=m.variant===1?5:m.variant===2?3:4;
+   m.streak=p.qty<=12?(now-m.last<=win+1e-5?Math.min(maxAccord,m.streak+1):1):0;
    m.last=now;const rank=(p.res??0)+1;const divisor=hasPatent(s,'resonance')?Math.max(1,rank-1):rank;
-   p.quality*=1+m.streak/divisor;if(m.streak>0){p.res=rank;p.quality*=mf(s,'cadence');}m.clock=0.1;
-   if(m.streak>=4)discover(s,'accord');if(p.split&&m.streak>0)discover(s,'split');
+   p.quality*=1+m.streak/divisor;if(m.streak>0){p.res=rank;p.quality*=mf(s,'cadence');syn(s,lane,'accord');}m.clock=0.1;
+   if(m.streak>=4)discover(s,'accord');if(m.streak>=5)discover(s,'accord5');if(p.split&&m.streak>0)discover(s,'split');
  } else if(m.kind==='charge') {
    const cost=0.2*p.qty*m.param;
    if(!spend(plant,'energy',cost)){m.status='Énergie insuffisante · charge';return;}
-   p.quality*=(1+m.param/2)*mf(s,'charge');p.charged=(p.charged??0)+1;if(p.charged>=2)discover(s,'charge-loop');m.clock=m.param;
+   p.quality*=(1+m.param/2)*mf(s,'charge');syn(s,lane,'charge');p.charged=(p.charged??0)+1;if(p.charged>=2)discover(s,'charge-loop');m.clock=m.param;
    p.quality=Math.min(LIMITS.quality,p.quality);m.working=p;m.queue.shift();m.status='Charge en cours';return;
  } else if(m.kind==='sync') {
    if(plant.stock.catalyst<10){m.status='Seuil requis · 10 catalyseurs';return;}
-   spend(plant,'catalyst',1);p.quality*=3*mf(s,'sync');m.clock=0.5;if(p.loops)discover(s,'sync-loop');
+   spend(plant,'catalyst',1);p.quality*=3*mf(s,'sync');syn(s,lane,'sync');m.clock=0.5;if(p.loops)discover(s,'sync-loop');
  } else if(m.kind==='mirror') {
    const original=p.quality;
    if(m.memory!==undefined&&m.memory>p.quality){
      const cost=.2*p.qty;if(!spend(plant,'energy',cost)){m.status='Énergie insuffisante · reflet';return;}
-     if(m.memory>=p.quality*10)discover(s,'mirror');p.quality=m.memory;stat(s,'mirror');
+     if(m.memory>=p.quality*10)discover(s,'mirror');p.quality=m.memory;stat(s,'mirror');syn(s,lane,'mirror');
    }
    m.memory=original;m.memoryAt=s.tick;m.clock=.2;
  } else if(m.kind==='furnace') {
    if(!spend(plant,'energy',.1*p.qty)){m.status='Énergie insuffisante · four';return;}
-   m.heat=Math.min(100,(m.heat??0)+p.qty/10);p.quality*=(1+m.heat/25)*mf(s,'furnace');if(m.heat>=80)discover(s,'blaze');m.clock=.1;
+   m.heat=Math.min(100,(m.heat??0)+p.qty/10);p.quality*=(1+m.heat/25)*mf(s,'furnace');if(m.heat>=20)syn(s,lane,'furnace');if(m.heat>=80)discover(s,'blaze');m.clock=.1;
  } else if(m.kind==='harmonic') {
    const partner=plant.lanes.some(l=>l.id!==lane.id&&l.machines.some(o=>o.kind==='harmonic'&&now-o.last<=.10001));
-   if(partner){p.quality*=3*mf(s,'harmonic');stat(s,'harmony');discover(s,'harmony');}m.last=now;m.clock=.1;
+   if(partner){p.quality*=3*mf(s,'harmonic');syn(s,lane,'harmony');stat(s,'harmony');discover(s,'harmony');}m.last=now;m.clock=.1;
  } else if(m.kind==='sensor') {
    const r:Resource=(['energy','catalyst',PLANT_INPUT[id],'plasma'] as Resource[])[m.variant??0]??'energy';
    if(plant.stock[r]+1e-9<m.param){m.status='Capteur · seuil non atteint';return;}m.clock=.1;
@@ -200,12 +211,14 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    const cat=id==='A'&&plant.catalystOn&&plant.stock.catalyst>=1?catalysisFactor(s):1;
    const plasma=id==='A'&&plant.plasmaOn!==false&&plant.stock.plasma>=1?10:1;
    const bulk=id==='A'&&p.qty>=bulkAt(s)?8*mf(s,'batch'):1;const legacy=id==='A'?legacyFactor(s):1;
-   const result=p.qty/def.divisor*p.quality*bulk*cat*plasma*legacy;
+   if(bulk>1)syn(s,lane,'bulk');if(cat>1)syn(s,lane,'catalysis');if(plasma>1)syn(s,lane,'plasma');
+   const synergy=synergyFactor(s,lane),known=id==='A'?discoveryFactor(s):1;
+   const result=p.qty/def.divisor*p.quality*bulk*cat*plasma*legacy*synergy*known;
    const out:Resource=id==='A'?'components':id==='B'?'catalyst':'plasma';
    if(!canCredit(s,id,out,result)||(id==='A'&&!canCredit(s,id,'residue',p.qty*.5))){m.status='Réserve de sortie saturée';return;}
    if(!spend(plant,'energy',cost)){m.status='Énergie insuffisante · pressage';return;}
    if(cat>1)spend(plant,'catalyst',1);if(plasma>1){spend(plant,'plasma',1);discover(s,'plasma');}
-   pressFactors={result,bulk,catalysis:cat,...(plasma>1?{plasma}:{}),...(legacy>1?{legacy}:{})};
+   pressFactors={result,bulk,catalysis:cat,...(synergy>1?{synergy}:{}),...(plasma>1?{plasma}:{}),...(legacy>1?{legacy}:{})};
    credit(s,id,out,result);
    if(id==='A') {credit(s,id,'residue',p.qty*0.5);s.produced+=result;s.peak=Math.max(s.peak,result);s.largestLot=Math.max(s.largestLot,p.qty);
      stat(s,'lots');if(bulk>1){stat(s,'lots80');discover(s,'bulk');}if(cat>1)discover(s,'catalysis');
@@ -220,7 +233,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
      const r=PLANT_INPUT[p.origin];
      if(!canCredit(s,id,r,p.qty*.8)){m.status='Réserve de sortie saturée';return;}
      if(!spend(plant,'energy',p.qty*0.05)){m.status='Énergie insuffisante · récupération';return;}
-     credit(s,id,r,p.qty*0.8);if(p.origin==='A')s.recovered+=p.qty*0.8;else discover(s,'greenhouse-loop');p.recovered=true;
+     credit(s,id,r,p.qty*0.8);syn(s,lane,'recovery');if(p.origin==='A')s.recovered+=p.qty*0.8;else discover(s,'greenhouse-loop');p.recovered=true;
    } m.clock=0.2;
  } else if(m.kind==='exchanger') {
    if(!p.exchanged){if(!canCredit(s,id,'energy',p.energy*.8)){m.status='Réserve de sortie saturée';return;}credit(s,id,'energy',p.energy*0.8);p.exchanged=true;}m.clock=0.2;
@@ -318,7 +331,7 @@ export function configureRouter(s:State,id:PlantId,laneId:number,machineId:numbe
 }
 // Allowed settings per family; the interface offers exactly these values.
 export const PARAMS:Partial<Record<Kind,number[]>> = {intake:[6,12],batch:[10,20,40,80,160,320],charge:[1,2,4,8],filter:[2,5,10,25,100,1000,1e4,1e5,1e6],compress:[2,4,8],sensor:[10,100,1e3,1e4,1e5,1e6,1e9]};
-export const VARIANTS:Partial<Record<Kind,number[]>> = {stamp:[0,1],sensor:[0,1,2,3]};
+export const VARIANTS:Partial<Record<Kind,number[]>> = {stamp:[0,1],sensor:[0,1,2,3],cadence:[0,1,2]};
 export function setParam(s:State,m:Machine,value:number) {
  const allowed=PARAMS[m.kind];if(!allowed?.includes(value)||m.working)return false;
  if(m.kind==='batch'&&value>packetMax(s))return false;m.param=value;return true;

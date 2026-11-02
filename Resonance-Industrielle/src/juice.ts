@@ -3,6 +3,7 @@
 import {MODULES, UNLOCKS, TIERS, PLANTS, type Kind, type PlantId, type Resource} from './content.ts';
 import {measuredRate, type State, type Machine} from './engine.ts';
 import {DISCOVERIES,BADGES} from './progression.ts';
+import {STAGES} from './journey.ts';
 import {t, formatCompact} from './i18n.ts';
 import {moduleSymbol} from './visuals.ts';
 import {logChart,clock,power} from './views.ts';
@@ -123,12 +124,13 @@ function tierScreen(s:State,tier:{at:number;name:string},ghost:number[]|undefine
  if(!reducedMotion()){burst(innerWidth/2,innerHeight/2,36,'gold');vibrate([40,80,40,80,120]);}
 }
 
+const STAGE_TEXT:Record<string,string>={atelier:'La frise montre vos prochains déblocages ; l’infrastructure double l’extraction ou l’énergie quand elles manquent.',lignes:'Ajoutez une deuxième ligne : chaque ligne a sa presse. Le schéma montre tout votre réseau.',serre:'La Serre transforme les résidus de la Fonderie en catalyseurs, qui reviennent multiplier vos presses.',vue:'Vue générale : courbes, transferts entre installations et journal.',inventions:'Enregistrez une ligne comme invention pour la reconstruire ailleurs ou la partager.',banc:'Le banc d’essai compare deux plans dans les mêmes conditions, sans toucher à votre partie.'};
 // ---------- Frame loop ----------
 export function startEffects(ctx:EffectsContext) {
  const shown=new Map<string,number>();const seen=new Map<number,number>();
  let lastPlant:PlantId|null=null,lastFrame=performance.now(),previousProduced=ctx.state().produced,lastState=ctx.state();
  let rateMilestone=Math.floor(Math.log10(Math.max(1,measuredRate(ctx.state()).rate)));let peak=ctx.state().peak;
- let known={discoveries:ctx.state().discoveries?.length??0,badges:ctx.state().progress?.badges.length??0,done:ctx.state().progress?.done??0};
+ let knownStages=ctx.state().journey?.open?.length??0;let knownEureka=ctx.state().eurekas?.length??0;let known={discoveries:ctx.state().discoveries?.length??0,badges:ctx.state().progress?.badges.length??0,done:ctx.state().progress?.done??0};
  const frame=(now:number)=>{
   const dt=Math.min(.25,(now-lastFrame)/1000);lastFrame=now;
   try{tick(dt);}catch{/* feedback must never break the game */}
@@ -139,7 +141,7 @@ export function startEffects(ctx:EffectsContext) {
   const s=ctx.state(),plant=ctx.plant();
   if(s!==lastState){// new game or import: resynchronize without celebrating
    lastState=s;previousProduced=s.produced;peak=s.peak;seen.clear();shown.clear();rateMilestone=Math.floor(Math.log10(Math.max(1,measuredRate(s).rate)));
-   known={discoveries:s.discoveries?.length??0,badges:s.progress?.badges.length??0,done:s.progress?.done??0};
+   knownStages=s.journey?.open?.length??0;knownEureka=s.eurekas?.length??0;known={discoveries:s.discoveries?.length??0,badges:s.progress?.badges.length??0,done:s.progress?.done??0};
   }
   if(plant!==lastPlant){shown.clear();lastPlant=plant;}
   const motion=!reducedMotion()&&!s.paused;
@@ -152,7 +154,7 @@ export function startEffects(ctx:EffectsContext) {
    let v=shown.get(key)??target;
    if(!motion||target<v&&kind!=='stock'||Math.abs(target-v)<1e-6||kind==='stock'&&el.dataset.resource==='components'&&target<v)v=target;else v+=(target-v)*k;
    if(Math.abs(target-v)<Math.max(.05,Math.abs(target)*.0005))v=target;
-   shown.set(key,v);const text=formatCompact(v);if(el.textContent!==text)el.textContent=text;
+   shown.set(key,v);const text=formatCompact(v);if(el.textContent!==text){const unit=(x:string)=>x.replace(/[\d\s.,]/g,'');if(el.textContent&&unit(el.textContent)!==unit(text)&&motion)bump(el,'fx-scale');el.textContent=text;}
   }
   // Smooth machine cycle bars between two interface rebuilds.
   for(const lane of s.plants[plant].lanes)for(const m of lane.machines){
@@ -208,6 +210,13 @@ export function startEffects(ctx:EffectsContext) {
   known.badges=badges.length;
   if((s.progress?.done??0)>known.done){celebrate({eyebrow:'CONTRAT REMPLI',title:t('Brevets reçus'),text:t('Placez vos brevets dans Expériences : chacun change une règle.'),icon:'§',big:false,action:{label:'Voir les brevets',run:()=>ctx.onOpen('experiments')}});fanfare(ctx.preferences,[2,5,9,12]);}
   known.done=s.progress?.done??0;
+  const opened=s.journey?.open??[];if(opened.length>knownStages){const g=STAGES.find(x=>x.id===opened.at(-1));if(g)celebrate({eyebrow:'NOUVEL ESPACE',title:t(g.name),text:t(STAGE_TEXT[g.id]??''),icon:'◇',big:false});}
+  knownStages=opened.length;
+  // Eureka: the celebration grows with the multiplier the player found.
+  const eu=s.eurekas??[];if(eu.length>knownEureka){const e=eu.at(-1)!;const big=e.ratio>=20;
+   celebrate({eyebrow:'EURÊKA',title:`×${formatCompact(e.ratio)}`,text:t('Votre modification a multiplié le débit stabilisé. Récompense : {0} ⬡.').replace('{0}',formatCompact(e.after*20*Math.log2(e.ratio))),icon:'!',big,action:{label:'Ouvrir le carnet',run:()=>ctx.onOpen('notebook')}});
+   fanfare(ctx.preferences,big?[0,4,7,9,12,14,16]:[4,7,9,12]);vibrate(big?[30,40,30,40,200]:[20,40,60]);if(!reducedMotion())burst(innerWidth/2,innerHeight/3,Math.min(60,10+Math.round(e.ratio)),'gold');}
+  knownEureka=eu.length;
   // Orders of magnitude of the measured average rate.
   const rate=measuredRate(s);
   if(rate.duration>=10&&rate.rate>=10){

@@ -2,7 +2,7 @@
 // The first lots are launched by hand; automation is earned. The interface reveals itself as the player progresses.
 import type {Kind} from './content.ts';
 import {unlocked,costOf,type State,type Machine} from './engine.ts';
-export interface JourneyState {step:number;manual:number;flags:string[];}
+export interface JourneyState {step:number;manual:number;flags:string[];doneTick?:number;open?:string[];}
 export const AUTOMATE_COST=3;
 export interface Step {id:string;title:string;text:string;cta?:{label:string;action:string;kind?:Kind};target?:string;goal?:(s:State)=>{value:number;max:number}|null;done:(s:State)=>boolean;}
 const lane=(s:State)=>s.plants.A.lanes[0];
@@ -21,7 +21,7 @@ export const JOURNEY:Step[]=[
  {id:'twelve',title:'Doublez chaque livraison',text:'Touchez l’injecteur et réglez sa livraison sur 12. Deux fois plus de matière, encore assez petite pour le résonateur (≤ 12).',cta:{label:'Régler l’injecteur',action:'journey-select',kind:'intake'},target:'.node[data-kind="intake"]',done:s=>intake(s)?.param===12},
  {id:'batch',title:'Formez de gros lots',text:'L’accumulateur réunit les livraisons. À 80 matières, la presse donne ×8. Ajoutez-le, touchez-le et réglez son seuil sur 80.',cta:{label:'＋ Accumulateur',action:'add-module',kind:'batch'},target:'[data-offer="batch"]',goal:s=>has(s,'batch')?null:budget(s,'batch'),done:s=>found(s,'bulk')},
  {id:'order',title:'L’ordre des machines compte',text:'Le marqueur laisse une empreinte par livraison ; le tisseur change les empreintes en qualité. Placez le marqueur avant l’accumulateur, le tisseur après. Appui long puis glisser pour déplacer.',cta:{label:'＋ Marqueur',action:'add-module',kind:'stamp'},target:'[data-offer="stamp"]',goal:s=>has(s,'stamp')?(has(s,'weave')?null:budget(s,'weave')):budget(s,'stamp'),done:s=>found(s,'order')},
- {id:'end',title:'Vous savez inventer',text:'Le reste du laboratoire s’ouvre : de nouvelles familles, une deuxième installation, des contrats. Chaque nouveauté vous sera présentée à son arrivée.',cta:{label:'Continuer seul',action:'journey-finish'},done:s=>flag(s,'finished')}
+ {id:'end',title:'Choisissez votre spécialité',text:'Elle double pour toute la partie l’effet d’une famille. Ensuite, plus de guide : trois pistes ouvertes vous attendent, à suivre dans l’ordre que vous voulez.',cta:{label:'specialty',action:'specialty'},done:s=>!!s.specialty||flag(s,'finished')}
 ];
 // Second weaver step: the "order" CTA switches to the weaver once the marker is placed.
 export function stepCta(s:State,step:Step) {if(step.id==='order'&&has(s,'stamp')&&!has(s,'weave'))return {label:'＋ Tisseur',action:'add-module',kind:'weave' as Kind};return step.cta;}
@@ -41,6 +41,8 @@ export function reveal(s:State,feature:string) {
  if(!s.journey)return true;const step=s.journey.step;
  // While the guide runs, later facilities and tools wait for its end, whatever the production.
  if(journeyActive(s)&&['residue','catalyst','schematic','nav-overview','nav-library','nav-bench','upgrades','add-lane','plants','progress'].includes(feature))return false;const at=(id:string)=>step>=JOURNEY.findIndex(x=>x.id===id);
+
+ if(!journeyActive(s)){const g=STAGES.find(x=>x.features.includes(feature));if(g&&!(s.journey.open??[]).includes(g.id))return false;}
  switch(feature){
   case 'ore':return at('automate');
   case 'energy':return at('resonator');
@@ -57,4 +59,22 @@ export function reveal(s:State,feature:string) {
   case 'locked-offers':return at('end');
   default:return true;
  }
+}
+
+// After the guide, spaces open one at a time, one minute apart, each announced: never everything at once.
+export const STAGES=[
+ {id:'atelier',name:'Frise de progression et infrastructure',features:['progress','upgrades'],when:(_:State)=>true},
+ {id:'lignes',name:'Plusieurs lignes et schéma vivant',features:['add-lane','schematic'],when:(s:State)=>s.produced>=400},
+ {id:'serre',name:'Serre catalytique',features:['plants','residue','catalyst'],when:(s:State)=>s.produced>=1000},
+ {id:'vue',name:'Vue générale',features:['nav-overview'],when:(_:State)=>true},
+ {id:'inventions',name:'Inventions',features:['nav-library'],when:(s:State)=>s.produced>=1000},
+ {id:'banc',name:'Banc d’essai',features:['nav-bench'],when:(s:State)=>s.produced>=1000}
+];
+export const STAGE_GAP=600;
+export function openStages(s:State) {
+ const j=s.journey;if(!j||journeyActive(s))return null;
+ if(j.doneTick===undefined)j.doneTick=s.tick;const open=(j.open??=[]);
+ const next=STAGES.find(g=>!open.includes(g.id));if(!next||!next.when(s))return null;
+ const last=open.length?Math.max(j.doneTick,(j as {lastOpen?:number}).lastOpen??0):j.doneTick-STAGE_GAP;
+ if(s.tick-last<STAGE_GAP)return null;open.push(next.id);(j as {lastOpen?:number}).lastOpen=s.tick;return next;
 }

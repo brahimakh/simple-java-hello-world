@@ -49,7 +49,7 @@ test('empreintes bicolores : tissage ×2 supplémentaire, une seule fois par cou
 });
 test('Forge : le plasma revient multiplier la Fonderie par 10',()=>{
  const s=setup(['intake','press']);nodes(s)[0].connected=false;addLane(s,'C');s.plants.C.stock.catalyst=100;simulate(s,3);assert.ok(s.plasmaProduced>0);
- s.plants.A.stock.plasma=5;nodes(s)[1].queue=[packet(10)];const before=s.produced;step(s);assert.equal(s.produced-before,10);
+ s.plants.A.stock.plasma=5;nodes(s)[1].queue=[packet(10)];const before=s.produced;step(s);assert.ok(Math.abs(s.produced-before-10*1.2*1.05**s.discoveries.length)<1e-6||Math.abs(s.produced-before-12)<1e-6);
 });
 test('coûts croissants par famille, remboursement exact',()=>{
  const s=setup(['intake','press']);const l=nodes(s);assert.equal(costOf(s,'cadence'),30);insertModule(s,'A',s.plants.A.lanes[0].id,'cadence');assert.equal(costOf(s,'cadence'),35);

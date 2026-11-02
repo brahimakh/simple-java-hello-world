@@ -39,7 +39,10 @@ export function validate(value:unknown):State {
  requireValue(s.plasmaProduced===undefined||number(s.plasmaProduced),'plasma');
  requireValue(s.allowed===undefined||Array.isArray(s.allowed)&&s.allowed.length<=20&&s.allowed.every(k=>Object.hasOwn(MODULES,k)),'modules permis');
  if(s.mastery!==undefined)requireValue(s.mastery&&typeof s.mastery==='object'&&!Array.isArray(s.mastery)&&Object.entries(s.mastery).every(([k,v])=>MASTERY_FAMILIES.includes(k as never)&&integer(v,40)),'maîtrises');
- if(s.journey!==undefined){const j=s.journey;requireValue(j&&integer(j.step,50)&&integer(j.manual,1e9)&&Array.isArray(j.flags)&&j.flags.length<=20&&j.flags.every(f=>typeof f==='string'&&f.length<=24),'parcours');}
+ if(s.journey!==undefined){const j=s.journey;requireValue(j&&integer(j.step,50)&&integer(j.manual,1e9)&&Array.isArray(j.flags)&&j.flags.length<=20&&j.flags.every(f=>typeof f==='string'&&f.length<=24),'parcours');requireValue((j.doneTick===undefined||integer(j.doneTick))&&(j.open===undefined||Array.isArray(j.open)&&j.open.length<=20&&j.open.every(x=>typeof x==='string'&&x.length<=20))&&((j as {lastOpen?:number}).lastOpen===undefined||integer((j as {lastOpen?:number}).lastOpen)),'étapes');}
+ requireValue(s.specialty===undefined||['cadence','batch','weave'].includes(s.specialty),'spécialité');
+ if(s.lastChange!==undefined)requireValue(s.lastChange&&integer(s.lastChange.tick)&&s.lastChange.tick<=s.tick&&number(s.lastChange.rate),'modification');
+ if(s.eurekas!==undefined)requireValue(Array.isArray(s.eurekas)&&s.eurekas.length<=30&&s.eurekas.every(e=>e&&integer(e.tick)&&number(e.ratio)&&number(e.before)&&number(e.after)),'eurêkas');
  requireValue(s.puzzle===undefined||typeof s.puzzle==='string'&&s.puzzle.length<=32,'puzzle');
  requireValue(s.variant===undefined||['standard','slow','small','nores'].includes(s.variant),'variante');
  requireValue(typeof s.paused==='boolean'&&(s.fault===null||label(s.fault)),'état du moteur');
@@ -56,7 +59,7 @@ export function validate(value:unknown):State {
    for(const r of ['ore','energy','components','residue','catalyst','plasma'] as const)requireValue(number(p.stock[r],LIMITS.stock),'stock '+r);
    requireValue(integer(p.oreLevel,UPGRADE_MAX)&&integer(p.energyLevel,UPGRADE_MAX)&&typeof p.catalystOn==='boolean'&&(p.plasmaOn===undefined||typeof p.plasmaOn==='boolean'),'améliorations');
    requireValue(Array.isArray(p.lanes)&&p.lanes.length<=LIMITS.lanes+2,'lignes');
-   for(const l of p.lanes){id(l.id);blueprint(l);requireValue(typeof l.capsule==='boolean'&&(l.fee===undefined||number(l.fee)),'capsule');for(const m of l.machines){
+   for(const l of p.lanes){id(l.id);blueprint(l);requireValue(typeof l.capsule==='boolean'&&(l.fee===undefined||number(l.fee)),'capsule');if(l.syn!==undefined)requireValue(l.syn&&typeof l.syn==='object'&&Object.keys(l.syn).length<=40&&Object.entries(l.syn).every(([k,v])=>/^[a-z0-9-]{1,20}$/.test(k)&&integer(v)&&v<=s.tick),'synergie');for(const m of l.machines){
      id(m.id);requireValue(number(m.paid,MAX),'coût du module');
      requireValue(Array.isArray(m.queue)&&m.queue.length<=800,'file');m.queue.forEach(packet);if(m.working)packet(m.working);
      requireValue(m.working===null||m.kind==='charge','charge en cours');
@@ -66,7 +69,7 @@ export function validate(value:unknown):State {
      requireValue((m.memory===undefined||number(m.memory,LIMITS.quality))&&(m.memoryAt===undefined||integer(m.memoryAt))&&(m.heat===undefined||number(m.heat,100)),'mémoire de machine');
      if(m.routing){requireValue(typeof m.routing.turn==='boolean'&&integer(m.routing.main,1e15)&&integer(m.routing.branch,1e15)&&(m.routing.lastBranch===undefined||typeof m.routing.lastBranch==='boolean')&&(m.routing.target===0||p.lanes.some(dest=>dest.id===m.routing!.target&&dest.id!==l.id)),'aiguillage');}
      if(m.lastPacket){const a=m.lastPacket;requireValue(integer(a.tick)&&a.tick<=s.tick&&number(a.qty,PACKET)&&number(a.quality,LIMITS.quality)&&number(a.marks,160),'mesure');}
-     if(m.lastPacket?.result!==undefined){const a=m.lastPacket;requireValue(m.kind==='press'&&number(a.result)&&(a.bulk===1||a.bulk!>=8&&Number.isInteger(Math.log2(a.bulk!/8)))&&[1,4,6].includes(a.catalysis!)&&(a.plasma===undefined||a.plasma===10)&&(a.legacy===undefined||number(a.legacy,1e9)),'facteurs de pressage');}
+     if(m.lastPacket?.result!==undefined){const a=m.lastPacket;requireValue(m.kind==='press'&&number(a.result)&&(a.bulk===1||a.bulk!>=8&&Number.isInteger(Math.log2(a.bulk!/8)))&&[1,4,6].includes(a.catalysis!)&&(a.plasma===undefined||a.plasma===10)&&(a.legacy===undefined||number(a.legacy,1e9))&&(a.synergy===undefined||number(a.synergy,1e3)),'facteurs de pressage');}
      if(m.made!==undefined)requireValue(number(m.made),'mesure');
    }}
  }

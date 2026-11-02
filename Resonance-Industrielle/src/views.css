@@ -102,3 +102,16 @@
 :root.journey-early .pause-button,:root.journey-mode .workshop>.section-head,:root.journey-mode.single-lane .lane-tabs,:root.journey-mode .line-toolbar.hidden-early{display:none}
 @media (max-width:760px){html{scroll-padding-top:76px;scroll-padding-bottom:calc(var(--tabbar) + 12px)}:root:has(.inspector.has-machine){scroll-padding-bottom:calc(64vh + var(--tabbar))}}
 .plant-nav.hidden-early{display:none}
+/* 0.8 Libre */
+.pistes{margin:0 0 14px;padding:14px;border:1px solid #ffd47944;border-radius:12px;background:linear-gradient(135deg,#2a281d55,#162224)}
+.pistes-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}.pistes-head .eyebrow{color:#ffd479}.pistes-head small{color:var(--muted)}
+.pistes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+.piste{padding:10px 12px;border:1px dashed #ffd47955;border-radius:8px}.piste p{margin:4px 0 0;font-size:14px;line-height:1.4}.piste.fresh{border-style:solid;border-color:#ffd479aa;background:#ffd4790d}
+.specialty-pick{margin:4px 0 12px}.specialty-pick>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px}
+.specialty-pick button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:12px;text-align:left;min-height:64px}.specialty-pick small{color:var(--muted);font-weight:400}
+.journey .specialty-pick button{animation:none}
+.synergy-chip{display:inline-block;margin:0 8px;padding:3px 9px;border-radius:999px;background:#ffd4791a;color:#ffd479;font-size:12px;font-variant-numeric:tabular-nums}
+.undo-button{border-color:#ffd47966}
+.eureka-list{display:grid;gap:6px}.eureka-list div{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}.eureka-list b{color:#ffd479;font-size:18px;min-width:70px}.eureka-list small{color:var(--muted);margin-left:auto}
+.puzzle.sandbox{border-color:#91ddc066}
+.fx-scale{animation:fx-scale .6s ease-out}@keyframes fx-scale{0%{transform:scale(1)}35%{transform:scale(1.25);color:#ffe08a}100%{transform:scale(1)}}

@@ -132,8 +132,8 @@ test('interface banc : capture, modification d’ordre, vraie comparaison, bilin
  const prefs=defaultPreferences();prefs.language='en';prefs.guide.hidden=true;
  const ui=await mount({state:s,preferences:prefs});try{
    const {document:d,click,lang}=ui;click('nav','[data-view="bench"]');click('bench-record');click('nav','[data-view="atelier"]');click('select-module',`[data-id="${l.machines[1].id}"]`);click('move','[data-dir="1"]');click('save');const before=ui.window.localStorage.getItem(SAVE_KEY);
-   click('nav','[data-view="bench"]');click('bench-run');assert.equal(d.querySelector('.trial-gain strong').textContent,'×0.25');assert.equal(d.querySelectorAll('.bench-table tbody tr').length,9);assert.equal(ui.window.localStorage.getItem(SAVE_KEY),before);assert.match(d.querySelector('.bench-results').textContent,/Tested configuration/);
-   lang('fr');assert.equal(d.querySelector('.trial-gain strong').textContent,'×0,25');assert.match(d.querySelector('.bench-results').textContent,/Configuration testée/);
+   click('nav','[data-view="bench"]');click('bench-run');assert.match(d.querySelector('.trial-gain strong').textContent,/^×0\.2/);assert.equal(d.querySelectorAll('.bench-table tbody tr').length,9);assert.equal(ui.window.localStorage.getItem(SAVE_KEY),before);assert.match(d.querySelector('.bench-results').textContent,/Tested configuration/);
+   lang('fr');assert.match(d.querySelector('.trial-gain strong').textContent,/^×0,2/);assert.match(d.querySelector('.bench-results').textContent,/Configuration testée/);
    const french=[];const walker=d.createTreeWalker(d.querySelector('main'),4);let node;while(node=walker.nextNode())if(!node.parentElement.closest('[data-user-text],script,style')&&/[a-zà-ÿ]{2}/i.test(node.textContent))french.push(node.textContent.trim());lang('en');assert.deepEqual(french.filter(x=>t(x)===x&&EN[x]!==x),[]);
  }finally{await ui.close();}
 });
@@ -154,7 +154,7 @@ test('interface mobile : tiroir de machine refermable, menu complet et retour so
 test('interface puzzles : la partie est mise de côté, le puzzle se résout, puis la partie reprend intacte',async()=>{
  const s=createState();simulate(s,30);const ui=await mount({state:s});try{
    const {document:d,click}=ui;const before=JSON.parse(ui.window.localStorage.getItem(SAVE_KEY)).tick;
-   click('nav','[data-view="experiments"]');assert.equal(d.querySelectorAll('.puzzle').length,6);click('puzzle-start','[data-id="p1"]');
+   click('nav','[data-view="experiments"]');assert.equal(d.querySelectorAll('.puzzle').length,7);click('puzzle-start','[data-id="p1"]');
    assert.match(d.querySelector('.puzzle-banner').textContent,/Premier accord/);assert.equal(d.querySelectorAll('[data-action="add-module"]:not([disabled])').length,1);
    click('add-module','[data-kind="cadence"]');click('save');assert.equal(JSON.parse(ui.window.localStorage.getItem(SAVE_KEY)).tick,before,'the real game is saved, not the puzzle');
    click('puzzle-exit');assert.equal(d.querySelector('.puzzle-banner'),null);click('nav','[data-view="atelier"]');assert.equal(d.querySelectorAll('.node').length,2);

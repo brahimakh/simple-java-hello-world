@@ -12,8 +12,10 @@ export const PUZZLES:Puzzle[]=[
  {id:'p4',name:'Affinage',goal:'Presser 10 lots de qualité ≥ ×10 avec un seul résonateur.',hint:'Un lot trop faible peut refaire un tour. Le rang du résonateur compte à chaque passage.',allowed:['cadence','filter'],budget:600,test:s=>(s.stats?.q1??0)>=10,progress:s=>Math.min(1,(s.stats?.q1??0)/10)},
  {id:'p5',name:'Harmonie',goal:'Obtenir 20 harmonies entre deux lignes.',hint:'Deux lignes identiques, réglées pareil, livrent au même rythme.',allowed:['harmonic'],budget:120000,lanes:2,test:s=>(s.stats?.harmony??0)>=20,progress:s=>Math.min(1,(s.stats?.harmony??0)/20)}
 ];
+import {MODULES} from './content.ts';
+export const SANDBOX:Puzzle={id:'sandbox',name:'Laboratoire libre',goal:'Essayez tout, sans conséquence sur votre partie.',hint:'Toutes les familles sont ouvertes et le budget est illimité. Comparez vos idées au banc d’essai, puis reconstruisez la meilleure dans votre partie.',allowed:Object.keys(MODULES) as Kind[],budget:1e15,lanes:1,test:()=>false,progress:()=>0};
 export function puzzleState(p:Puzzle):State {
- const s=createState();s.produced=2e8;s.allowed=[...p.allowed];s.puzzle=p.id;s.plants.A.stock.components=p.budget;s.plants.A.stock.ore=500;s.plants.A.stock.energy=500;
+ const s=createState();s.produced=p.id==='sandbox'?1e13:2e8;s.allowed=[...p.allowed];s.puzzle=p.id;s.plants.A.stock.components=p.budget;s.plants.A.stock.ore=500;s.plants.A.stock.energy=500;
  s.log=[];s.timeline=[];s.history=[{tick:0,total:s.produced}];s.longHistory=[{tick:0,total:s.produced}];s.tierTicks=Array.from({length:8},()=>0);
  s.claimed=['first','lot','loop','duet','flow','final','plasma'];
  for(let i=1;i<(p.lanes??1);i++)s.plants.A.lanes.push({id:s.nextId++,name:`Ligne 0${i+1}`,capsule:false,machines:[machine(s,'intake',0),machine(s,'press',0)]});

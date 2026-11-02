@@ -1,6 +1,6 @@
 # Test de première partie — téléphone Android (Pixel 7)
 
-Parcours guidé complet en 3 min de jeu simulé et 19 gestes.
+Parcours guidé complet en 10 min de jeu simulé et 19 gestes.
 
 | Étape | Temps | Gestes | Objectif affiché | Boutons à l’écran | Onglets | Ressources | Mots | Capture |
 |---|---:|---:|---|---:|---:|---:|---:|---|
@@ -11,9 +11,10 @@ Parcours guidé complet en 3 min de jeu simulé et 19 gestes.
 | Résonateur ajouté | 1:15 | 7 | Regardez l’accord monter | 9 | 2 | 3 | 30 | 05.png |
 | Accord observé | 1:20 | 8 | Doublez chaque livraison | 14 | 3 | 3 | 30 | 06.png |
 | Injecteur sur 12 | 1:20 | 10 | Formez de gros lots | 16 | 4 | 3 | 35 | 07.png |
-| Lots de 80 | 2:15 | 13 | L’ordre des machines compte | 25 | 4 | 3 | 45 | 08.png |
-| Empreintes tissées | 2:35 | 18 | Vous savez inventer | 12 | 4 | 3 | 31 | 09.png |
-| Parcours terminé | 2:35 | 19 | (fin du parcours) | 18 | 7 | 5 | 0 | 10.png |
+| Lots de 80 | 2:00 | 13 | L’ordre des machines compte | 25 | 4 | 3 | 45 | 08.png |
+| Empreintes tissées | 2:20 | 18 | Choisissez votre spécialité | 13 | 4 | 3 | 58 | 09.png |
+| Spécialité choisie | 2:20 | 19 | (fin du parcours) | 10 | 4 | 3 | 0 | 10.png |
+| 8 minutes après le guide | 10:20 | 19 | (fin du parcours) | 17 | 7 | 5 | 0 | 11.png |
 
 ## Vérifications
 

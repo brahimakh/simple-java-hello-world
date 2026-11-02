@@ -58,9 +58,14 @@ const order=()=>page.evaluate(()=>[...document.querySelectorAll('.node-strip .no
 while((await order()).indexOf('stamp')>(await order()).indexOf('batch')){await tap('.inspector [data-action="move"][data-dir="-1"]');}
 await tap('.inspector [data-action="deselect"]');
 waited=0;while(!(await look()).ctaEnabled&&waited<300){await wait(5);waited+=5;}
-await tap('.journey-cta');await wait(20);s=await record('Empreintes tissées');check(s.step.includes('inventer'),'l’ordre marqueur → accumulateur → tisseur valide l’objectif');
-await tap('.journey-cta');s=await record('Parcours terminé');check(s.step==='(fin du parcours)','le parcours se termine sur demande du joueur');
-check(s.tabs>=3,'de nouveaux onglets se sont dévoilés en jouant');
+await tap('.journey-cta');await wait(20);s=await record('Empreintes tissées');check(s.step.includes('spécialité'),'l’ordre marqueur → accumulateur → tisseur valide l’objectif');
+await tap('.journey .specialty-pick button');s=await record('Spécialité choisie');check(s.step==='(fin du parcours)','le choix d’une spécialité termine le parcours');
+check(await page.locator('.pistes .piste').count()>=1,'des pistes ouvertes prennent le relais du guide');
+// After the guide: spaces open one at a time, each announced.
+const tabsOverTime=[s.tabs];for(let m=0;m<8;m++){await wait(60);await page.evaluate(()=>document.querySelector('#celebration .celebration-actions button:last-child')?.click());tabsOverTime.push((await look()).tabs);}
+s=await record('8 minutes après le guide');
+check(tabsOverTime.every((n,i)=>i===0||n-tabsOverTime[i-1]<=1),`au plus un nouvel onglet par minute (${tabsOverTime.join(' → ')})`);
+check(s.tabs>=6,`les espaces se sont tous ouverts progressivement (${s.tabs} onglets)`);
 // Rules checked at every step.
 check(rows.every(r=>!r.overflow),'aucun débordement horizontal');check(rows.every(r=>r.words<=80),'textes d’objectif courts (≤ 80 mots)');
 check(rows.every(r=>r.small.length===0),'cibles tactiles d’au moins 36 px : '+[...new Set(rows.flatMap(r=>r.small))].join(', '));
