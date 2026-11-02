@@ -1,3 +1,43 @@
+# Passation — Résonance industrielle 0.6.0
+
+Mise à jour du 2 novembre 2026. Le dépôt contient le jeu dans `Resonance-Industrielle/` et le workflow GitHub Pages dans `.github/workflows/resonance-pages.yml`.
+
+## Ce qui a été fait
+
+Les 49 idées d’`IDEES.md` ont été traitées : 40 réalisées, 4 adaptées, 2 partielles, 3 non retenues, avec justification, plus les maîtrises ajoutées après mesure. Les détails de conception sont dans `DESIGN.md`, les mesures dans `BALANCE.md`.
+
+## Carte du code
+
+- `content.ts` : familles, installations, déblocages, paliers. `content-en.ts`, `ui-en.ts` : anglais.
+- `engine.ts` : simulation, règles, coûts, maîtrises, variantes. `progression.ts` : contrats, brevets, badges, découvertes, refondation.
+- `puzzles.ts` : puzzles et puzzle du jour. `share.ts` : codes d’invention. `cloud.ts` : fonctions en ligne (claude.ai uniquement). `meta.ts` : records et affichage.
+- `app.ts` : interface. `views.ts` : Carnet et Contrats. `juice.ts` : effets, sons, musique, écran de palier.
+- Styles : `style.css`, `atelier.css`, `onboarding.css`, `learning.css`, `effects.css`, `views.css`, `mobile.css`.
+
+## Vérification
+
+```text
+node node_modules/typescript/bin/tsc --noEmit
+node --test --test-isolation=none tests/*.test.mjs     # Node 24 ; Node 22 : --experimental-test-isolation=none
+node scripts/i18n-audit.mjs
+node scripts/e2e.mjs
+node scripts/campaign.mjs 5
+```
+
+95 tests passent : moteur, nouveaux modules, migration des sauvegardes, contrats, refondation, puzzles résolubles, interface (dont puzzles et mobile). Audit des traductions sans manque. Parcours navigateur bureau et téléphone sans débordement ni erreur. Version installable vérifiée hors ligne.
+
+## Limites connues
+
+- Aucune partie humaine longue n’a été jouée : les durées viennent d’un joueur automatique.
+- Les fonctions en ligne (galerie, classement, sauvegarde) n’ont pas pu être testées de bout en bout ici : elles dépendent de la base de la page claude.ai.
+- GitHub Pages doit être activé une fois dans les réglages du dépôt ; la publication suit la branche principale.
+
+## Prochaine étape
+
+Faire jouer une vraie partie et noter : moments d’ennui, découvertes faites seul, première refondation. Ajuster ensuite `MASTERY_GROWTH` (3,2) et les coûts des modules tardifs.
+
+---
+
 # Passation — Résonance industrielle 0.5.0
 
 Mise à jour du 1er novembre 2026. Le projet vit désormais dans le dossier `Resonance-Industrielle/` du dépôt Git, historique d’origine conservé.

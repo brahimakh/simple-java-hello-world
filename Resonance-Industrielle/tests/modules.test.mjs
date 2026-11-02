@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createState,step,simulate,machine,insertModule,addLane,costOf,insertBlueprint,encapsulate,setParam,setVariant,clone} from '../src/engine.ts';
+import {createState,step,simulate,machine,insertModule,addLane,removeLane,costOf,insertBlueprint,encapsulate,setParam,setVariant,clone,buyMastery,masteryCost,laneFee} from '../src/engine.ts';
 import {serialize,deserialize} from '../src/save.ts';
 import {acceptContract,contractOffers,buyPatent,refound,progressOf,legacyFor,PATENTS} from '../src/progression.ts';
 const packet=(qty=6,quality=1,extra={})=>({qty,quality,kind:'matter',recovered:false,exchanged:false,energy:0,origin:'A',...extra});
@@ -75,4 +75,13 @@ test('refondation : inventions, découvertes et brevets conservés, mémoire ×1
 test('longue partie mixte : aucune anomalie et sauvegarde valide',()=>{
  const s=setup(['intake','split','cadence','stamp','batch','weave','filter','mirror','furnace','press','recovery'],'A',2e8);nodes(s)[4].param=80;addLane(s,'B');addLane(s,'C');simulate(s,600);
  assert.equal(s.fault,null);assert.doesNotThrow(()=>deserialize(serialize(s)));
+});
+test('maîtrises : ×2 sur la famille qui agit, échelle de prix partagée',()=>{
+ const s=setup(['intake','cadence','press']);const [src,c]=nodes(s);src.connected=false;c.streak=3;c.last=0;s.tick=10;s.plants.A.stock.components=1e12;
+ assert.ok(buyMastery(s,'cadence'));const second=masteryCost(s);assert.ok(buyMastery(s,'weave'));assert.ok(masteryCost(s)>second);
+ c.queue=[packet()];s.plants.A.stock.energy=0;step(s);assert.equal(nodes(s)[2].queue[0].quality,5*2);
+});
+test('lignes supplémentaires : redevance croissante, rendue au démontage',()=>{
+ const s=setup(['intake','press']);const before=s.plants.A.stock.components;const fee=laneFee(s,'A');assert.equal(fee,100);assert.ok(addLane(s,'A'));assert.equal(laneFee(s,'A'),800);
+ assert.ok(removeLane(s,'A',s.plants.A.lanes[1].id));assert.equal(s.plants.A.stock.components,before);
 });

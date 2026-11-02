@@ -1,4 +1,32 @@
-# Design — Résonance industrielle, MVP 0.3
+# Design — Résonance industrielle 0.6
+
+## Mise à jour 0.6 : du prototype au long jeu
+
+Objectif : tenir la promesse « comprendre → combiner → exploser » sur plusieurs heures, sans recette unique ni mur.
+
+**Échelle.** Objectif final 10¹⁵ composants cumulés, cinq paliers nommés tous les trois ordres de grandeur. Limites annoncées relevées : réserves et arrêt de sécurité 10²¹, qualité ×10¹². Les flottants double précision suffisent : les comparaisons restent exactes à l’échelle des lots ; au-delà de 10¹⁸, l’ajout d’un très petit montant à une très grande réserve peut être absorbé par l’arrondi, sans conséquence de jeu.
+
+**Diversité plutôt que répétition.** Le rang d’un résonateur pour un lot divise ses accords (×5, ×3, ×2,33…) : l’exploit « sept résonateurs » de l’audit 0.4 est neutralisé par une règle affichée, pas par un plafond caché. Les coûts par famille croissent de 15 % par exemplaire ; chaque ligne supplémentaire paie une redevance ×8, rendue au démontage, pour que restaurer une configuration reste gratuit.
+
+**Croissance tardive.** Mesure : sans mécanisme supplémentaire, le débit plafonnait après 10⁹ (6 h simulées pour atteindre 6,6×10⁹). Les maîtrises (×2 par niveau sur une famille qui agit réellement, échelle de prix commune ×3,2 par niveau acheté) rendent la croissance régulière ; plus l’invention combine de familles, plus elle accélère. Les valeurs testées et leurs résultats sont dans `BALANCE.md`.
+
+**Nouvelles familles.** Chacune ouvre une combinaison : diviseur → résonateur, filtre → boucle d’affinage (8 retours au plus, la matière n’est jamais perdue), miroir → alternance riche/pauvre (un reflet ne se reflète pas), four → débit élevé, compresseur → contourner un lot par seconde (perte de 25 % de valeur annoncée), harmoniseur → lignes synchronisées, capteur → protéger une réserve. Empreinte ambre : une empreinte par couleur ; deux couleurs doublent le tissage.
+
+**Triangle d’installations.** La Forge (10⁸) consomme des catalyseurs envoyés par la Serre (20/s) et renvoie du plasma à la Fonderie (4/s) : ×10 par lot. Elle concurrence la catalyse pour les mêmes catalyseurs : un vrai choix de répartition.
+
+**Objectifs à moyen terme.** Contrats (10⁵) : un à la fois, sans limite de temps ni pénalité, rotation déterministe ; ils paient des brevets qui changent une règle. Badges : récompensent la variété (sobriété, sans résonance, triangle…). Carnet : vingt combinaisons reconnues par le moteur, jamais listées avant d’être trouvées.
+
+**Refondation.** Unique, facultative, à 10¹². Elle conserve inventions, configurations, découvertes, badges et brevets ; elle ajoute une règle (mémoire ×1,25 par découverte) et avance la Forge à 10⁴. Les maîtrises repartent de zéro.
+
+**Puzzles et mode Ingénieur.** Les puzzles utilisent un état séparé, jamais sauvegardé à la place de la partie ; leurs modules permis sont une règle du moteur (`allowed`). Le puzzle du jour est généré par la date et mesuré depuis des machines vides (60 s de chauffe, 120 s de mesure). Les variantes changent une règle annoncée dès la nouvelle partie.
+
+**Retours.** Couche d’effets en lecture seule (`juice.ts`) : lots qui circulent, cascades de facteurs, célébrations en file, écran de palier, musique générative quantifiée sur une grille de 0,25 s. Préférences d’affichage et records stockés à part (`meta.ts`).
+
+**Plateformes.** Fichier autonome, version installable avec cache hors ligne (`site.mjs`, `sw.js`), page claude.ai avec base partagée facultative (`cloud.ts` : chaque joueur n’écrit que ses propres documents ; galerie, votes, scores, sauvegarde compressée).
+
+Non retenus : routage libre entre cartes arbitraires, récursion profonde d’inventions (remplacée par l’insertion d’une invention dans une ligne), matériaux en tiers multiples (trop de monnaies), simulation dans un Web Worker (inutile à cette charge), rendu incrémental de l’interface (refonte importante, reportée).
+
+## Historique 0.3
 
 ## Mise à jour 0.3 : composition, branches et mesure
 

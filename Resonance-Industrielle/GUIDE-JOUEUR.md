@@ -127,3 +127,12 @@ Après un essai, raconte simplement :
 Tu peux préciser le nom des cartes ou joindre une capture si cela aide. Des chiffres sont utiles quand tu en as, mais ton ressenti compte autant.
 
 Pour une première session, le retour le plus important est : **« Est-ce que je comprends pourquoi ma modification fonctionne, et est-ce que j’ai envie d’en essayer une autre ? »**
+
+## Après le premier million (version 0.6)
+
+- **Maîtrises** : dans l’atelier, chaque niveau double l’effet d’une famille que vous utilisez. Le prix monte pour toutes les familles à la fois : choisissez celles qui travaillent vraiment.
+- **Contrats** : dans *Expériences*, une commande à la fois, sans chrono. Elle paie des brevets ; chaque brevet change une règle (plus de lignes, lots de 320, catalyse ×6…).
+- **Carnet** : vos découvertes, badges, thèmes et la courbe de votre partie. Les découvertes manquantes restent cachées : à vous de les provoquer.
+- **Forge à plasma** (10⁸) : la troisième installation. Elle partage les catalyseurs de la Serre avec la Fonderie ; son plasma multiplie une presse par 10.
+- **Puzzles** : dans *Premiers pas* et *Expériences*. Votre partie attend pendant le puzzle.
+- **Gestes** : appui long sur une machine, puis glisser sur le côté pour la déplacer. Sur téléphone, glisser le tiroir de réglages vers le bas pour le fermer.

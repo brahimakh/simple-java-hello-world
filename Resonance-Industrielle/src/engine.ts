@@ -1,4 +1,4 @@
-import {MODULES, LIMITS, UNLOCKS, PLANTS, PLANT_INPUT, PLANT_UNLOCK, type Kind, type Resource, type PlantId} from './content.ts';
+import {MODULES, LIMITS, UNLOCKS, PLANTS, PLANT_INPUT, PLANT_UNLOCK, MASTERY_FAMILIES, MASTERY_AT, type Kind, type Resource, type PlantId} from './content.ts';
 import {updateChallenge,type ChallengeState} from './challenges.ts';
 import {updateProgress,hasPatent,type ProgressState} from './progression.ts';
 export const DT = 0.1;
@@ -7,7 +7,7 @@ export type RouteMode='small'|'large'|'alternate'|'overflow';
 export interface Routing {target:number;mode:RouteMode;threshold:number;turn:boolean;main:number;branch:number;lastBranch?:boolean;}
 export interface LastPacket {tick:number;qty:number;quality:number;marks:number;result?:number;bulk?:number;catalysis?:number;plasma?:number;legacy?:number;bicolor?:boolean;}
 export interface Machine {id:number; kind:Kind; param:number; queue:Packet[]; clock:number; streak:number; last:number; working:Packet|null; connected:boolean; paid:number; status:string; processed:number; routing?:Routing;lastPacket?:LastPacket;made?:number;variant?:number;memory?:number;memoryAt?:number;heat?:number;}
-export interface Lane {id:number; name:string; machines:Machine[]; capsule:boolean;}
+export interface Lane {id:number; name:string; machines:Machine[]; capsule:boolean; fee?:number;}
 export interface Plant {stock:Record<Resource,number>; lanes:Lane[]; oreLevel:number; energyLevel:number; catalystOn:boolean; plasmaOn?:boolean;}
 export interface MachineSpec {kind:Kind;param:number;connected:boolean;variant?:number;routing?:{target:number;mode:RouteMode;threshold:number}}
 export interface Blueprint {name:string; machines:MachineSpec[];}
@@ -18,7 +18,7 @@ export interface Sample {tick:number; total:number;}
 export interface Transit {plant:PlantId;target:number;packet:Packet;}
 export type Variant='standard'|'slow'|'small'|'nores';
 export interface State {version:1; tick:number; nextId:number; plants:Record<PlantId,Plant>; produced:number; catalystProduced:number; recovered:number; largestLot:number; peak:number; totalSpent:number; library:Blueprint[]; configurations:Configuration[]; transfers:Transfer[]; pending:Pending[]; history:Sample[]; log:{tick:number;text:string}[]; claimed:string[]; paused:boolean; fault:string|null;transit?:Transit[];challenges?:ChallengeState;
- plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string;}
+ plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string; mastery?:Partial<Record<Kind,number>>;}
 export const clone = <T>(x:T):T => structuredClone(x);
 export const TRANSFERS:Omit<Transfer,'enabled'|'moved'>[] = [
  {resource:'residue',from:'A',to:'B',rate:20},{resource:'catalyst',from:'B',to:'A',rate:4},
@@ -50,6 +50,19 @@ export const bulkAt=(s:State)=>variantOf(s)==='small'?40:80;
 export const catalysisFactor=(s:State)=>hasPatent(s,'catalysis')?6:4;
 export const transferFactor=(s:State)=>hasPatent(s,'transfer')?4:1;
 export const legacyFactor=(s:State)=>s.progress?.legacy??1;
+export const masteryLevel=(s:State,k:Kind)=>s.mastery?.[k]??0;
+export const MASTERY_FACTOR=2;
+const mf=(s:State,k:Kind)=>MASTERY_FACTOR**masteryLevel(s,k);
+// One shared price ladder: every level bought, in any family, raises the price of the next one.
+export const MASTERY_GROWTH=3.2;
+export const masteryTotal=(s:State)=>Object.values(s.mastery??{}).reduce((n,v)=>n+(v??0),0);
+export function masteryCost(s:State,_k?:Kind) {return Math.round(MASTERY_AT*MASTERY_GROWTH**masteryTotal(s));}
+export function buyMastery(s:State,k:Kind) {
+ if(!MASTERY_FAMILIES.includes(k)||s.produced<MASTERY_AT||!unlocked(s,k)||masteryLevel(s,k)>=40)return false;
+ const cost=masteryCost(s,k);if(!spend(s.plants.A,'components',cost))return false;(s.mastery??={})[k]=masteryLevel(s,k)+1;s.totalSpent+=cost;return true;
+}
+// Each extra line of a facility costs more; the fee is refunded when the line is dismantled.
+export function laneFee(s:State,id:PlantId) {const n=s.plants[id].lanes.length;return n===0?0:Math.round(100*8**(n-1)*(id==='C'?1e4:id==='B'?10:1));}
 export function ownedCount(s:State,k:Kind) {let n=0;for(const id of PLANTS)for(const l of s.plants[id].lanes)for(const m of l.machines)if(m.kind===k&&m.paid>0)n++;return n;}
 // Each additional copy of a family costs 15 % more; a refund always returns what was actually paid.
 export function costOf(s:State,k:Kind,extra=0) {return Math.round(MODULES[k].cost*1.15**(ownedCount(s,k)+extra));}
@@ -105,7 +118,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    if(m.queue.length<m.param){m.status=`Compression · ${m.queue.length}/${m.param} lots`;return;}
    const parts=m.queue.slice(0,m.param).map(x=>({p:x,take:x.qty}));const total=parts.reduce((n,x)=>n+x.take,0);
    const merged=merge(parts,total);
-   p={...p,...merged,qty:total/m.param,quality:Math.min(LIMITS.quality,merged.quality!*m.param*.75),marks:Math.min(160,parts.reduce((n,x)=>n+(x.p.marks??0),0))};
+   p={...p,...merged,qty:total/m.param,quality:Math.min(LIMITS.quality,merged.quality!*m.param*.75*mf(s,'compress')),marks:Math.min(160,parts.reduce((n,x)=>n+(x.p.marks??0),0))};
    if(!next){m.status='Relier une sortie';return;}
    if(!canSend(s,next,p)){m.status='Sortie saturée ou type incompatible';return;}
    m.queue.splice(0,m.param);send(p);m.clock=1;stat(s,'compress');discover(s,'compress');return;
@@ -144,23 +157,23 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    const bit=m.variant===1?2:1;const colors=colorsOf(p);
    if(!(colors&bit)){p.marks=(p.marks??0)+1;p.colors=colors|bit;p.stamped=true;}m.clock=.1;
  } else if(m.kind==='weave') {
-   const marks=Math.min(7,p.marks??0);p.quality*=1+marks;
+   const marks=Math.min(7,p.marks??0);p.quality*=1+marks;if(marks>0)p.quality*=mf(s,'weave');
    const bicolor=colorsOf(p)===3&&marks>0;if(bicolor){p.quality*=2;stat(s,'bicolor');discover(s,'bicolor');}
    if(marks>=7)discover(s,'weave8');if(marks>=3&&!p.split)discover(s,'order');
    p.marks=0;m.clock=.2;
  } else if(m.kind==='cadence') {
    m.streak=p.qty<=12?(now-m.last<=2.00001?Math.min(4,m.streak+1):1):0;
    m.last=now;const rank=(p.res??0)+1;const divisor=hasPatent(s,'resonance')?Math.max(1,rank-1):rank;
-   p.quality*=1+m.streak/divisor;if(m.streak>0)p.res=rank;m.clock=0.1;
+   p.quality*=1+m.streak/divisor;if(m.streak>0){p.res=rank;p.quality*=mf(s,'cadence');}m.clock=0.1;
    if(m.streak>=4)discover(s,'accord');if(p.split&&m.streak>0)discover(s,'split');
  } else if(m.kind==='charge') {
    const cost=0.2*p.qty*m.param;
    if(!spend(plant,'energy',cost)){m.status='Énergie insuffisante · charge';return;}
-   p.quality*=1+m.param/2;p.charged=(p.charged??0)+1;if(p.charged>=2)discover(s,'charge-loop');m.clock=m.param;
+   p.quality*=(1+m.param/2)*mf(s,'charge');p.charged=(p.charged??0)+1;if(p.charged>=2)discover(s,'charge-loop');m.clock=m.param;
    p.quality=Math.min(LIMITS.quality,p.quality);m.working=p;m.queue.shift();m.status='Charge en cours';return;
  } else if(m.kind==='sync') {
    if(plant.stock.catalyst<10){m.status='Seuil requis · 10 catalyseurs';return;}
-   spend(plant,'catalyst',1);p.quality*=3;m.clock=0.5;if(p.loops)discover(s,'sync-loop');
+   spend(plant,'catalyst',1);p.quality*=3*mf(s,'sync');m.clock=0.5;if(p.loops)discover(s,'sync-loop');
  } else if(m.kind==='mirror') {
    const original=p.quality;
    if(m.memory!==undefined&&m.memory>p.quality){
@@ -170,10 +183,10 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    m.memory=original;m.memoryAt=s.tick;m.clock=.2;
  } else if(m.kind==='furnace') {
    if(!spend(plant,'energy',.1*p.qty)){m.status='Énergie insuffisante · four';return;}
-   m.heat=Math.min(100,(m.heat??0)+p.qty/10);p.quality*=1+m.heat/25;if(m.heat>=80)discover(s,'blaze');m.clock=.1;
+   m.heat=Math.min(100,(m.heat??0)+p.qty/10);p.quality*=(1+m.heat/25)*mf(s,'furnace');if(m.heat>=80)discover(s,'blaze');m.clock=.1;
  } else if(m.kind==='harmonic') {
    const partner=plant.lanes.some(l=>l.id!==lane.id&&l.machines.some(o=>o.kind==='harmonic'&&now-o.last<=.10001));
-   if(partner){p.quality*=3;stat(s,'harmony');discover(s,'harmony');}m.last=now;m.clock=.1;
+   if(partner){p.quality*=3*mf(s,'harmonic');stat(s,'harmony');discover(s,'harmony');}m.last=now;m.clock=.1;
  } else if(m.kind==='sensor') {
    const r:Resource=(['energy','catalyst',PLANT_INPUT[id],'plasma'] as Resource[])[m.variant??0]??'energy';
    if(plant.stock[r]+1e-9<m.param){m.status='Capteur · seuil non atteint';return;}m.clock=.1;
@@ -182,7 +195,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    if(p.qty>packetMax(s)+1e-9){m.status=`Lot trop grand · maximum ${packetMax(s)}`;return;}
    const cat=id==='A'&&plant.catalystOn&&plant.stock.catalyst>=1?catalysisFactor(s):1;
    const plasma=id==='A'&&plant.plasmaOn!==false&&plant.stock.plasma>=1?10:1;
-   const bulk=id==='A'&&p.qty>=bulkAt(s)?8:1;const legacy=id==='A'?legacyFactor(s):1;
+   const bulk=id==='A'&&p.qty>=bulkAt(s)?8*mf(s,'batch'):1;const legacy=id==='A'?legacyFactor(s):1;
    const result=p.qty/def.divisor*p.quality*bulk*cat*plasma*legacy;
    const out:Resource=id==='A'?'components':id==='B'?'catalyst':'plasma';
    if(!canCredit(s,id,out,result)||(id==='A'&&!canCredit(s,id,'residue',p.qty*.5))){m.status='Réserve de sortie saturée';return;}
@@ -253,8 +266,8 @@ export function addLane(s:State,id:PlantId,bp?:Blueprint,role:'source'|'branch'=
  if(!plantUnlocked(s,id)||s.plants[id].lanes.length>=lanesMax(s))return false;
  const spec:MachineSpec[]=bp?.machines??[{kind:'intake',param:6,connected:role!=='branch'},{kind:'press',param:0,connected:true}];
  if(spec.length>nodesMax(s)||spec.some(x=>!unlocked(s,x.kind)))return false;
- const {total,costs}=build(s,spec);if(!spend(s.plants.A,'components',total))return false;
- s.plants[id].lanes.push({id:s.nextId++,name:bp?.name??`Ligne ${s.plants[id].lanes.length+1}`,capsule:!!bp,machines:spec.map((x,i)=>{const m={...machine(s,x.kind,costs[i]),param:x.param,connected:x.connected,...(x.variant!==undefined?{variant:x.variant}:{})};if(x.routing&&m.routing)Object.assign(m.routing,x.routing,{target:0});return m;})});s.totalSpent+=total;return true;
+ const fee=laneFee(s,id);const {total,costs}=build(s,spec);if(!spend(s.plants.A,'components',total+fee))return false;
+ s.plants[id].lanes.push({id:s.nextId++,name:bp?.name??`Ligne ${s.plants[id].lanes.length+1}`,capsule:!!bp,...(fee?{fee}:{}),machines:spec.map((x,i)=>{const m={...machine(s,x.kind,costs[i]),param:x.param,connected:x.connected,...(x.variant!==undefined?{variant:x.variant}:{})};if(x.routing&&m.routing)Object.assign(m.routing,x.routing,{target:0});return m;})});s.totalSpent+=total+fee;return true;
 }
 function insertionIndex(lane:Lane,kind:Kind) {
  const press=lane.machines.findIndex(x=>x.kind==='press');const router=lane.machines.findIndex(x=>x.kind==='router');
@@ -285,7 +298,7 @@ function returnMachine(s:State,id:PlantId,m:Machine) {
 }
 function canReturn(s:State,id:PlantId,ms:Machine[]) {const cost=ms.reduce((n,m)=>n+m.paid,0);const matter=ms.reduce((n,m)=>n+m.queue.reduce((a,p)=>a+(p.kind==='matter'?p.qty:0),0)+(m.working?.qty??0)+incoming(s,m),0);const energy=ms.reduce((n,m)=>n+(m.working?.qty??0)*.2*m.param,0);return canCredit(s,'A','components',cost)&&canCredit(s,id,PLANT_INPUT[id],matter)&&canCredit(s,id,'energy',energy);}
 export function removeModule(s:State,id:PlantId,laneId:number,machineId:number) {const lane=s.plants[id].lanes.find(l=>l.id===laneId);if(!lane)return false;const index=lane.machines.findIndex(m=>m.id===machineId);if(index<0||['intake','press'].includes(lane.machines[index].kind)||!canReturn(s,id,[lane.machines[index]]))return false;const m=lane.machines[index];returnMachine(s,id,m);lane.machines.splice(index,1);if(m.kind==='filter')s.transit=(s.transit??[]);return true;}
-export function removeLane(s:State,id:PlantId,laneId:number) {const p=s.plants[id];const lane=p.lanes.find(l=>l.id===laneId);if(!lane||!canReturn(s,id,lane.machines))return false;for(const m of lane.machines)returnMachine(s,id,m);p.lanes=p.lanes.filter(l=>l.id!==laneId);for(const l of p.lanes)for(const m of l.machines)if(m.routing?.target===laneId)m.routing.target=0;return true;}
+export function removeLane(s:State,id:PlantId,laneId:number) {const p=s.plants[id];const lane=p.lanes.find(l=>l.id===laneId);if(!lane||!canReturn(s,id,lane.machines)||!canCredit(s,'A','components',lane.fee??0))return false;for(const m of lane.machines)returnMachine(s,id,m);s.plants.A.stock.components=Math.min(LIMITS.stock,s.plants.A.stock.components+(lane.fee??0));p.lanes=p.lanes.filter(l=>l.id!==laneId);for(const l of p.lanes)for(const m of l.machines)if(m.routing?.target===laneId)m.routing.target=0;return true;}
 export function moveModule(s:State,id:PlantId,laneId:number,machineId:number,direction:number) {const lane=s.plants[id].lanes.find(l=>l.id===laneId);if(!lane)return false;const i=lane.machines.findIndex(m=>m.id===machineId),j=i+direction;if(i<1||j<1||j>=lane.machines.length)return false;const a=lane.machines[i],b=lane.machines[j];if(a.kind==='press'||b.kind==='press'||MODULES[a.kind].input!==MODULES[b.kind].input)return false;[lane.machines[i],lane.machines[j]]=[b,a];return true;}
 export function blueprint(lane:Lane,name:string,keepLinks=false):Blueprint {return {name:name.trim().slice(0,48)||'Invention',machines:lane.machines.map(m=>({kind:m.kind,param:m.param,connected:m.connected,...(m.variant!==undefined?{variant:m.variant}:{}),...(m.routing?{routing:{target:keepLinks?m.routing.target:0,mode:m.routing.mode,threshold:m.routing.threshold}}:{})}))};}
 export function encapsulate(s:State,id:PlantId,laneId:number,name:string) {const lane=s.plants[id].lanes.find(l=>l.id===laneId);if(!lane||s.produced<1000||s.library.length>=30)return false;lane.name=name.trim().slice(0,48)||'Invention';lane.capsule=true;s.library.push(blueprint(lane,lane.name));note(s,`Invention « ${lane.name} » enregistrée. Les cycles en cours sont conservés.`);return true;}

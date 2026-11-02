@@ -67,9 +67,9 @@
       "oreLevel": 0,
       "energyLevel": 0,
       "measurementSeconds": 120,
-      "average": 240,
-      "last60": 240,
-      "peakPerCycle": 1600,
+      "average": 144,
+      "last60": 144,
+      "peakPerCycle": 960,
       "recovered": 6848,
       "fault": null
     }

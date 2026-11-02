@@ -9,8 +9,8 @@ export const PUZZLES:Puzzle[]=[
  {id:'p1',name:'Premier accord',goal:'Tenir 2 composants/s pendant 30 s.',hint:'Un résonateur aime les petites livraisons rapprochées. Regardez aussi le réglage de l’injecteur.',allowed:['cadence'],budget:60,...rateGoal(2)},
  {id:'p2',name:'Masse critique',goal:'Tenir 20 composants/s pendant 30 s.',hint:'La presse récompense les lots de 80. L’accumulateur choisit la taille du lot.',allowed:['cadence','batch'],budget:140,...rateGoal(20)},
  {id:'p3',name:'L’ordre compte',goal:'Tenir 60 composants/s pendant 30 s, sans résonateur.',hint:'Les mêmes machines ne donnent pas le même résultat dans un autre ordre. Où réunir les empreintes ?',allowed:['stamp','batch','weave'],budget:200,...rateGoal(60)},
- {id:'p4',name:'Affinage',goal:'Presser 10 lots de qualité ≥ ×10 avec un seul résonateur.',hint:'Un lot trop faible peut refaire un tour. Le rang du résonateur compte à chaque passage.',allowed:['cadence','filter'],budget:300,test:s=>(s.stats?.q1??0)>=10,progress:s=>Math.min(1,(s.stats?.q1??0)/10)},
- {id:'p5',name:'Harmonie',goal:'Obtenir 20 harmonies entre deux lignes.',hint:'Deux lignes identiques, réglées pareil, livrent au même rythme.',allowed:['harmonic'],budget:9000,lanes:2,test:s=>(s.stats?.harmony??0)>=20,progress:s=>Math.min(1,(s.stats?.harmony??0)/20)}
+ {id:'p4',name:'Affinage',goal:'Presser 10 lots de qualité ≥ ×10 avec un seul résonateur.',hint:'Un lot trop faible peut refaire un tour. Le rang du résonateur compte à chaque passage.',allowed:['cadence','filter'],budget:600,test:s=>(s.stats?.q1??0)>=10,progress:s=>Math.min(1,(s.stats?.q1??0)/10)},
+ {id:'p5',name:'Harmonie',goal:'Obtenir 20 harmonies entre deux lignes.',hint:'Deux lignes identiques, réglées pareil, livrent au même rythme.',allowed:['harmonic'],budget:120000,lanes:2,test:s=>(s.stats?.harmony??0)>=20,progress:s=>Math.min(1,(s.stats?.harmony??0)/20)}
 ];
 export function puzzleState(p:Puzzle):State {
  const s=createState();s.produced=2e8;s.allowed=[...p.allowed];s.puzzle=p.id;s.plants.A.stock.components=p.budget;s.plants.A.stock.ore=500;s.plants.A.stock.energy=500;

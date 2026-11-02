@@ -1,4 +1,4 @@
-import {MODULES, LIMITS, PLANTS} from './content.ts';
+import {MODULES, LIMITS, PLANTS, MASTERY_FAMILIES} from './content.ts';
 import {type State,EXPERIMENTS,TRANSFERS,PARAMS,VARIANTS,ROUTE_THRESHOLDS,emptyStock,UPGRADE_MAX} from './engine.ts';
 import {CHALLENGES} from './challenges.ts';
 import {PATENTS,BADGES,DISCOVERIES} from './progression.ts';
@@ -38,6 +38,7 @@ export function validate(value:unknown):State {
  for(const k of ['produced','catalystProduced','recovered','largestLot','peak','totalSpent'] as const)requireValue(number(s[k]),k);
  requireValue(s.plasmaProduced===undefined||number(s.plasmaProduced),'plasma');
  requireValue(s.allowed===undefined||Array.isArray(s.allowed)&&s.allowed.length<=20&&s.allowed.every(k=>Object.hasOwn(MODULES,k)),'modules permis');
+ if(s.mastery!==undefined)requireValue(s.mastery&&typeof s.mastery==='object'&&!Array.isArray(s.mastery)&&Object.entries(s.mastery).every(([k,v])=>MASTERY_FAMILIES.includes(k as never)&&integer(v,40)),'maîtrises');
  requireValue(s.puzzle===undefined||typeof s.puzzle==='string'&&s.puzzle.length<=32,'puzzle');
  requireValue(s.variant===undefined||['standard','slow','small','nores'].includes(s.variant),'variante');
  requireValue(typeof s.paused==='boolean'&&(s.fault===null||label(s.fault)),'état du moteur');
@@ -54,7 +55,7 @@ export function validate(value:unknown):State {
    for(const r of ['ore','energy','components','residue','catalyst','plasma'] as const)requireValue(number(p.stock[r],LIMITS.stock),'stock '+r);
    requireValue(integer(p.oreLevel,UPGRADE_MAX)&&integer(p.energyLevel,UPGRADE_MAX)&&typeof p.catalystOn==='boolean'&&(p.plasmaOn===undefined||typeof p.plasmaOn==='boolean'),'améliorations');
    requireValue(Array.isArray(p.lanes)&&p.lanes.length<=LIMITS.lanes+2,'lignes');
-   for(const l of p.lanes){id(l.id);blueprint(l);requireValue(typeof l.capsule==='boolean','capsule');for(const m of l.machines){
+   for(const l of p.lanes){id(l.id);blueprint(l);requireValue(typeof l.capsule==='boolean'&&(l.fee===undefined||number(l.fee)),'capsule');for(const m of l.machines){
      id(m.id);requireValue(number(m.paid,MAX),'coût du module');
      requireValue(Array.isArray(m.queue)&&m.queue.length<=800,'file');m.queue.forEach(packet);if(m.working)packet(m.working);
      requireValue(m.working===null||m.kind==='charge','charge en cours');
@@ -63,7 +64,7 @@ export function validate(value:unknown):State {
      requireValue((m.memory===undefined||number(m.memory,LIMITS.quality))&&(m.memoryAt===undefined||integer(m.memoryAt))&&(m.heat===undefined||number(m.heat,100)),'mémoire de machine');
      if(m.routing){requireValue(typeof m.routing.turn==='boolean'&&integer(m.routing.main,1e15)&&integer(m.routing.branch,1e15)&&(m.routing.lastBranch===undefined||typeof m.routing.lastBranch==='boolean')&&(m.routing.target===0||p.lanes.some(dest=>dest.id===m.routing!.target&&dest.id!==l.id)),'aiguillage');}
      if(m.lastPacket){const a=m.lastPacket;requireValue(integer(a.tick)&&a.tick<=s.tick&&number(a.qty,PACKET)&&number(a.quality,LIMITS.quality)&&number(a.marks,160),'mesure');}
-     if(m.lastPacket?.result!==undefined){const a=m.lastPacket;requireValue(m.kind==='press'&&number(a.result)&&[1,8].includes(a.bulk!)&&[1,4,6].includes(a.catalysis!)&&(a.plasma===undefined||a.plasma===10)&&(a.legacy===undefined||number(a.legacy,1e9)),'facteurs de pressage');}
+     if(m.lastPacket?.result!==undefined){const a=m.lastPacket;requireValue(m.kind==='press'&&number(a.result)&&(a.bulk===1||a.bulk!>=8&&Number.isInteger(Math.log2(a.bulk!/8)))&&[1,4,6].includes(a.catalysis!)&&(a.plasma===undefined||a.plasma===10)&&(a.legacy===undefined||number(a.legacy,1e9)),'facteurs de pressage');}
      if(m.made!==undefined)requireValue(number(m.made),'mesure');
    }}
  }

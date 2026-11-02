@@ -39,6 +39,7 @@
 
 /* A more compact header leaves room for the workshop on the first screen. */
 .hero{margin-bottom:16px}
+.hero>div:first-child>p{display:none}
 .hero h1{font-size:clamp(22px,1.8vw,28px);margin:4px 0}
 .hero .live-yield strong{font-size:40px}
 

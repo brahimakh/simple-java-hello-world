@@ -15,13 +15,13 @@ export const MODULES: Record<Kind, ModuleDefinition> = {
   recovery: {name:'Récupérateur', icon:'♲', cost:90, unlock:400, input:'exhaust', output:'exhaust', description:'Sur une fin de cycle : restitue 80 % des matières à la réserve d’origine (matière à la Fonderie, résidus à la Serre), une seule fois par lot. Coût : 0,05 énergie/matière. Cycle : 0,2 s.'},
   exchanger: {name:'Échangeur', icon:'⇄', cost:90, unlock:400, input:'exhaust', output:'exhaust', description:'Sur une fin de cycle de la Fonderie : récupère 80 % de l’énergie de pressage, une seule fois par lot. Cycle : 0,2 s. Les charges et les récupérateurs ne sont pas remboursés.'},
   sync: {name:'Synchroniseur', icon:'⋈', cost:180, unlock:1000, input:'matter', output:'matter', description:'À la livraison, si la réserve locale contient au moins 10 catalyseurs : consomme 1 catalyseur et multiplie la qualité par 3. Sinon, attend. Cycle : 0,5 s. Fonctionne aussi avant une presse catalysée.'},
-  split: {name:'Diviseur', icon:'⫽', cost:120, unlock:3000, input:'matter', output:'matter', description:'Coupe chaque lot en deux moitiés de même qualité ; empreintes partagées à parts égales. Deux petits lots peuvent ensuite nourrir un résonateur. Cycle : 0,2 s.'},
-  filter: {name:'Filtre', icon:'⊻', cost:200, unlock:10000, input:'matter', output:'matter', description:'Laisse passer les lots dont la qualité atteint le seuil choisi. Les autres repartent vers la première carte après l’injecteur de la même ligne, au pas suivant. Au 8e retour, le lot passe quand même. Cycle : 0,1 s.'},
-  mirror: {name:'Miroir', icon:'◫', cost:350, unlock:30000, input:'matter', output:'matter', description:'Retient la qualité d’origine du dernier lot reçu. Un lot plus faible reçoit cette qualité, contre 0,2 énergie par matière. Un reflet ne se reflète pas : seule la qualité d’origine est retenue. Mémoire effacée après 3 s sans lot. Cycle : 0,2 s.'},
-  furnace: {name:'Four', icon:'♨', cost:600, unlock:100000, input:'matter', output:'matter', description:'Chaque lot apporte une chaleur égale à ses matières ÷ 10 ; le four perd 10 % de sa chaleur par seconde (maximum 100). Qualité × (1 + chaleur ÷ 25), jusqu’à ×5. Coût : 0,1 énergie/matière. Il récompense les lignes à fort débit. Cycle : 0,1 s.'},
-  compress: {name:'Compresseur', icon:'⧈', cost:1500, unlock:300000, input:'matter', output:'matter', description:'Attend N lots (2, 4 ou 8), puis livre un seul lot : matières totales ÷ N, qualité moyenne × N × 0,75. Moins de matière, plus de densité : contourne la limite d’un lot par seconde de la presse. Cycle : 1 s.'},
-  harmonic: {name:'Harmoniseur', icon:'♒', cost:4000, unlock:1e6, input:'matter', output:'matter', description:'Si un harmoniseur d’une autre ligne de la même installation a livré au même pas ou au pas précédent : qualité ×3. Sinon ×1. Des lignes réglées sur la même cadence se renforcent. Cycle : 0,1 s.'},
-  sensor: {name:'Capteur', icon:'◎', cost:2500, unlock:1e6, input:'matter', output:'matter', description:'Laisse passer un lot seulement si la réserve choisie de l’installation atteint le seuil (énergie, catalyseurs, matière ou plasma). Sinon il le garde. Protège une ressource pour les machines qui suivent. Cycle : 0,1 s.'}
+  split: {name:'Diviseur', icon:'⫽', cost:150, unlock:3000, input:'matter', output:'matter', description:'Coupe chaque lot en deux moitiés de même qualité ; empreintes partagées à parts égales. Deux petits lots peuvent ensuite nourrir un résonateur. Cycle : 0,2 s.'},
+  filter: {name:'Filtre', icon:'⊻', cost:500, unlock:10000, input:'matter', output:'matter', description:'Laisse passer les lots dont la qualité atteint le seuil choisi. Les autres repartent vers la première carte après l’injecteur de la même ligne, au pas suivant. Au 8e retour, le lot passe quand même. Cycle : 0,1 s.'},
+  mirror: {name:'Miroir', icon:'◫', cost:1500, unlock:30000, input:'matter', output:'matter', description:'Retient la qualité d’origine du dernier lot reçu. Un lot plus faible reçoit cette qualité, contre 0,2 énergie par matière. Un reflet ne se reflète pas : seule la qualité d’origine est retenue. Mémoire effacée après 3 s sans lot. Cycle : 0,2 s.'},
+  furnace: {name:'Four', icon:'♨', cost:5000, unlock:100000, input:'matter', output:'matter', description:'Chaque lot apporte une chaleur égale à ses matières ÷ 10 ; le four perd 10 % de sa chaleur par seconde (maximum 100). Qualité × (1 + chaleur ÷ 25), jusqu’à ×5. Coût : 0,1 énergie/matière. Il récompense les lignes à fort débit. Cycle : 0,1 s.'},
+  compress: {name:'Compresseur', icon:'⧈', cost:15000, unlock:300000, input:'matter', output:'matter', description:'Attend N lots (2, 4 ou 8), puis livre un seul lot : matières totales ÷ N, qualité moyenne × N × 0,75. Moins de matière, plus de densité : contourne la limite d’un lot par seconde de la presse. Cycle : 1 s.'},
+  harmonic: {name:'Harmoniseur', icon:'♒', cost:50000, unlock:1e6, input:'matter', output:'matter', description:'Si un harmoniseur d’une autre ligne de la même installation a livré au même pas ou au pas précédent : qualité ×3. Sinon ×1. Des lignes réglées sur la même cadence se renforcent. Cycle : 0,1 s.'},
+  sensor: {name:'Capteur', icon:'◎', cost:30000, unlock:1e6, input:'matter', output:'matter', description:'Laisse passer un lot seulement si la réserve choisie de l’installation atteint le seuil (énergie, catalyseurs, matière ou plasma). Sinon il le garde. Protège une ressource pour les machines qui suivent. Cycle : 0,1 s.'}
 };
 export const RESOURCE_NAMES: Record<Resource,string> = {ore:'Matière',energy:'Énergie',components:'Composants',residue:'Résidus',catalyst:'Catalyseurs',plasma:'Plasma'};
 export const PLANT_NAMES: Record<PlantId,string> = {A:'Fonderie',B:'Serre catalytique',C:'Forge à plasma'};
@@ -44,7 +44,7 @@ export const UNLOCKS = [
   {at:30000, text:'Miroir disponible · un lot riche peut en inspirer un autre.'},
   {at:100000, text:'Four et contrats disponibles · le débit devient de la chaleur.'},
   {at:300000, text:'Compresseur disponible · densifier plutôt qu’accumuler.'},
-  {at:1e6, text:'Harmoniseur et capteur disponibles · les lignes peuvent jouer ensemble.'},
+  {at:1e6, text:'Harmoniseur, capteur et maîtrises disponibles · chaque famille utilisée peut doubler son effet.'},
   {at:3e6, text:'Empreinte ambre disponible · un lot bicolore double le tissage.'},
   {at:1e8, text:'Forge à plasma disponible · une troisième installation ferme le triangle.'},
   {at:1e12, text:'Refondation possible · recommencer plus fort, inventions conservées.'}
@@ -54,3 +54,6 @@ export const TIERS = [
   {at:1e3,name:'Atelier'},{at:1e6,name:'Manufacture'},{at:1e9,name:'Complexe'},{at:1e12,name:'Métropole industrielle'},{at:1e15,name:'Le cœur de Résonance'}
 ];
 export const FINAL_GOAL = 1e15;
+// Family masteries: each level doubles the multiplier of a family, only where that family really acts.
+export const MASTERY_FAMILIES:Kind[]=['cadence','weave','batch','charge','sync','furnace','compress','harmonic'];
+export const MASTERY_AT=1e6;

@@ -1,5 +1,65 @@
 # Idées pour emmener Résonance industrielle plus loin
 
+## Statut après la version 0.6 (2 novembre 2026)
+
+| N° | Idée | Statut |
+|---:|---|---|
+| 1 | Paliers en ordres de grandeur | ✅ 10³ → 10¹⁵, cinq paliers nommés |
+| 2 | Rendement décroissant des résonateurs | ✅ rang n : accords ÷ n |
+| 3 | Matériaux de tiers supérieurs | 🔁 adapté : un seul nouveau matériau (plasma), pour éviter les monnaies multiples |
+| 4 | Coûts indexés sur le nombre | ✅ +15 % par exemplaire, redevance croissante par ligne |
+| 5 | Contrats | ✅ |
+| 6 | Pièces rares par conditions | 🔁 adapté : les brevets, payés par les contrats |
+| 7 | Diviseur | ✅ |
+| 8 | Miroir | ✅ |
+| 9 | Harmoniseur | ✅ |
+| 10 | Four | ✅ |
+| 11 | Filtre | ✅ |
+| 12 | Compresseur | ✅ |
+| 13 | Empreintes colorées | ✅ cyan et ambre, tissage bicolore ×2 |
+| 14 | Capteurs | 🔁 adapté : un capteur de seuil de réserve, sans éditeur de programmation |
+| 15 | Sous-produits utiles | ✅ récupération des résidus dans la Serre |
+| 16 | Troisième installation | ✅ Forge à plasma |
+| 17 | Encapsulation récursive | 🔁 adapté : insérer une invention dans une autre ligne |
+| 18 | Lots visibles qui circulent | ✅ |
+| 19 | Combo visible | ✅ cascade de facteurs et arpège |
+| 20 | Écran de palier | ✅ |
+| 21 | Musique générative | ✅ facultative |
+| 22 | Vibrations | ✅ si l’appareil les permet |
+| 23 | Thèmes visuels | ✅ trois thèmes débloqués par les badges |
+| 24 | Courbe logarithmique | ✅ dans le Carnet |
+| 25 | Carnet de découvertes | ✅ 20 découvertes |
+| 26 | Aperçu « et si » | ✅ estimation sur 90 s |
+| 27 | Tutoriel par la pratique | ✅ 5 puzzles |
+| 28 | Moins de texte | 🟡 partiel : en-tête allégé, interface mobile compacte |
+| 29 | Infobulles de chiffres | ✅ existait, enrichi par la cascade de facteurs |
+| 30 | Puzzle du jour | ✅ |
+| 31 | Mode Ingénieur | ✅ trois variantes |
+| 32 | Badges | ✅ 12 badges |
+| 33 | Contre-la-montre et fantôme | ✅ record par ordre de grandeur |
+| 34 | Refondation | ✅ unique et facultative |
+| 35 | Code d’invention | ✅ |
+| 36 | Galerie partagée | ✅ sur la page claude.ai |
+| 37 | Classement du puzzle du jour | ✅ sur la page claude.ai |
+| 38 | Mode vitrine | ✅ |
+| 39 | Mise en page mobile | ✅ (0.5) |
+| 40 | Gestes | ✅ appui long et glisser, tiroir à glisser |
+| 41 | Une ligne à la fois par balayage | ❌ non retenu : il entrerait en conflit avec le défilement des machines ; les onglets de lignes suffisent |
+| 42 | Application installable | ✅ hors ligne |
+| 43 | Mode daltonien | 🟡 contraste renforcé ; les familles se distinguent déjà par leurs pictogrammes |
+| 44 | Taille du texte | ✅ |
+| 45 | Rendu incrémental | ❌ reporté : refonte lourde ; les clics ne sont plus perdus et les effets sont fluides |
+| 46 | Web Worker | ❌ non nécessaire : 5 h de jeu se simulent en 17 s |
+| 47 | Sauvegarde en ligne | ✅ sur la page claude.ai |
+| 48 | Tests navigateur | ✅ `scripts/e2e.mjs` |
+| 49 | GitHub Pages | ✅ workflow prêt ; activer *Settings → Pages → GitHub Actions* |
+| + | Maîtrises de famille | ✅ ajoutées après mesure, pour supprimer le mur après 10⁹ |
+
+---
+
+## Liste initiale
+
+
 Novembre 2026. Chaque idée part des règles existantes (lots, qualité, empreintes, aiguillages, Serre, encapsulation). Repères : **Impact** (effet sur le plaisir) et **Effort** (S = une session, M = quelques sessions, L = un chantier). ★ = recommandé en priorité.
 
 ---

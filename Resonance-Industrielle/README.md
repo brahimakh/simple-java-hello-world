@@ -1,12 +1,57 @@
 # Résonance industrielle
 
-Un jeu incremental solo en français ou en anglais : construire des chaînes de procédés, comprendre leurs interactions et réutiliser ses inventions. Tout reste sur le PC, sans compte ni service distant.
+Un jeu incrémental solo, en français ou en anglais : construire des chaînes de machines, comprendre leurs interactions, inventer des combinaisons et voir la production exploser — du premier composant jusqu’à 10¹⁵. Tout reste sur votre appareil, sans compte obligatoire.
 
-Pour comprendre le rôle du joueur et faire un premier essai : lire [le guide des bases](GUIDE-JOUEUR.md). Il comprend aussi un petit cadre pour partager ses remarques.
+Pour comprendre le rôle du joueur : lire [le guide des bases](GUIDE-JOUEUR.md). Toutes les idées d’évolution et leur statut : [IDEES.md](IDEES.md).
 
-## Jouer sans rien installer (nouveau)
+## Quatre façons de jouer
 
-Double-cliquez sur **Resonance-Industrielle.html**. Le jeu complet tient dans ce fichier : pas de Node.js, de serveur ni de connexion. Les sauvegardes sont propres au navigateur et à ce fichier : celles de la version servie sur http://127.0.0.1:4317 n’y apparaissent pas. Pour transférer une partie, utilisez **Exporter** puis **Importer**.
+1. **Fichier unique** : double-cliquer sur `Resonance-Industrielle.html`. Aucun outil à installer.
+2. **Page claude.ai** : la même partie, ouverte depuis un ordinateur ou un téléphone. Elle ajoute la galerie partagée, le classement du puzzle du jour et la sauvegarde en ligne.
+3. **Application installable** : la version publiée sur GitHub Pages s’installe sur l’écran d’accueil et fonctionne hors ligne. Une seule action est nécessaire dans le dépôt GitHub : *Settings → Pages → Source : GitHub Actions* ; la publication suit chaque mise à jour de la branche principale.
+4. **Lanceur Windows** : `Demarrer.cmd` (Node.js 24) sert le jeu sur http://127.0.0.1:4317.
+
+Chaque version garde ses propres sauvegardes. Pour passer de l’une à l’autre : **Exporter** puis **Importer** (menu ☰ sur téléphone).
+
+## Nouveautés 0.6 : un vrai long jeu
+
+**Progression jusqu’à 10¹⁵.** Cinq paliers nommés (Atelier 10³, Manufacture 10⁶, Complexe 10⁹, Métropole industrielle 10¹², Le cœur de Résonance 10¹⁵), chacun célébré par un écran avec la courbe de votre partie. Un joueur automatique compétent atteint 10¹⁵ en 1 h 08 ; une première partie humaine devrait durer de 2 à 4 heures.
+
+**Sept nouvelles familles de modules**, débloquées en chemin :
+
+| Module | Déblocage | Idée |
+|---|---:|---|
+| Diviseur | 3 000 | Un gros lot redevient deux petits, qui peuvent nourrir un résonateur |
+| Filtre | 10 000 | Les lots trop faibles refont un tour de la ligne (8 fois au plus) |
+| Miroir | 30 000 | Un lot faible reçoit la qualité du lot riche précédent |
+| Four | 100 000 | La chaleur suit le débit : récompense les lignes très alimentées |
+| Compresseur | 300 000 | N lots fondus en un seul, plus dense : contourne la limite d’un lot par seconde |
+| Harmoniseur | 10⁶ | ×3 quand deux lignes livrent au même instant |
+| Capteur | 10⁶ | Ne laisse passer un lot que si une réserve atteint un seuil |
+
+S’y ajoutent l’**empreinte ambre** (un lot bicolore double le tissage), la **récupération dans la Serre**, et une **troisième installation**, la Forge à plasma (10⁸), qui transforme les catalyseurs en plasma : ×10 sur une presse de Fonderie.
+
+**Des règles qui évitent la recette unique.** Le n-ième résonateur traversé par un lot divise ses accords par n : empiler les résonateurs ne suffit plus. Chaque exemplaire d’une famille coûte 15 % de plus, et chaque ligne supplémentaire paie une redevance croissante, rendue au démontage.
+
+**Maîtrises (10⁶).** Chaque niveau double l’effet d’une famille, là où elle agit réellement. Tous les niveaux partagent la même échelle de prix : combiner plus de familles fait grandir plus vite.
+
+**Contrats et brevets (10⁵).** Des commandes facultatives, sans limite de temps (presser des lots de haute qualité, tisser des lots bicolores, tripler le débit…), paient des brevets. Ceux-ci changent une règle : +2 lignes, lignes plus longues, lots de 320, catalyse ×6, pipelines ×4…
+
+**Carnet de laboratoire.** Vingt découvertes reconnues quand elles se produisent réellement (jamais listées à l’avance), douze badges, quatre thèmes visuels déblocables, la courbe logarithmique de la partie et votre record en pointillé.
+
+**Refondation (10¹²).** Une seule transition facultative : tout repart de zéro, mais vous gardez inventions, découvertes, badges et brevets. Nouvelle règle : chaque découverte multiplie les presses de Fonderie par 1,25.
+
+**Puzzles.** Cinq puzzles d’apprentissage (un module, un budget, un objectif) et un puzzle du jour, identique pour tous à une date donnée et mesuré de façon déterministe. Votre partie est mise de côté pendant le puzzle.
+
+**Mode Ingénieur.** Après un premier million, de nouvelles parties peuvent changer les règles : presses lentes, petits lots, ou sans résonance.
+
+**Partage.** Chaque invention s’exporte en un code `RI1-…` et peut être insérée dans une autre ligne. L’estimation « ≈ » simule 90 s avec et sans un module avant de l’acheter.
+
+**Sensations.** Les lots circulent visiblement entre les machines (taille = quantité, couleur = qualité). Chaque pressage affiche sa cascade de multiplicateurs. La musique est générative (chaque ligne joue sa note au rythme de ses presses). Le téléphone vibre aux grands moments, et un mode vitrine plein écran fait de l’usine un spectacle.
+
+**Confort.** Appui long puis glisser pour réordonner des machines, tiroir de réglages à glisser vers le bas pour le fermer, taille du texte, contraste renforcé.
+
+Les sauvegardes des versions précédentes sont migrées automatiquement : Forge, plasma et transferts sont ajoutés sans rien changer d’autre.
 
 ## Jouer sur mobile
 
@@ -111,6 +156,10 @@ node scripts/build.mjs
 node scripts/standalone.mjs
 node --test --test-isolation=none tests/*.test.mjs
 node scripts/balance.mjs
+node scripts/campaign.mjs 5        # partie complète par un joueur automatique
+node scripts/i18n-audit.mjs        # textes sans traduction anglaise
+node scripts/e2e.mjs               # parcours navigateur (si Playwright est présent)
+node scripts/site.mjs              # version installable dans site/
 node scripts/server.mjs --open
 ```
 
@@ -120,7 +169,7 @@ Le moteur de test reste dans le processus courant pour fonctionner dans l’envi
 
 Onze familles de modules, deux installations, branches entre lignes, banc d’essai, plans de configurations, encapsulation, six expériences, objectif final et poursuite libre. Chaque ligne reste ordonnée et typée ; les aiguillages relient les lignes d’une même installation. Pas de routage libre entre cartes arbitraires, de prestige, de son ou de récursion d’inventions.
 
-Compilation, typage, **68 tests automatisés** et mesures de progression vérifiés. Les tests exécutent aussi les boutons, formulaires et changements de langue dans un DOM simulé avec Happy DOM, dépendance de développement uniquement. Ils couvrent le guide, les pages anglaises, les règles chiffrées bilingues, les branches et leur capacité, les empreintes, les boucles, les sauvegardes, les configurations et le banc d’essai sans mutation de la partie.
+Compilation, typage, **95 tests automatisés**, audit des traductions, parcours navigateur et mesures de progression vérifiés. Les tests exécutent aussi les boutons, formulaires et changements de langue dans un DOM simulé avec Happy DOM, dépendance de développement uniquement. Ils couvrent le guide, les pages anglaises, les règles chiffrées bilingues, les branches et leur capacité, les empreintes, les boucles, les sauvegardes, les configurations et le banc d’essai sans mutation de la partie.
 
 Le navigateur intégré a permis de contrôler réellement l’atelier, le réglage de l’injecteur, le panneau avant/après, le dialogue du rôle d’une ligne et les défis en anglais. Les essais actifs et leurs résultats sont également couverts par les tests DOM. La lisibilité sur toutes les tailles d’écran et une partie humaine prolongée restent à évaluer. Aucun outil supplémentaire n’est requis pour jouer à la version compilée.
 

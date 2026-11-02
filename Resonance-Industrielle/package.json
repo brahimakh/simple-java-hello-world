@@ -1,15 +1,19 @@
 {
   "name": "resonance-industrielle",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc && node scripts/build.mjs && node scripts/standalone.mjs",
+    "build": "tsc && node scripts/build.mjs && node scripts/standalone.mjs && node scripts/site.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --test --test-isolation=none tests/*.test.mjs",
     "balance": "node scripts/balance.mjs",
     "start": "node scripts/server.mjs",
-    "standalone": "node scripts/standalone.mjs"
+    "standalone": "node scripts/standalone.mjs",
+    "site": "node scripts/site.mjs",
+    "campaign": "node scripts/campaign.mjs",
+    "e2e": "node scripts/e2e.mjs",
+    "i18n": "node scripts/i18n-audit.mjs"
   },
   "devDependencies": {
     "esbuild": "0.25.10",

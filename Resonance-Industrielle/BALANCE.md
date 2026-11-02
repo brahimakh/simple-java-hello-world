@@ -1,5 +1,27 @@
 # Équilibrage — mesures de référence
 
+## 0.6 : partie complète par un joueur automatique
+
+`node scripts/campaign.mjs 5`. Politique : injecteurs sur 12, recette Fonderie complétée au fil des déblocages (résonateur, marqueur, accumulateur 80, tisseur, four, charge 2 s, synchroniseur, harmoniseur), six lignes, Serre et Forge à deux lignes, maîtrises des familles utilisées dès que finançables, brevets et contrats pris au passage. Elle n’utilise ni filtre, ni miroir, ni diviseur, ni compresseur, ni refondation : un joueur qui invente peut aller plus vite. Décision toutes les 30 s, sans temps de réflexion.
+
+| Réglage des maîtrises | 10⁶ | 10⁹ | 10¹² | 10¹⁵ |
+|---|---:|---:|---:|---:|
+| Sans maîtrise (avant correction) | 4:53 | 34:16 | non atteint en 6 h | — |
+| ×2 par niveau, prix ×40 par famille | 4:53 | 8:39 | 9:36 | 10:32 |
+| ×2 par niveau, prix commun ×2,4 | 4:53 | 12:37 | 17:27 | 21:17 |
+| ×1,5 par niveau, prix commun ×1,8 | 4:53 | 13:49 | 19:23 | 36:57 |
+| ×2 par niveau, prix commun ×3 | 4:53 | 13:39 | 18:30 | 42:23 |
+| **×2 par niveau, prix commun ×3,2 (retenu)** | **4:53** | **13:50** | **21:47** | **1:08:27** |
+| ×2 par niveau, prix commun ×3,5 | 4:53 | 13:54 | 23:43 | 1:52:47 |
+| ×2 par niveau, prix commun ×4 | 4:53 | 14:13 | 30:23 | non atteint en 5 h |
+
+Le réglage retenu donne une décennie toutes les 2 à 25 minutes, sans mur. Le dernier ordre de grandeur est le plus long (27 min) : c’est là que les boucles de filtre, le miroir et la refondation doivent faire la différence. Ces durées ne sont pas des durées humaines : une première partie, avec lecture et essais, devrait être plusieurs fois plus longue. Aucun diagnostic moteur dans ces essais.
+
+Les puzzles ont une solution vérifiée par les tests (`tests/puzzles.test.mjs`), dans leur budget et avec leurs seuls modules.
+
+## Mesures historiques (0.3–0.5)
+
+
 Document de développement contenant des configurations révélatrices. Ne sert pas de tutoriel imposant une solution. Source des chiffres : `node scripts/balance.mjs`, sortie conservée dans `balance-results.json`.
 
 ## Nouveaux essais 0.3 : ordre et routage

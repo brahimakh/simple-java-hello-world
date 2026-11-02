@@ -44,7 +44,7 @@ function translatedScreen(ui,root='main') {
 }
 
 test('interface apprentissage : réglage gratuit, observation, comparaison et choix du rôle de ligne',async()=>{
- const s=createState();simulate(s,45);s.paused=true;
+ const s=createState();simulate(s,45);s.plants.A.stock.components+=200;s.paused=true;
  const ui=await mount({state:s});try{
    const {document:d,click}=ui;click('guide-intake');const select=d.querySelector('[data-param]');select.value='12';select.dispatchEvent(new ui.window.Event('change',{bubbles:true}));
    assert.match(d.querySelector('.change-panel').textContent,/Observer ma modification/);assert.match(d.querySelector('.change-panel').textContent,/45/);translatedScreen(ui);
