@@ -64,7 +64,7 @@ test('anciennes sauvegardes : migration vers trois installations',()=>{
 });
 test('contrats et brevets : une demande remplie paie des brevets',()=>{
  const s=setup(['intake','batch','press'],'A',2e5);nodes(s)[1].param=80;assert.ok(contractOffers(s).length>=3);
- const i=contractOffers(s).findIndex(c=>c.kind==='bulk');assert.ok(acceptContract(s,i));simulate(s,600);assert.equal(progressOf(s).contract,null);assert.equal(progressOf(s).points,1);
+ progressOf(s).done=1;const i=contractOffers(s).findIndex(c=>c.kind==='bulk');assert.ok(acceptContract(s,i));simulate(s,600);assert.equal(progressOf(s).contract,null);assert.equal(progressOf(s).points,1);
  assert.ok(buyPatent(s,'nodes'));assert.equal(buyPatent(s,'nodes'),false);assert.doesNotThrow(()=>serialize(s));
 });
 test('refondation : inventions, découvertes et brevets conservés, mémoire ×1,25 par découverte',()=>{

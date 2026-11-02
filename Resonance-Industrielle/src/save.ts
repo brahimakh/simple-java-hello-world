@@ -29,7 +29,7 @@ const spec=(m:import('./engine.ts').MachineSpec)=>{
    if(m.kind==='router')requireValue(m.routing,'aiguillage');
    if(m.routing){requireValue(m.kind==='router','aiguillage');route(m.routing);}
  };
-export const checkBlueprint=(b:import('./engine.ts').Blueprint)=>{requireValue(b&&label(b.name)&&Array.isArray(b.machines)&&b.machines.length>=2&&b.machines.length<=LIMITS.nodes+2,'plan');b.machines.forEach(spec);requireValue(b.machines[0].kind==='intake'&&b.machines.filter(m=>m.kind==='intake').length===1&&b.machines.filter(m=>m.kind==='press').length===1,'structure de chaîne');};
+export const checkBlueprint=(b:import('./engine.ts').Blueprint)=>{requireValue(b&&label(b.name)&&(b.rating===undefined||number(b.rating))&&(b.rate===undefined||number(b.rate))&&Array.isArray(b.machines)&&b.machines.length>=2&&b.machines.length<=LIMITS.nodes+2,'plan');b.machines.forEach(spec);requireValue(b.machines[0].kind==='intake'&&b.machines.filter(m=>m.kind==='intake').length===1&&b.machines.filter(m=>m.kind==='press').length===1,'structure de chaîne');};
 export function validate(value:unknown):State {
  const blueprint=checkBlueprint;
  requireValue(!!value&&typeof value==='object','objet attendu');const s=migrate(value) as State;
@@ -52,7 +52,7 @@ export function validate(value:unknown):State {
  const packet=(p:import('./engine.ts').Packet)=>{
    requireValue(p&&number(p.qty,PACKET)&&p.qty>0&&number(p.quality,LIMITS.quality)&&p.quality>=1&&(p.kind==='matter'||p.kind==='exhaust')&&typeof p.recovered==='boolean'&&typeof p.exchanged==='boolean'&&number(p.energy,PACKET*2)&&PLANTS.includes(p.origin),'lot');
    requireValue((p.marks===undefined||number(p.marks,160))&&(p.stamped===undefined||typeof p.stamped==='boolean')&&(!(p.marks??0)||p.stamped===true),'empreintes');
-   requireValue((p.colors===undefined||[0,1,2,3].includes(p.colors))&&(p.res===undefined||integer(p.res,1000))&&(p.loops===undefined||integer(p.loops,8))&&(p.charged===undefined||integer(p.charged,1e6))&&(p.split===undefined||typeof p.split==='boolean'),'propriétés du lot');
+   requireValue((p.colors===undefined||[0,1,2,3,4,5,6,7].includes(p.colors))&&(p.lane===undefined||integer(p.lane))&&(p.assembled===undefined||typeof p.assembled==='boolean')&&(p.res===undefined||integer(p.res,1000))&&(p.loops===undefined||integer(p.loops,8))&&(p.charged===undefined||integer(p.charged,1e6))&&(p.split===undefined||typeof p.split==='boolean'),'propriétés du lot');
  };
  for(const pid of PLANTS){
    const p=s.plants[pid];requireValue(p&&p.stock&&Object.keys(p.stock).length===6,'réserves');
@@ -69,7 +69,7 @@ export function validate(value:unknown):State {
      requireValue((m.memory===undefined||number(m.memory,LIMITS.quality))&&(m.memoryAt===undefined||integer(m.memoryAt))&&(m.heat===undefined||number(m.heat,100)),'mémoire de machine');
      if(m.routing){requireValue(typeof m.routing.turn==='boolean'&&integer(m.routing.main,1e15)&&integer(m.routing.branch,1e15)&&(m.routing.lastBranch===undefined||typeof m.routing.lastBranch==='boolean')&&(m.routing.target===0||p.lanes.some(dest=>dest.id===m.routing!.target&&dest.id!==l.id)),'aiguillage');}
      if(m.lastPacket){const a=m.lastPacket;requireValue(integer(a.tick)&&a.tick<=s.tick&&number(a.qty,PACKET)&&number(a.quality,LIMITS.quality)&&number(a.marks,160),'mesure');}
-     if(m.lastPacket?.result!==undefined){const a=m.lastPacket;requireValue(m.kind==='press'&&number(a.result)&&(a.bulk===1||a.bulk!>=8&&Number.isInteger(Math.log2(a.bulk!/8)))&&[1,4,6].includes(a.catalysis!)&&(a.plasma===undefined||a.plasma===10)&&(a.legacy===undefined||number(a.legacy,1e9))&&(a.synergy===undefined||number(a.synergy,1e3)),'facteurs de pressage');}
+     if(m.lastPacket?.result!==undefined){const a=m.lastPacket;requireValue(m.kind==='press'&&number(a.result)&&(a.bulk===1||a.bulk!>=8&&Number.isInteger(Math.log2(a.bulk!/8)))&&[1,4,6].includes(a.catalysis!)&&(a.plasma===undefined||a.plasma===10)&&(a.legacy===undefined||number(a.legacy,1e9))&&(a.synergy===undefined||number(a.synergy,1e3))&&(a.mold===undefined||[.5,1.5,3,4].includes(a.mold)),'facteurs de pressage');}
      if(m.made!==undefined)requireValue(number(m.made),'mesure');
    }}
  }

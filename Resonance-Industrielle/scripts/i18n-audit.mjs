@@ -8,7 +8,7 @@ import {serialize,SAVE_KEY} from '../src/save.ts';
 import {progressOf} from '../src/progression.ts';
 const kinds=['intake','split','cadence','stamp','batch','weave','filter','mirror','furnace','compress','harmonic','sensor','charge','sync','router','press','recovery','exchanger'];
 function rich(){const s=createState();s.produced=2e12;s.plants.A.stock.components=1e15;for(const p of Object.values(s.plants)){p.stock.ore=1e6;p.stock.energy=1e9;p.stock.catalyst=100;}
- s.plants.A.lanes[0].machines=['intake','split','cadence','stamp','batch','weave','filter','mirror','furnace','press','recovery','exchanger'].map(k=>machine(s,k));addLane(s,'A');s.plants.A.lanes[1].machines.splice(1,0,...['compress','harmonic','sensor','charge','sync','router'].map(k=>machine(s,k)));
+ s.plants.A.lanes[0].machines=['intake','split','cadence','stamp','batch','weave','filter','mirror','furnace','press','recovery','exchanger'].map(k=>machine(s,k));addLane(s,'A');s.plants.A.lanes[1].machines.splice(1,0,...['compress','harmonic','sensor','charge','sync','router','assembler'].map(k=>machine(s,k)));
  addLane(s,'B');addLane(s,'C');progressOf(s).points=3;s.discoveries=[{id:'accord',tick:1}];simulate(s,30);s.library.push({name:'Plan',machines:[{kind:'intake',param:6,connected:true},{kind:'press',param:0,connected:true}]});return s;}
 const missing=new Set();
 async function screen(state,visit){

@@ -34,3 +34,14 @@ test('espaces : après le guide, un seul nouvel espace par minute, chacun à sa 
  assert.equal(opened.length,STAGES.length);for(let i=1;i<opened.length;i++)assert.ok(opened[i][1]-opened[i-1][1]>=STAGE_GAP);
  assert.ok(reveal(s,'nav-bench'));
 });
+test('assembleur : deux lignes, un lot ; matière conservée, qualités multipliées',()=>{
+ const s=setup(['intake','assembler','press']);const [src,asm,pr]=s.plants.A.lanes[0].machines;src.connected=false;s.plants.A.stock.energy=0;
+ asm.queue=[{...packet(6,4),lane:1},{...packet(6,4),lane:1}];step(s);assert.equal(asm.status,'Attend un lot d’une autre ligne');
+ asm.queue.push({...packet(10,5),lane:2});step(s);assert.equal(pr.queue[0].qty,16);assert.equal(pr.queue[0].quality,20);assert.equal(asm.queue.length,1);
+ for(let i=0;i<40;i++)step(s);assert.equal(asm.queue.length,0,'a lonely batch passes after 3 s');
+});
+test('moules : ressort, engrenage, cristal ; magenta et prismatique',()=>{
+ for(const [mold,qty,factor,cycle] of [[1,6,3,1],[1,80,.5,1],[3,6,4,3]]){const s=setup(['intake','press']);const [src,pr]=s.plants.A.lanes[0].machines;src.connected=false;assert.ok(setVariant(s,pr,mold));pr.queue=[packet(qty)];step(s);assert.equal(pr.lastPacket.mold,factor);assert.ok(Math.abs(pr.clock-(cycle-.1))<1e-9||pr.clock===cycle);}
+ const s=setup(['intake','stamp','stamp','stamp','weave','press']);s.produced=5e7;const [src,a,b,c]=s.plants.A.lanes[0].machines;src.connected=false;s.plants.A.stock.energy=0;
+ assert.ok(setVariant(s,b,1));assert.ok(setVariant(s,c,2));a.queue=[packet()];for(let i=0;i<8;i++)step(s);assert.equal(s.plants.A.lanes[0].machines[5].lastPacket.quality,(1+3)*5);
+});

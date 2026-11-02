@@ -46,6 +46,12 @@ export const DISCOVERIES:{id:string;name:string;text:string;hint:Kind}[]=[
  {id:'plasma',name:'Surchauffe',text:'Le plasma de la Forge multiplie une presse de Fonderie par 10.',hint:'press'},
  {id:'quality6',name:'Qualité ×1 000 000',text:'Un lot atteint une qualité d’un million.',hint:'press'},
  {id:'press9',name:'Un milliard d’un coup',text:'Une seule presse produit 10⁹ composants en un cycle.',hint:'press'},
+ {id:'assembly',name:'Deux lignes, un lot',text:'Un assembleur fond deux lots venus de lignes différentes : leurs qualités se multiplient.',hint:'assembler'},
+ {id:'assembly-rich',name:'Alliage',text:'Un lot assemblé dépasse une qualité de 10 000.',hint:'assembler'},
+ {id:'spring',name:'Ressort',text:'Un moule à ressort triple un petit lot.',hint:'press'},
+ {id:'gear',name:'Engrenage',text:'Un moule à engrenage renforce la prime de gros lot.',hint:'press'},
+ {id:'crystal',name:'Cristal',text:'Un moule à cristal quadruple un lot, en prenant son temps.',hint:'press'},
+ {id:'prism',name:'Prisme',text:'Trois couleurs d’empreinte sur un lot : tissage ×5.',hint:'stamp'},
  {id:'nested',name:'Invention dans l’invention',text:'Les modules d’une invention sont insérés dans une autre ligne.',hint:'press'}
 ];
 export const discoveryCount=(s:State)=>s.discoveries?.length??0;
@@ -72,7 +78,7 @@ export const THEMES=[{id:'default',name:'Laboratoire',badges:0},{id:'neon',name:
 export const CONTRACTS_AT=1e5;
 const tierOf=(s:State)=>Math.max(0,Math.floor(Math.log10(Math.max(1,s.produced))));
 function statValue(s:State,kind:string,level:number) {
- return kind==='quality'?(s.stats?.['q'+level]??0):kind==='bulk'?(s.stats?.lots80??0):kind==='bicolor'?(s.stats?.bicolor??0):kind==='loops'?(s.stats?.loops??0):kind==='harmony'?(s.stats?.harmony??0):kind==='catalyst'?s.catalystProduced:kind==='plasma'?(s.plasmaProduced??0):0;
+ return kind==='quality'?(s.stats?.['q'+level]??0):kind==='bulk'?(s.stats?.lots80??0):kind==='bicolor'?(s.stats?.bicolor??0):kind==='loops'?(s.stats?.loops??0):kind==='harmony'?(s.stats?.harmony??0):kind==='assembly'?(s.stats?.assembly??0):kind==='crystals'?(s.stats?.crystals??0):kind==='prism'?(s.stats?.prism??0):kind==='catalyst'?s.catalystProduced:kind==='plasma'?(s.plasmaProduced??0):0;
 }
 export function contractOffers(s:State):Contract[] {
  const p=progressOf(s);if(s.produced<CONTRACTS_AT&&p.refounds===0)return [];
@@ -86,6 +92,9 @@ export function contractOffers(s:State):Contract[] {
  if(s.produced>=1e4)pool.push({kind:'loops',level:0,goal:50,reward,patents:1});
  if(s.produced>=1e6)pool.push({kind:'harmony',level:0,goal:40,reward:reward*2,patents:2});
  if(s.produced>=3e6)pool.push({kind:'bicolor',level:0,goal:20,reward:reward*2,patents:2});
+ if(s.produced>=2e4)pool.push({kind:'assembly',level:0,goal:30,reward:reward*2,patents:2});
+ if(s.produced>=5e4)pool.push({kind:'crystals',level:0,goal:40,reward,patents:1});
+ if(s.produced>=3e7)pool.push({kind:'prism',level:0,goal:20,reward:reward*3,patents:2});
  if(s.produced>=1e8)pool.push({kind:'plasma',level:0,goal:50,reward:reward*3,patents:2});
  // Rotation depends only on how many contracts were completed: same history, same offers.
  const out:Contract[]=[];for(let i=0;i<3&&i<pool.length;i++){const c=pool[(p.done*2+i*3)%pool.length];if(!out.some(x=>x.kind===c.kind))out.push({...c,base:0,start:0});}
@@ -105,7 +114,7 @@ const compact=(n:number)=>{if(n<1e6)return String(Math.round(n));const k=Math.fl
 const roundGoal=(n:number)=>{const k=Math.floor(Math.log10(Math.max(1,n)));return Math.ceil(n/10**k)*10**k;};
 export function contractText(c:Contract) {
  const g=compact(c.goal);
- return c.kind==='quality'?`Presser ${g} lots de qualité ≥ ×${compact(10**c.level)}`:c.kind==='bulk'?`Presser ${g} lots avec prime de gros lot`:c.kind==='rate'?`Mesurer ${g} composants/s sur 60 s`:c.kind==='catalyst'?`Produire ${g} catalyseurs`:c.kind==='loops'?`Renvoyer ${g} lots par un filtre`:c.kind==='harmony'?`Obtenir ${g} harmonies`:c.kind==='bicolor'?`Tisser ${g} lots bicolores`:`Produire ${g} plasma`;
+ return c.kind==='quality'?`Presser ${g} lots de qualité ≥ ×${compact(10**c.level)}`:c.kind==='bulk'?`Presser ${g} lots avec prime de gros lot`:c.kind==='rate'?`Mesurer ${g} composants/s sur 60 s`:c.kind==='catalyst'?`Produire ${g} catalyseurs`:c.kind==='loops'?`Renvoyer ${g} lots par un filtre`:c.kind==='harmony'?`Obtenir ${g} harmonies`:c.kind==='bicolor'?`Tisser ${g} lots bicolores`:c.kind==='assembly'?`Assembler ${g} lots`:c.kind==='crystals'?`Presser ${g} cristaux`:c.kind==='prism'?`Tisser ${g} lots prismatiques`:`Produire ${g} plasma`;
 }
 // Eureka: a change followed, 30 to 180 s later, by a stable rate at least ×5 the rate before it.
 export const EUREKA_RATIO=5;
@@ -148,12 +157,13 @@ export const PISTE_HINTS:Record<string,string>={
  compress:'Plusieurs lots peuvent-ils n’en faire qu’un ?',harmony:'Deux lignes peuvent-elles jouer ensemble ?',
  bicolor:'Deux couleurs valent-elles mieux qu’une ?','greenhouse-loop':'La Serre gaspille-t-elle ses résidus ?',
  plasma:'Que peut apporter la troisième installation ?',quality6:'Un lot peut-il atteindre une qualité d’un million ?',
- press9:'Une seule presse peut-elle produire un milliard d’un coup ?',nested:'Une invention peut-elle en enrichir une autre ?'
+ press9:'Une seule presse peut-elle produire un milliard d’un coup ?',assembly:'Deux lots de lignes différentes peuvent-ils n’en faire qu’un ?','assembly-rich':'Jusqu’où peut monter la qualité d’un lot assemblé ?',spring:'Une presse peut-elle préférer les petits lots ?',gear:'Une presse peut-elle aimer encore plus les gros lots ?',crystal:'Que vaut une presse qui prend son temps ?',prism:'Et avec trois couleurs ?',nested:'Une invention peut-elle en enrichir une autre ?'
 };
 function pisteOpen(s:State,id:string,hint:string) {
  if(id==='catalysis'||id==='greenhouse-loop')return plantUnlocked(s,'B');if(id==='plasma')return plantUnlocked(s,'C');
  if(id==='quality6')return s.produced>=1e6;if(id==='press9')return s.produced>=1e9;if(id==='nested')return s.library.length>0;
  if(id==='accord5'||id==='weave8')return s.produced>=300;
+ if(id==='spring'||id==='gear'||id==='crystal')return s.produced>=5e4;if(id==='prism')return s.produced>=3e7;
  return unlocked(s,hint as never);
 }
 export function pistes(s:State) {
@@ -163,7 +173,7 @@ export function pistes(s:State) {
  if(!open.length)return [];
  // The newest mechanic first (to introduce it), then the oldest leads still open.
  const byUnlock=[...open].sort((a,b)=>unlockAt(s,a.hint as never)-unlockAt(s,b.hint as never));
- const newest=byUnlock.at(-1)!;const AREA:Record<string,string>={catalysis:'Serre catalytique','greenhouse-loop':'Serre catalytique',plasma:'Forge à plasma',quality6:'Presse',press9:'Presse',nested:'Inventions'};
+ const newest=byUnlock.at(-1)!;const AREA:Record<string,string>={spring:'Moules de presse',gear:'Moules de presse',crystal:'Moules de presse',prism:'Empreinte magenta',catalysis:'Serre catalytique','greenhouse-loop':'Serre catalytique',plasma:'Forge à plasma',quality6:'Presse',press9:'Presse',nested:'Inventions'};
  return [newest,...byUnlock.filter(d=>d!==newest)].slice(0,3).map(d=>({...d,area:AREA[d.id],question:PISTE_HINTS[d.id],fresh:d===newest&&s.produced<unlockAt(s,d.hint as never)*4}));
 }
 export const SPECIALTIES=[{kind:'cadence',name:'Cadence',text:'Le résonateur double son effet.'},{kind:'batch',name:'Masse',text:'La prime de gros lot double : ×16 au lieu de ×8.'},{kind:'weave',name:'Empreinte',text:'Le tisseur double son effet.'}] as const;
