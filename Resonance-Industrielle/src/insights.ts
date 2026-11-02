@@ -26,7 +26,7 @@ export function insertionHint(l:Lane|undefined,k:Kind) {
 }
 export function supplyHint(s:State,id:PlantId,key:'oreLevel'|'energyLevel') {
  const ms=s.plants[id].lanes.flatMap(l=>l.machines);
- const shortage=ms.some(m=>key==='oreLevel'?m.status==='Manque de matière':m.status.includes('Énergie insuffisante'));
+ const shortage=ms.some(m=>key==='oreLevel'?m.status.startsWith('Manque de matière'):m.status.includes('Énergie insuffisante'));
  return shortage?'Pénurie observée : augmenter cette alimentation peut aider.':'Aucune pénurie observée. Cet achat augmente la réserve disponible, pas la vitesse des machines.';
 }
 export function lotDetails(s:State,id:PlantId,m:Machine) {

@@ -1,4 +1,4 @@
-import {MODULES, LIMITS, UNLOCKS, PLANTS, PLANT_NAMES, PLANT_INPUT, PLANT_UNLOCK, MASTERY_FAMILIES, MASTERY_AT, MODS, MODS_AT, type Kind, type Resource, type PlantId} from './content.ts';
+import {MODULES, LIMITS, UNLOCKS, PLANTS, PLANT_NAMES, PLANT_INPUT, PLANT_UNLOCK, MASTERY_FAMILIES, MODS, type Kind, type Resource, type PlantId} from './content.ts';
 import {updateChallenge,type ChallengeState} from './challenges.ts';
 import {siteDone,greenhouseFactor,greenhouseSpeed,doctrine,type SiteState,type CultureState} from './world.ts';
 import {updateProgress,hasPatent,type ProgressState} from './progression.ts';
@@ -19,7 +19,7 @@ export interface Sample {tick:number; total:number;}
 export interface Transit {plant:PlantId;target:number;packet:Packet;}
 export type Variant='standard'|'slow'|'small'|'nores';
 export interface State {version:1; tick:number; nextId:number; plants:Record<PlantId,Plant>; produced:number; catalystProduced:number; recovered:number; largestLot:number; peak:number; totalSpent:number; library:Blueprint[]; configurations:Configuration[]; transfers:Transfer[]; pending:Pending[]; history:Sample[]; log:{tick:number;text:string}[]; claimed:string[]; paused:boolean; fault:string|null;transit?:Transit[];challenges?:ChallengeState;
- plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string; mastery?:Partial<Record<Kind,number>>; tempo?:number; intro?:{keys:string[];last:number}; sites?:SiteState; culture?:CultureState; doctrine?:string; protos?:{owned:string[];offer:string[]|null}; journey?:import('./journey.ts').JourneyState; specialty?:Kind; lastChange?:{tick:number;rate:number}; eurekas?:{tick:number;ratio:number;before:number;after:number}[];}
+ plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string; mastery?:Partial<Record<Kind,number>>; tempo?:number; intro?:{keys:string[];last:number;bonus?:number}; sites?:SiteState; culture?:CultureState; doctrine?:string; protos?:{owned:string[];offer:string[]|null}; journey?:import('./journey.ts').JourneyState; specialty?:Kind; lastChange?:{tick:number;rate:number}; eurekas?:{tick:number;ratio:number;before:number;after:number}[];}
 export const clone = <T>(x:T):T => structuredClone(x);
 export const TRANSFERS:Omit<Transfer,'enabled'|'moved'>[] = [
  {resource:'residue',from:'A',to:'B',rate:20},{resource:'catalyst',from:'B',to:'A',rate:4},
@@ -37,12 +37,12 @@ export function createState(variant:Variant='standard'):State {
 export function note(s:State,text:string) {s.log.unshift({tick:s.tick,text});s.log.length=Math.min(14,s.log.length);}
 export function mark(s:State,text:string) {(s.timeline??=[]).push({tick:s.tick,text});if(s.timeline.length>80)s.timeline.splice(0,s.timeline.length-80);}
 export function stat(s:State,key:string,n=1) {const st=(s.stats??={});st[key]=(st[key]??0)+n;}
-export function discover(s:State,id:string) {const d=(s.discoveries??=[]);if(!d.some(x=>x.id===id)){d.push({id,tick:s.tick});mark(s,'découverte:'+id);
+export function discover(s:State,id:string) {const d=(s.discoveries??=[]);if(!d.some(x=>x.id===id)){d.push({id,tick:s.tick});mark(s,'découverte:'+id);boostIntro(s);
  // A discovery pays one minute of current production at once (at least 100 components).
  if(!s.puzzle){const r=Math.max(100,measuredRate(s).rate*TUNING.discoveryReward);s.plants.A.stock.components=Math.min(LIMITS.stock,s.plants.A.stock.components+r);stat(s,'discoveryReward',r);}}}
 // Synergy: each distinct interaction that really acted on a line in the last 10 s multiplies its presses.
 // Balance knobs in one place (measured by scripts/campaign.mjs; see BALANCE.md).
-export const TUNING={synergy:1.2,synergyMax:12,discovery:1.05,discoveryReward:30,masteryGrowth:6.5,masteryFactor:2,masteryBase:1e7};
+export const TUNING={synergy:1.2,synergyMax:12,discovery:1.05,discoveryReward:30,masteryGrowth:5,masteryFactor:2,masteryBase:1e7};
 export const SYNERGY_WINDOW=100;
 function syn(s:State,lane:Lane,key:string) {(lane.syn??={})[key]=s.tick;}
 export function synergyKeys(s:State,lane:Lane) {return Object.entries(lane.syn??{}).filter(([,t])=>s.tick-t<=SYNERGY_WINDOW).map(([k])=>k);}
@@ -55,21 +55,39 @@ export function unlockAt(s:State,k:Kind) {if(variantOf(s)==='nores'){if(k==='cad
 // at least INTRO_GAP apart, never during the guided basics. The four families of the guide arrive at once.
 export const INTRO_GAP=1200;
 // Later mechanics are richer: the gap grows from 2 min to about 4 min 30 over the queue.
-export const introGap=(s:State)=>INTRO_GAP+80*Math.max(0,(s.intro?.keys.length??0)-GUIDED.length);
+export const introGap=(s:State)=>INTRO_GAP+50*Math.max(0,(s.intro?.keys.length??0)-GUIDED.length);
+// 1.3: playing well brings the next novelty sooner. Each discovery or Eurêka after the guide advances it by one minute
+// (INTRO_BOOST), but two novelties are always at least INTRO_MIN apart.
+export const INTRO_BOOST=600,INTRO_MIN=450;
+export function introRemaining(s:State){const i=s.intro;if(!i)return 0;return Math.max(INTRO_MIN-(s.tick-i.last),introGap(s)-(s.tick-i.last)-(i.bonus??0),0);}
+export function boostIntro(s:State){if(!paced(s)||!s.intro||s.journey!.step<JOURNEY_STEPS)return;s.intro.bonus=Math.min(3*INTRO_BOOST,(s.intro.bonus??0)+INTRO_BOOST);}
+// Features other than machines also arrive through the queue, one at a time (prototypes, molds, contracts…).
+export const FEATURES:Record<string,{at:number;name:string;text:string}>={
+ proto:{at:1e4,name:'Prototypes',text:'À chaque palier, choisissez une machine unique parmi trois : elle change une règle pour toute la partie.'},
+ molds:{at:5e4,name:'Moules de presse',text:'Touchez une presse : un moule change les lots qu’elle préfère (ressort, engrenage, cristal).'},
+ contracts:{at:1e5,name:'Contrats',text:'Des commandes à remplir contre des points de brevet. Ouvrez Expériences.'},
+ mastery:{at:1e6,name:'Maîtrises',text:'Investissez vos composants pour doubler l’effet d’une famille de machines.'},
+ amber:{at:3e6,name:'Empreinte ambre',text:'Le marqueur peut laisser une empreinte ambre. Deux couleurs sur un lot : le tisseur double encore.'},
+ culture:{at:1e7,name:'Serre vivante',text:'La Serre sélectionne ses souches : croisez-les et suivez les saisons.'},
+ magenta:{at:3e7,name:'Empreinte magenta',text:'Troisième couleur. Un lot aux trois couleurs devient prismatique : ×5.'},
+ slots:{at:1e9,name:'Emplacements d’amélioration',text:'Chaque machine reçoit un emplacement : turbo, tampon, marque ou stabilisateur.'},
+ sites:{at:1e10,name:'Chantiers',text:'Six grands projets livrés depuis vos réserves, chacun change une règle. Ouvrez Monde.'}};
+export const featureOpen=(s:State,key:string)=>s.produced>=FEATURES[key].at&&introduced(s,key);
+export const noveltyName=(key:string)=>key.startsWith('plant-')?PLANT_NAMES[key.slice(6) as PlantId]:FEATURES[key]?.name??MODULES[key as Kind].name;
 export const GUIDED:Kind[]=['cadence','stamp','batch','weave'];
 export const paced=(s:State)=>!!s.journey&&!s.puzzle;
 export const introduced=(s:State,key:string)=>!paced(s)||!!s.intro?.keys.includes(key);
 export function unlocked(s:State,k:Kind) {if(s.allowed&&k!=='intake'&&k!=='press'&&!s.allowed.includes(k))return false;return s.produced>=unlockAt(s,k)&&(k==='intake'||k==='press'||introduced(s,k));}
 export function introQueue(s:State){
- const items:{key:string;at:number}[]=[...(Object.keys(MODULES) as Kind[]).filter(k=>k!=='intake'&&k!=='press'&&unlockAt(s,k)<Infinity).map(k=>({key:k,at:unlockAt(s,k)})),{key:'plant-B',at:plantUnlockAt(s,'B')},{key:'plant-C',at:plantUnlockAt(s,'C')}];
- return items.filter(x=>!s.intro?.keys.includes(x.key)).sort((a,b)=>a.at-b.at);
+ const items:{key:string;at:number}[]=[...(Object.keys(MODULES) as Kind[]).filter(k=>k!=='intake'&&k!=='press'&&unlockAt(s,k)<Infinity).map(k=>({key:k,at:unlockAt(s,k)})),{key:'plant-B',at:plantUnlockAt(s,'B')},{key:'plant-C',at:plantUnlockAt(s,'C')},...Object.entries(FEATURES).map(([key,f])=>({key,at:f.at}))];
+ return items.filter(x=>!s.intro?.keys.includes(x.key)).sort((a,b)=>a.at-b.at||Number(b.key.startsWith('plant-'))-Number(a.key.startsWith('plant-')));
 }
 export function updateIntro(s:State){
  if(!paced(s))return null;const intro=(s.intro??={keys:[],last:-INTRO_GAP});const guided=s.journey!.step<JOURNEY_STEPS;
  for(const k of GUIDED)if(s.produced>=unlockAt(s,k)&&!intro.keys.includes(k)){intro.keys.push(k);return k;}
- if(guided||s.tick-intro.last<introGap(s))return null;
+ if(guided||introRemaining(s)>0)return null;
  const next=introQueue(s).find(x=>!GUIDED.includes(x.key as Kind));if(!next||s.produced<next.at)return null;
- intro.keys.push(next.key);intro.last=s.tick;const name=next.key.startsWith('plant-')?PLANT_NAMES[next.key.slice(6) as PlantId]:MODULES[next.key as Kind].name;
+ intro.keys.push(next.key);intro.last=s.tick;intro.bonus=0;const name=noveltyName(next.key);
  note(s,`Nouvelle possibilité : ${name}.`);mark(s,'nouveauté:'+next.key);return next.key;
 }
 export const JOURNEY_STEPS=9;
@@ -93,7 +111,7 @@ export const MASTERY_GROWTH=3.2;
 export const masteryTotal=(s:State)=>Object.values(s.mastery??{}).reduce((n,v)=>n+(v??0),0);
 export function masteryCost(s:State,_k?:Kind) {return Math.round(TUNING.masteryBase*TUNING.masteryGrowth**masteryTotal(s));}
 export function buyMastery(s:State,k:Kind) {
- if(!MASTERY_FAMILIES.includes(k)||s.produced<MASTERY_AT||!unlocked(s,k)||masteryLevel(s,k)>=40)return false;
+ if(!MASTERY_FAMILIES.includes(k)||!featureOpen(s,'mastery')||!unlocked(s,k)||masteryLevel(s,k)>=40)return false;
  const cost=masteryCost(s,k);if(!spend(s.plants.A,'components',cost))return false;(s.mastery??={})[k]=masteryLevel(s,k)+1;s.totalSpent+=cost;return true;
 }
 // Each extra line of a facility costs more; the fee is refunded when the line is dismantled.
@@ -135,14 +153,14 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    if(m.manual){m.status='Attend votre signal';return;}
    if(!next){m.status='Relier une sortie';return;}
    if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
-   if(!spend(plant,r,p.qty)){m.status=id==='A'?'Manque de matière':id==='B'?'Manque de résidus · vérifier le transfert':'Manque de catalyseurs · vérifier le transfert';return;}
+   if(!spend(plant,r,p.qty)){m.status=id==='A'?'Manque de matière · améliorez l’extraction':id==='B'?'Manque de résidus · vérifier le transfert':'Manque de catalyseurs · vérifier le transfert';return;}
    send(p);m.clock=0.5;return;
  }
  if(m.working) {
    if(!canSend(s,next,m.working)){m.status=blocked(next,m.working);return;}
    send(m.working);m.working=null;return;
  }
- if(!m.queue.length){m.status='Manque d’entrée';return;}
+ if(!m.queue.length){m.status='En attente d’un lot';return;}
  let p=clone(m.queue[0]);
  if(p.kind!==MODULES[m.kind].input){m.status='Type d’entrée incompatible';return;}
  if(m.kind==='batch') {
@@ -171,11 +189,13 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    const hues=[1,2,4].filter(b=>colorsOf(p)&b).length;
    const useBranch=r.mode==='small'?p.qty<=r.threshold:r.mode==='large'?p.qty>=r.threshold:r.mode==='alternate'?r.turn:r.mode==='quality'?p.quality>=r.threshold:r.mode==='marks'?(p.marks??0)>=r.threshold:r.mode==='colors'?hues>=r.threshold:r.mode==='energy'?plant.stock.energy<r.threshold:!next||!canSend(s,next,p);
    if(m.kind==='relay'&&useBranch){stat(s,'relayed');discover(s,'relay');syn(s,lane,'relay');}
-   const target=useBranch?branch:next;
+   // 1.3: without a destination line, lots simply continue on their own line (a new switch never blocks a line).
+   const branched=useBranch&&!!branch;const target=branched?branch:next;
    if(!target){m.status=useBranch?'Choisir une ligne de destination':'Relier une sortie';return;}
    if(!canSend(s,target,p)){m.status=blocked(target,p);return;}
    (s.transit??=[]).push({plant:id,target:target.id,packet:p});m.queue.shift();m.clock=.2;
-   if(useBranch)r.branch++;else r.main++;if(r.branch>0&&r.main>0)discover(s,'branch');r.lastBranch=useBranch;if(r.mode==='alternate')r.turn=!r.turn;record(p);return;
+   if(branched)r.branch++;else r.main++;if(r.branch>0&&r.main>0)discover(s,'branch');r.lastBranch=branched;if(r.mode==='alternate')r.turn=!r.turn;record(p);
+   if(useBranch&&!branch)m.status='Sans destination · les lots continuent tout droit';return;
  }
  if(m.kind==='filter') {
    const back=lane.machines[1];
@@ -355,7 +375,7 @@ function insertionIndex(lane:Lane,kind:Kind) {
 export function insertModule(s:State,id:PlantId,laneId:number,kind:Kind) {
  const lane=s.plants[id].lanes.find(l=>l.id===laneId);if(!lane||lane.machines.length>=nodesMax(s)||!unlocked(s,kind)||kind==='intake'||kind==='press')return false;
  const cost=costOf(s,kind);if(!spend(s.plants.A,'components',cost))return false;
- const m=machine(s,kind,cost);if(kind==='stamp'&&s.produced>=3e6&&lane.machines.some(x=>x.kind==='stamp'&&(x.variant??0)===0))m.variant=1;
+ const m=machine(s,kind,cost);if(kind==='stamp'&&featureOpen(s,'amber')&&lane.machines.some(x=>x.kind==='stamp'&&(x.variant??0)===0))m.variant=1;
  lane.machines.splice(insertionIndex(lane,kind),0,m);s.totalSpent+=cost;return true;
 }
 // Insert the modifiers of a saved invention into an existing line (one level of nesting).
@@ -404,7 +424,7 @@ export function setParam(s:State,m:Machine,value:number) {
  if(m.kind==='batch'&&value>packetMax(s))return false;m.param=value;return true;
 }
 export function setVariant(s:State,m:Machine,value:number) {
- if(!VARIANTS[m.kind]?.includes(value))return false;if(m.kind==='stamp'&&value===1&&s.produced<3e6)return false;if(m.kind==='stamp'&&value===2&&s.produced<3e7)return false;if(m.kind==='press'&&value>0&&s.produced<5e4)return false;m.variant=value;return true;
+ if(!VARIANTS[m.kind]?.includes(value))return false;if(m.kind==='stamp'&&value===1&&!featureOpen(s,'amber'))return false;if(m.kind==='stamp'&&value===2&&!featureOpen(s,'magenta'))return false;if(m.kind==='press'&&value>0&&!featureOpen(s,'molds'))return false;m.variant=value;return true;
 }
 export const EXPERIMENTS = [
  {id:'first',name:'Premier accord',description:'Produire 50 composants cumulés.',reward:50,test:(s:State)=>s.produced>=50,progress:(s:State)=>s.produced/50},
@@ -432,7 +452,7 @@ export function automateIntake(s:State,cost:number) {
 }
 export const TEMPOS=[60,90,120,150,180,240];
 export function setTempo(s:State,bpm:number){if(!TEMPOS.includes(bpm)||s.produced<3e6)return false;s.tempo=bpm;return true;}
-export const modSlots=(s:State)=>s.produced<MODS_AT?0:1+(s.produced>=1e11?1:0)+(hasPatent(s,'slots')?1:0)+(siteDone(s,'observatoire')?1:0);
+export const modSlots=(s:State)=>!featureOpen(s,'slots')?0:1+(s.produced>=1e11?1:0)+(hasPatent(s,'slots')?1:0)+(siteDone(s,'observatoire')?1:0);
 export const modsTotal=(s:State)=>PLANTS.reduce((n,id)=>n+s.plants[id].lanes.reduce((a,l)=>a+l.machines.reduce((b,m)=>b+(m.mods?.length??0),0),0),0);
 export const modCost=(s:State)=>Math.round(1e7*6**modsTotal(s));
 export function addMod(s:State,m:Machine,id:string){

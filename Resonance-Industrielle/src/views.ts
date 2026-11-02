@@ -1,6 +1,6 @@
 // Pages for the long game: notebook (discoveries, badges, records) and contracts (patents, refoundation).
 import {MODULES,TIERS} from './content.ts';
-import {unlocked,measuredRate,type State} from './engine.ts';
+import {unlocked,measuredRate,featureOpen,type State} from './engine.ts';
 import {PROTOTYPES,DISCOVERIES,BADGES,THEMES,PATENTS,contractOffers,contractProgress,contractText,progressOf,canRefound,legacyFor,discoveryCount,REFOUND_AT,CONTRACTS_AT} from './progression.ts';
 import {t,formatCompact as fmt} from './i18n.ts';
 import {ghostDelta,type Meta} from './meta.ts';
@@ -50,7 +50,7 @@ export function notebookPage(s:State,meta:Meta,ghostBase:Meta) {
 
 export function contractsPanel(s:State) {
  const p=progressOf(s);const offers=contractOffers(s);
- const locked=s.produced<CONTRACTS_AT&&p.refounds===0;
+ const locked=!featureOpen(s,'contracts')&&p.refounds===0;
  return `<section class="panel contracts"><div class="section-head"><div><span class="eyebrow">CONTRATS · BREVETS</span><h2>Commandes de l’industrie</h2></div><span class="count-pill">${p.points} ${t('brevets à placer')}</span></div>
  ${locked?`<p class="muted">${t('Les contrats ouvrent à 100 000 composants cumulés. Ils sont facultatifs et sans limite de temps.')}</p><progress max="1" value="${Math.min(1,s.produced/CONTRACTS_AT)}"></progress>`:`
  <p class="muted">${t('Un contrat à la fois, sans limite de temps ni pénalité. Il se mesure depuis son acceptation et paie des brevets et des composants.')}</p>

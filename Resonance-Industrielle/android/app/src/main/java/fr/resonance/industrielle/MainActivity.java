@@ -13,6 +13,7 @@ import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
@@ -72,10 +73,14 @@ public class MainActivity extends ComponentActivity {
         EdgeToEdge.enable(this);
         super.onCreate(savedInstanceState);
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#101719"));
-        setContentView(web);
-        // Android 15+ draws edge to edge: keep the game clear of the status, navigation and cutout areas.
-        ViewCompat.setOnApplyWindowInsetsListener(web, (v, insets) -> {
+        web.setBackgroundColor(Color.parseColor("#070b10"));
+        // Android 15+ draws edge to edge. A WebView ignores its own padding (the page still draws under the
+        // status bar), so the page sits in a frame whose padding keeps it clear of the system bars and cutout.
+        FrameLayout frame = new FrameLayout(this);
+        frame.setBackgroundColor(Color.parseColor("#070b10"));
+        frame.addView(web, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        setContentView(frame);
+        ViewCompat.setOnApplyWindowInsetsListener(frame, (v, insets) -> {
             Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout() | WindowInsetsCompat.Type.ime());
             v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
             return WindowInsetsCompat.CONSUMED;

@@ -1,6 +1,6 @@
 // The « Monde » page: a small town that grows with the factory, and the long-term construction sites.
 import {SITES,SITES_AT,siteProgress,siteDone,seasonOf} from './world.ts';
-import {measuredRate,type State} from './engine.ts';
+import {measuredRate,featureOpen,type State} from './engine.ts';
 import {t,formatCompact as fmt} from './i18n.ts';
 const btn=(action:string,text:string,extra='',disabled=false)=>`<button data-action="${action}" ${extra} ${disabled?'disabled':''}>${text}</button>`;
 function scene(s:State){
@@ -14,7 +14,7 @@ function scene(s:State){
  return `<svg class="world-scene" viewBox="0 0 ${W} ${H}" role="img" aria-label="${t('Vue de votre ville industrielle')}">${parts.join('')}</svg>`;
 }
 export function worldPage(s:State){
- const open=s.produced>=SITES_AT;
+ const open=featureOpen(s,'sites');
  return `<div class="section-head"><div><span class="eyebrow">MONDE</span><h2>Votre ville industrielle</h2></div><span class="count-pill">${s.sites?.done.length??0} / ${SITES.length} ${t('chantiers')}</span></div>
  <section class="panel">${scene(s)}<p class="tiny muted">${t('Chaque ligne est un bâtiment, chaque chantier achevé un monument. Le ciel suit les saisons de la Serre.')}</p></section>
  <section class="panel"><h3>Chantiers</h3>${open?`<p class="muted">${t('Livrez depuis vos réserves, en une ou plusieurs fois. Les quantités comptées (lots, croisements) ne sont pas dépensées.')}</p><div class="site-grid">${SITES.map(x=>{const prog=siteProgress(s,x.id);const done=siteDone(s,x.id);return `<article class="site ${done?'done':''}"><h4>${t(x.name)}</h4><p>${t(x.text)}</p><p class="site-effect">${t(x.effect)}</p>${x.needs.map((n,i)=>`<label>${fmt(done?n.amount:prog[i])} / ${fmt(n.amount)} ${t(n.label)}<progress max="${n.amount}" value="${done?n.amount:prog[i]}"></progress></label>`).join('')}${done?`<span class="challenge-badge">✓ ${t('Achevé')}</span>`:btn('deliver-site',t('Livrer'),`data-id="${x.id}" class="primary"`)}</article>`;}).join('')}</div>`:`<p class="muted">${t('Les chantiers ouvrent à 10¹⁰ composants cumulés.')}</p><progress max="10" value="${Math.min(10,Math.log10(Math.max(1,s.produced)))}"></progress>`}</section>`;

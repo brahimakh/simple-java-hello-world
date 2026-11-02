@@ -1,5 +1,21 @@
 # Équilibrage — mesures de référence
 
+## 1.3 : tout passe par la file des nouveautés
+
+`node scripts/campaign.mjs 4`. Mêmes cinq styles qu’en 1.2. Changements mesurés : prototypes, moules, contrats, maîtrises, couleurs d’empreinte, Serre vivante, emplacements et chantiers arrivent eux aussi un à un par la file (27 nouveautés après le guide, entre 45 s et 4 min d’écart). Une découverte ou un Eurêka avance la suivante d’une minute. Prix des maîtrises : 10⁷ × 5ⁿ (au lieu de 6,5ⁿ) pour compenser l’arrivée plus tardive des maîtrises.
+
+| Style | 10³ | 10⁶ | 10⁹ | 10¹² | 10¹⁵ |
+|---|---:|---:|---:|---:|---:|
+| complet | 1:39 | 5:08 | 23:40 | 1:01:30 | 2:10:35 |
+| cadence | 1:39 | 4:38 | 22:22 | 1:01:52 | 1:57:47 |
+| masse | 1:39 | 6:31 | 27:00 | 1:03:03 | 2:29:23 |
+| empreinte | 1:43 | 5:05 | 23:42 | 1:03:17 | 2:36:02 |
+| boucles | 1:39 | 5:08 | 23:46 | 1:03:19 | 2:31:02 |
+
+Écart maximal entre styles : ×1,32 (contre ×2,03 en 1.2). Pour un humain, compter 3 à 6 heures.
+
+Sans la baisse du prix des maîtrises, quatre styles sur cinq n’atteignaient pas 10¹⁵ en 4 h.
+
 ## 1.2 : cinq styles, nouveautés au rythme
 
 `node scripts/campaign.mjs 5`. Partie « nouvelle » dont le guide est terminé : les nouveautés arrivent une à une (écart de 2 min à 4 min 18). Chaque style choisit une spécialité, une recette et un module signature ; tous utilisent les maîtrises, brevets, contrats, prototypes, turbo, chantiers et croisements. Décisions toutes les 30 s.

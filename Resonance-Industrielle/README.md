@@ -14,6 +14,15 @@ Pour comprendre le rôle du joueur : lire [le guide des bases](GUIDE-JOUEUR.md).
 
 Chaque version garde ses propres sauvegardes. Pour passer de l’une à l’autre : **Exporter** puis **Importer** (menu ☰ sur téléphone).
 
+## Nouveautés 1.3 : rythme, interface futuriste, Android corrigé
+
+- Android : le haut du jeu ne passe plus sous la barre d’état (heure, batterie) ; le menu est de nouveau accessible.
+- Nouveau style : verre sombre, lignes néon, coins de visée sur les panneaux clés, chiffres alignés, bouton d’action qui respire.
+- Une mécanique à la fois : prototypes, moules, contrats, maîtrises, couleurs, Serre vivante, emplacements et chantiers arrivent eux aussi un par un.
+- Jouer bien fait avancer : chaque découverte ou Eurêka avance la nouveauté suivante d’une minute.
+- Plus de pièges : pas d’Eurêka pendant le guide, contrats toujours réalisables, la Serre avant le synchroniseur, un aiguillage sans destination laisse passer les lots, messages d’état plus clairs.
+- Rapport de partie : `reports/partie-experte-2026-11-02.md`.
+
 ## Nouveautés 0.8 à 1.2 : liberté, réseau, tempo, logique, monde
 
 **Une progression en deux temps.** D’abord les bases, guidées. Ensuite le joueur choisit sa **spécialité** (Cadence, Masse ou Empreinte, ×2 sur une famille) et le guide laisse place à **trois pistes ouvertes** : des questions qui mènent à des découvertes, à suivre dans l’ordre que l’on veut, sans jamais donner la recette. Les espaces de l’interface s’ouvrent un par un, une minute d’écart. Les **nouveautés** (modules, installations) arrivent une à la fois, avec un écart de 2 minutes qui grandit jusqu’à environ 4 min 30 ; la prochaine est annoncée avec son compte à rebours.

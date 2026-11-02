@@ -1,7 +1,7 @@
 // Long-term goals layered on top of the simulation: contracts, patents, badges, discoveries and one refoundation.
 // Everything here is deterministic and derived from real production; nothing is random or timed against the player.
 import type {State,Variant} from './engine.ts';
-import {measuredRate,createState,clone,mark,variantOf,unlocked,unlockAt,plantUnlocked,discover} from './engine.ts';
+import {measuredRate,createState,clone,mark,variantOf,unlocked,unlockAt,plantUnlocked,discover,featureOpen,boostIntro} from './engine.ts';
 import {journeyActive} from './journey.ts';
 import type {Kind} from './content.ts';
 export interface Contract {kind:string;goal:number;base:number;reward:number;patents:number;start:number;level:number;}
@@ -89,21 +89,22 @@ function statValue(s:State,kind:string,level:number) {
  return kind==='quality'?(s.stats?.['q'+level]??0):kind==='bulk'?(s.stats?.lots80??0):kind==='bicolor'?(s.stats?.bicolor??0):kind==='loops'?(s.stats?.loops??0):kind==='harmony'?(s.stats?.harmony??0):kind==='assembly'?(s.stats?.assembly??0):kind==='crystals'?(s.stats?.crystals??0):kind==='prism'?(s.stats?.prism??0):kind==='catalyst'?s.catalystProduced:kind==='plasma'?(s.plasmaProduced??0):0;
 }
 export function contractOffers(s:State):Contract[] {
- const p=progressOf(s);if(s.produced<CONTRACTS_AT&&p.refounds===0)return [];
+ const p=progressOf(s);if(!featureOpen(s,'contracts')&&p.refounds===0)return [];
  const tier=tierOf(s),rate=Math.max(1,measuredRate(s).rate),reward=Math.max(1000,Math.round(rate*120));
  const pool:Omit<Contract,'base'|'start'>[]=[
   {kind:'quality',level:Math.min(12,Math.max(2,tier-2)),goal:30,reward,patents:1},
   {kind:'bulk',level:0,goal:60,reward,patents:1},
   {kind:'rate',level:0,goal:roundGoal(rate*3),reward:reward*2,patents:2},
-  {kind:'catalyst',level:0,goal:10**Math.max(2,tier-3),reward,patents:1}
- ];
- if(s.produced>=1e4)pool.push({kind:'loops',level:0,goal:50,reward,patents:1});
- if(s.produced>=1e6)pool.push({kind:'harmony',level:0,goal:40,reward:reward*2,patents:2});
- if(s.produced>=3e6)pool.push({kind:'bicolor',level:0,goal:20,reward:reward*2,patents:2});
- if(s.produced>=2e4)pool.push({kind:'assembly',level:0,goal:30,reward:reward*2,patents:2});
- if(s.produced>=5e4)pool.push({kind:'crystals',level:0,goal:40,reward,patents:1});
- if(s.produced>=3e7)pool.push({kind:'prism',level:0,goal:20,reward:reward*3,patents:2});
- if(s.produced>=1e8)pool.push({kind:'plasma',level:0,goal:50,reward:reward*3,patents:2});
+  ];
+ // 1.3: only contracts the player can already fulfil.
+ if(plantUnlocked(s,'B'))pool.push({kind:'catalyst',level:0,goal:10**Math.max(2,tier-3),reward,patents:1});
+ if(unlocked(s,'filter' as never))pool.push({kind:'loops',level:0,goal:50,reward,patents:1});
+ if(unlocked(s,'harmonic' as never))pool.push({kind:'harmony',level:0,goal:40,reward:reward*2,patents:2});
+ if(featureOpen(s,'amber'))pool.push({kind:'bicolor',level:0,goal:20,reward:reward*2,patents:2});
+ if(unlocked(s,'assembler' as never))pool.push({kind:'assembly',level:0,goal:30,reward:reward*2,patents:2});
+ if(featureOpen(s,'molds'))pool.push({kind:'crystals',level:0,goal:40,reward,patents:1});
+ if(featureOpen(s,'magenta'))pool.push({kind:'prism',level:0,goal:20,reward:reward*3,patents:2});
+ if(plantUnlocked(s,'C'))pool.push({kind:'plasma',level:0,goal:50,reward:reward*3,patents:2});
  // Rotation depends only on how many contracts were completed: same history, same offers.
  const out:Contract[]=[];for(let i=0;i<3&&i<pool.length;i++){const c=pool[(p.done*2+i*3)%pool.length];if(!out.some(x=>x.kind===c.kind))out.push({...c,base:0,start:0});}
  return out;
@@ -127,10 +128,10 @@ export function contractText(c:Contract) {
 // Eureka: a change followed, 30 to 180 s later, by a stable rate at least ×5 the rate before it.
 export const EUREKA_RATIO=5;
 export function checkEureka(s:State) {
- const c=s.lastChange;if(!c||s.puzzle)return;const age=s.tick-c.tick;if(age>1800){delete s.lastChange;return;}if(age<300)return;
+ const c=s.lastChange;if(!c||s.puzzle)return;if(journeyActive(s)){delete s.lastChange;return;}const age=s.tick-c.tick;if(age>1800){delete s.lastChange;return;}if(age<300)return;
  const now=measuredRate(s,30).rate;const ratio=now/Math.max(.5,c.rate);if(ratio<EUREKA_RATIO)return;
  const reward=now*20*Math.log2(ratio);s.plants.A.stock.components=Math.min(1e21,s.plants.A.stock.components+reward);
- (s.eurekas??=[]).push({tick:s.tick,ratio,before:c.rate,after:now});if(s.eurekas.length>30)s.eurekas.shift();delete s.lastChange;mark(s,'eureka');
+ (s.eurekas??=[]).push({tick:s.tick,ratio,before:c.rate,after:now});if(s.eurekas.length>30)s.eurekas.shift();delete s.lastChange;mark(s,'eureka');boostIntro(s);
 }
 export function updateProgress(s:State) {
  const p=progressOf(s);checkEureka(s);updatePrototypes(s);
@@ -172,8 +173,8 @@ function pisteOpen(s:State,id:string,hint:string) {
  if(id==='catalysis'||id==='greenhouse-loop')return plantUnlocked(s,'B');if(id==='plasma')return plantUnlocked(s,'C');
  if(id==='quality6')return s.produced>=1e6;if(id==='press9')return s.produced>=1e9;if(id==='nested')return s.library.length>0;
  if(id==='accord5'||id==='weave8')return s.produced>=300;
- if(id==='prototype')return s.produced>=1e4;if(id==='culture')return s.produced>=1e7;if(id==='site')return s.produced>=1e10;if(id==='mod')return s.produced>=1e9;if(id==='tempo')return unlocked(s,'harmonic' as never)&&unlocked(s,'metronome' as never);
- if(id==='spring'||id==='gear'||id==='crystal')return s.produced>=5e4;if(id==='prism')return s.produced>=3e7;
+ if(id==='prototype')return featureOpen(s,'proto');if(id==='culture')return featureOpen(s,'culture');if(id==='site')return featureOpen(s,'sites');if(id==='mod')return featureOpen(s,'slots');if(id==='bicolor')return featureOpen(s,'amber');if(id==='tempo')return unlocked(s,'harmonic' as never)&&unlocked(s,'metronome' as never);
+ if(id==='spring'||id==='gear'||id==='crystal')return featureOpen(s,'molds');if(id==='prism')return featureOpen(s,'magenta');
  return unlocked(s,hint as never);
 }
 export function pistes(s:State) {
@@ -205,7 +206,7 @@ export const PROTOTYPES=[
 export const PROTO_AT=[1e4,1e6,1e9,1e12];
 export function protoState(s:State){return (s.protos??={owned:[],offer:null});}
 export function updatePrototypes(s:State){
- const p=protoState(s);if(p.offer||s.puzzle||journeyActive(s))return;const n=p.owned.length;if(n>=PROTO_AT.length||s.produced<PROTO_AT[n])return;
+ const p=protoState(s);if(p.offer||s.puzzle||journeyActive(s))return;const n=p.owned.length;if(n>=PROTO_AT.length||s.produced<PROTO_AT[n]||!featureOpen(s,'proto'))return;
  const left=PROTOTYPES.filter(x=>!p.owned.includes(x.id));const start=(n*3+(s.library.length%3))%left.length;
  p.offer=[0,1,2].map(i=>left[(start+i*Math.max(1,Math.floor(left.length/3)))%left.length].id).filter((x,i,a)=>a.indexOf(x)===i);mark(s,'prototype-offert');
 }

@@ -1,0 +1,86 @@
+/* 1.3 « Interface » : look futuriste (verre sombre, lignes néon, chiffres techniques). Chargé en dernier, il
+   redéfinit les couleurs et les surfaces sans toucher à la mise en page. Les thèmes débloqués (Néon, Plan bleu,
+   Papier) restent des filtres posés par-dessus. */
+:root{color-scheme:dark;--bg:#070b10;--panel:#0d151c;--panel-2:#111c25;--border:#1c2a35;--border-hi:#2b4251;--text:#e8f1f4;--muted:#8ea3ad;
+ --teal:#62f0d4;--cyan:#5cc8ff;--violet:#a98bff;--orange:#ffb86b;--gold:#ffd479;--red:#ff8f80;
+ --glass:linear-gradient(180deg,#101a23e6,#0a1118e6);--glow:0 0 0 1px #62f0d41f,0 0 24px #62f0d414;
+ --mono:"JetBrains Mono","Roboto Mono","SF Mono",ui-monospace,Menlo,Consolas,monospace;
+ font-family:Inter,"Segoe UI",Roboto,system-ui,-apple-system,Arial,sans-serif}
+html{background:var(--bg)}
+body{background:var(--bg)!important;position:relative}
+/* Fond : grille fine et deux halos, fixes pendant le défilement. */
+body:before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ background:radial-gradient(ellipse 70% 45% at 90% -5%,#1b6c8a2e,transparent 70%),radial-gradient(ellipse 60% 50% at -10% 95%,#5b3fa61f,transparent 70%),
+ linear-gradient(#5cc8ff09 1px,transparent 1px) 0 0/32px 32px,linear-gradient(90deg,#5cc8ff09 1px,transparent 1px) 0 0/32px 32px,var(--bg)}
+::selection{background:#62f0d455}
+*{scrollbar-width:thin;scrollbar-color:#2b4251 transparent}
+
+/* Chiffres : police technique à chasse fixe. */
+.mobile-hud strong,.resource strong,.lifetime-total strong,.journey-progress,.node .node-value,[data-live],.tier-card strong,.synergy-chip,.bench-table td{font-variant-numeric:tabular-nums;letter-spacing:-.01em;font-feature-settings:"tnum"}
+.eyebrow,.sidebar-section,.resource-label{color:#7fb6c8;letter-spacing:.18em}
+h1,h2,h3{letter-spacing:-.01em}
+
+/* Boutons */
+button{background:linear-gradient(180deg,#14212b,#0f1922);border:1px solid var(--border-hi);border-radius:10px;color:var(--text);transition:border-color .15s,box-shadow .2s,background .15s,transform .08s}
+button:hover:not(:disabled){background:linear-gradient(180deg,#182a35,#122029);border-color:#5cc8ff99;box-shadow:0 0 16px #5cc8ff22}
+button:active:not(:disabled){transform:scale(.97)}
+.primary,.journey-cta{background:linear-gradient(100deg,#4fe3c8,#5cc8ff)!important;color:#03141a!important;border:0!important;font-weight:700;box-shadow:0 0 0 1px #8ff7ff55,0 6px 22px #3fd8e033}
+.primary:hover:not(:disabled),.journey-cta:hover:not(:disabled){filter:brightness(1.08);box-shadow:0 0 0 1px #b6fbff,0 8px 28px #3fd8e055}
+.primary:disabled,.journey-cta:disabled{background:linear-gradient(100deg,#1c3a3c,#1b3446)!important;color:#9fc3c9!important;box-shadow:none;opacity:1}
+.journey-cta:not(:disabled){animation:cta-breathe 2.4s ease-in-out infinite}
+@keyframes cta-breathe{50%{box-shadow:0 0 0 1px #b6fbff,0 6px 30px #3fd8e066}}
+.subtle{background:transparent}
+input,select{background:#081017;border:1px solid var(--border-hi);border-radius:8px;color:var(--text)}
+
+/* Surfaces en verre */
+.panel,.resource,.workshop,.module-offer,.guide-page,.progress-deck,.journey,.pistes,.proto-offer,dialog,#celebration,.network-frame,.challenge-grid article,.lot-study,.puzzle-banner{
+ background:var(--glass)!important;border:1px solid var(--border)!important;border-radius:14px;box-shadow:inset 0 1px 0 #ffffff0a,0 12px 32px #0007}
+.module-offer.locked{opacity:.75}
+/* Coins de visée sur les panneaux importants */
+.journey,.progress-deck,.pistes,.proto-offer,dialog,#celebration{--c:var(--teal);
+ background:linear-gradient(var(--c),var(--c)) top left/16px 2px no-repeat,linear-gradient(var(--c),var(--c)) top left/2px 16px no-repeat,
+  linear-gradient(var(--c),var(--c)) bottom right/16px 2px no-repeat,linear-gradient(var(--c),var(--c)) bottom right/2px 16px no-repeat,var(--glass)!important}
+.journey{border-color:#62f0d44d!important;box-shadow:var(--glow),0 12px 32px #0008}
+.pistes{--c:var(--gold);border-color:#ffd47933!important}
+.proto-offer{--c:var(--violet);border-color:#a98bff44!important}
+#celebration.big{--c:var(--gold)}
+.progress-deck{--c:var(--cyan)}
+
+/* Barre du haut et onglets */
+.topbar{background:#070b10d9!important;backdrop-filter:blur(16px) saturate(1.3);border-bottom:1px solid transparent!important;border-image:linear-gradient(90deg,transparent,#5cc8ff66,#62f0d466,transparent) 1}
+.mobile-hud strong{color:var(--teal);text-shadow:0 0 14px #62f0d455}
+.pause-button,.menu-button{background:#0d161ecc;border-color:var(--border-hi)}
+.sidebar{background:linear-gradient(180deg,#0b1218f2,#070b10f2)!important;border-color:var(--border)!important;backdrop-filter:blur(16px)}
+.sidebar nav button{color:#8ea3ad;border-radius:10px}
+.sidebar nav button.active{background:linear-gradient(180deg,#62f0d41a,transparent)!important;color:var(--teal)!important;border-color:#62f0d433}
+.sidebar nav button.active span{text-shadow:0 0 12px #62f0d4aa}
+.brand-mark{background:linear-gradient(135deg,#123b44,#0c1b24)!important;border-color:#62f0d488!important;box-shadow:0 0 18px #62f0d433}
+
+/* Progression */
+progress{background:#13202a;border-radius:99px;overflow:hidden;height:6px;border:0}
+progress::-webkit-progress-bar{background:#13202a;border-radius:99px}
+progress::-webkit-progress-value{background:linear-gradient(90deg,#4fe3c8,#5cc8ff);border-radius:99px;box-shadow:0 0 10px #5cc8ff88}
+progress::-moz-progress-bar{background:linear-gradient(90deg,#4fe3c8,#5cc8ff)}
+.journey-dots i.done{background:var(--teal);box-shadow:0 0 6px #62f0d4}
+.journey-dots i.now{background:var(--gold);box-shadow:0 0 8px var(--gold)}
+
+/* Machines : carte sombre, liseré de famille à gauche */
+.node{background:linear-gradient(160deg,#111d26,#0b141b)!important;border:1px solid var(--border)!important;border-radius:12px;box-shadow:inset 3px 0 0 var(--fam,#5cc8ff66),0 8px 20px #0006}
+.node.family-output{--fam:#5cc8ff}
+.node.family-recovery{--fam:#7ee2a0}
+.node.family-routing{--fam:#ffb86b}
+.node.selected{border-color:#62f0d4aa!important;box-shadow:inset 3px 0 0 var(--teal),0 0 0 1px #62f0d455,0 0 26px #62f0d433}
+.node.blocked{border-color:#ffb86b66!important}
+.connection{color:#5cc8ff}
+
+dialog{border-color:var(--border-hi)!important;color:var(--text)}
+dialog::backdrop{background:#03070bcc;backdrop-filter:blur(4px)}
+#toast{background:linear-gradient(100deg,#4fe3c8,#5cc8ff);color:#03141a;font-weight:600;box-shadow:0 8px 30px #3fd8e044}
+.synergy-chip{background:#ffd4791a;border:1px solid #ffd47944}
+
+@media (prefers-reduced-motion:reduce){.journey-cta:not(:disabled){animation:none}}
+@media (max-width:760px){
+ .sidebar nav button{border-radius:0}
+ .sidebar nav button.active{box-shadow:inset 0 2px var(--teal),0 -6px 18px -8px #62f0d4aa}
+}
+@media (pointer:coarse){button:not(.sidebar nav button):not(.fx-float){min-height:40px}}

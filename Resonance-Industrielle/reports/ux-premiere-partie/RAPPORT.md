@@ -11,10 +11,10 @@ Parcours guidé complet en 10 min de jeu simulé et 19 gestes.
 | Résonateur ajouté | 1:15 | 7 | Regardez l’accord monter | 9 | 2 | 3 | 30 | 05.png |
 | Accord observé | 1:20 | 8 | Doublez chaque livraison | 14 | 3 | 3 | 30 | 06.png |
 | Injecteur sur 12 | 1:20 | 10 | Formez de gros lots | 16 | 4 | 3 | 35 | 07.png |
-| Lots de 80 | 2:05 | 13 | L’ordre des machines compte | 25 | 4 | 3 | 45 | 08.png |
-| Empreintes tissées | 2:25 | 18 | Choisissez votre spécialité | 13 | 4 | 3 | 58 | 09.png |
-| Spécialité choisie | 2:25 | 19 | (fin du parcours) | 10 | 4 | 3 | 0 | 10.png |
-| 8 minutes après le guide | 10:25 | 19 | (fin du parcours) | 12 | 7 | 5 | 0 | 11.png |
+| Lots de 80 | 2:00 | 13 | L’ordre des machines compte | 25 | 4 | 3 | 45 | 08.png |
+| Empreintes tissées | 2:20 | 18 | Choisissez votre spécialité | 13 | 4 | 3 | 58 | 09.png |
+| Spécialité choisie | 2:20 | 19 | (fin du parcours) | 10 | 4 | 3 | 0 | 10.png |
+| 8 minutes après le guide | 10:20 | 19 | (fin du parcours) | 15 | 7 | 5 | 0 | 11.png |
 
 ## Vérifications
 

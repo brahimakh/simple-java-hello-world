@@ -1,7 +1,7 @@
 // Visual and audio feedback layer. It only reads the simulation state: no effect here may change the game.
 // The main interface is rebuilt periodically; this layer runs every animation frame on top of it.
 import {MODULES, UNLOCKS, TIERS, PLANTS, type Kind, type PlantId, type Resource} from './content.ts';
-import {measuredRate, type State, type Machine} from './engine.ts';
+import {measuredRate,FEATURES,introQueue, type State, type Machine} from './engine.ts';
 import {DISCOVERIES,BADGES} from './progression.ts';
 import {STAGES} from './journey.ts';
 import {t, formatCompact} from './i18n.ts';
@@ -210,7 +210,7 @@ export function startEffects(ctx:EffectsContext) {
   previousProduced=produced;
   // Notebook, badges and contracts.
   const disc=s.discoveries??[];
-  for(const d of disc.slice(known.discoveries)){if(s.journey&&s.journey.step<9)break;const def=DISCOVERIES.find(x=>x.id===d.id);if(def){celebrate({eyebrow:'NOUVELLE DÉCOUVERTE',title:t(def.name),text:t(def.text),icon:'✦',big:false,action:{label:'Ouvrir le carnet',run:()=>ctx.onOpen('notebook')}});fanfare(ctx.preferences,[4,7,9]);}}
+  for(const d of disc.slice(known.discoveries)){if(s.journey&&s.journey.step<9)break;const def=DISCOVERIES.find(x=>x.id===d.id);if(def){celebrate({eyebrow:'NOUVELLE DÉCOUVERTE',title:t(def.name),text:t(def.text)+(introQueue(s).some(q=>s.produced>=q.at)?' '+t('La prochaine nouveauté arrive une minute plus tôt.'):''),icon:'✦',big:false,action:{label:'Ouvrir le carnet',run:()=>ctx.onOpen('notebook')}});fanfare(ctx.preferences,[4,7,9]);}}
   known.discoveries=disc.length;
   const badges=s.progress?.badges??[];
   for(const id of badges.slice(known.badges)){const def=BADGES.find(x=>x.id===id);if(def)celebrate({eyebrow:'NOUVEAU BADGE',title:t(def.name),text:t(def.text),icon:'★',big:false,action:{label:'Ouvrir le carnet',run:()=>ctx.onOpen('notebook')}});}
@@ -221,6 +221,7 @@ export function startEffects(ctx:EffectsContext) {
   knownStages=opened.length;
   // Paced games: each novelty is announced when it actually arrives.
   const keys=s.intro?.keys??[];if(keys.length>knownIntro&&s.journey&&s.journey.step>=9){for(const key of keys.slice(knownIntro)){
+   const feature=FEATURES[key];if(feature){celebrate({eyebrow:'NOUVELLE POSSIBILITÉ',title:t(feature.name),text:t(feature.text),icon:'✦',big:false});fanfare(ctx.preferences,[3,5,7]);continue;}
    const kind=key.startsWith('plant-')?null:key as Kind;const at=kind?MODULES[kind].unlock:key==='plant-B'?1000:1e8;const u=UNLOCKS.find(x=>x.at===at);
    celebrate({eyebrow:'NOUVELLE POSSIBILITÉ',title:kind?t(MODULES[kind].name):t(key==='plant-B'?'Serre catalytique':'Forge à plasma'),text:u?t(u.text):'',icon:kind?moduleSymbol(kind):'✦',big:!kind,action:kind?{label:'Voir le module',run:()=>ctx.onShowModule(kind)}:undefined});fanfare(ctx.preferences,[3,5,7]);}}
   knownIntro=keys.length;

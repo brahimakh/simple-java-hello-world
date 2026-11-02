@@ -160,3 +160,16 @@ Object.assign(UI_EN,{'Monde':'World','MONDE':'WORLD','Votre ville industrielle':
  'Hybride':'Hybrid','Deux souches croisées donnent une souche nouvelle.':'Two crossed strains give a new strain.','Monument':'Monument','Un chantier achevé change une règle de votre partie.':'A finished site changes a rule of your game.','Serre vivante':'Living greenhouse',
  'La Serre peut-elle sélectionner ses propres plantes\u00a0?':'Can the greenhouse select its own plants?','Que faire de toute cette production\u00a0?':'What to do with all this production?'});
 Object.assign(UI_EN,{'dans {0}':'in {0}','imminente':'imminent','Nouvelle possibilité : {0}.':'New possibility: {0}.'});
+// 1.3: features delivered through the novelty queue.
+Object.assign(UI_EN,{'Prototypes':'Prototypes','Moules de presse':'Press molds','Contrats':'Contracts','Maîtrises':'Masteries','Empreinte ambre':'Amber mark','Serre vivante':'Living greenhouse','Empreinte magenta':'Magenta mark','Emplacements d’amélioration':'Upgrade slots','Chantiers':'Construction sites',
+ 'À chaque palier, choisissez une machine unique parmi trois : elle change une règle pour toute la partie.':'At each milestone, choose one unique machine out of three: it changes a rule for the whole game.',
+ 'Touchez une presse : un moule change les lots qu’elle préfère (ressort, engrenage, cristal).':'Tap a press: a mold changes which lots it prefers (spring, gear, crystal).',
+ 'Des commandes à remplir contre des points de brevet. Ouvrez Expériences.':'Orders to fill in exchange for patent points. Open Experiments.',
+ 'Investissez vos composants pour doubler l’effet d’une famille de machines.':'Invest components to double the effect of a machine family.',
+ 'Le marqueur peut laisser une empreinte ambre. Deux couleurs sur un lot : le tisseur double encore.':'The marker can leave an amber mark. Two colours on a lot: the weaver doubles again.',
+ 'La Serre sélectionne ses souches : croisez-les et suivez les saisons.':'The greenhouse selects its strains: cross them and follow the seasons.',
+ 'Troisième couleur. Un lot aux trois couleurs devient prismatique : ×5.':'Third colour. A lot with all three colours becomes prismatic: ×5.',
+ 'Chaque machine reçoit un emplacement : turbo, tampon, marque ou stabilisateur.':'Every machine gets a slot: turbo, buffer, mark or stabiliser.',
+ 'Six grands projets livrés depuis vos réserves, chacun change une règle. Ouvrez Monde.':'Six great projects fed from your stocks, each changes a rule. Open World.',
+ 'La prochaine nouveauté arrive une minute plus tôt.':'The next novelty arrives one minute sooner.','à venir':'coming soon',
+ 'Arrivent avec la file des nouveautés, après':'Arrive through the novelty queue, after','composants cumulés.':'cumulative components.'});

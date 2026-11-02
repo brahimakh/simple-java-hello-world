@@ -1,7 +1,7 @@
 // 1.2 « Monde » : chantiers, Serre vivante (souches et saisons) et doctrines de refondation.
 // All rules are deterministic and shown to the player; nothing here is random.
 import type {State} from './engine.ts';
-import {mark,discover} from './engine.ts';
+import {mark,discover,featureOpen} from './engine.ts';
 
 // ---------- Chantiers: long projects fed from the stocks, each with a permanent effect ----------
 export interface Need {kind:'stock'|'stat';key:string;amount:number;label:string;}
@@ -23,7 +23,7 @@ export function siteProgress(s:State,id:string){
 }
 // Deliver what the stocks allow toward a site; statistics are counted, not spent.
 export function deliverSite(s:State,id:string){
- const def=SITES.find(x=>x.id===id);if(!def||s.produced<SITES_AT||siteDone(s,id))return false;
+ const def=SITES.find(x=>x.id===id);if(!def||!featureOpen(s,'sites')||siteDone(s,id))return false;
  const st=sitesOf(s);const paid=(st.paid[id]??=def.needs.map(()=>0));let moved=false;
  def.needs.forEach((n,i)=>{if(n.kind!=='stock')return;const plant=n.key==='catalyst'?s.plants.B:n.key==='plasma'?s.plants.C:s.plants.A;const res=n.key as 'components';
   const give=Math.min(plant.stock[res],n.amount-paid[i]);if(give>0){plant.stock[res]-=give;paid[i]+=give;moved=true;}});
@@ -46,14 +46,14 @@ type Trait='speed'|'yield'|'hardiness';
 const dominant=(x:Strain):Trait=>(['speed','yield','hardiness'] as Trait[]).reduce((a,b)=>x[b]>x[a]?b:a,'speed' as Trait);
 // Greenhouse effects of the active strain and the season (only once cultures are open).
 export function greenhouseFactor(s:State){
- if(s.produced<CULTURE_AT&&!s.culture)return 1;const x=activeStrain(s);const season=seasonOf(s);
+ if(!featureOpen(s,'culture')&&!s.culture)return 1;const x=activeStrain(s);const season=seasonOf(s);
  let f=(1+x.yield)/2;if(season.trait&&dominant(x)===season.trait)f*=2;if(!season.trait&&x.hardiness<3)f*=.5;return f;
 }
-export const greenhouseSpeed=(s:State)=>s.produced<CULTURE_AT&&!s.culture?1:1+activeStrain(s).speed*.25;
+export const greenhouseSpeed=(s:State)=>!featureOpen(s,'culture')&&!s.culture?1:1+activeStrain(s).speed*.25;
 export const crossCost=(s:State)=>Math.round(1e3*10**Math.min(12,(s.stats?.crossings??0)));
 // Crossing: for each trait the better parent wins; the trait favoured by the current season gains 1 more. Maximum 9.
 export function crossStrains(s:State,a:number,b:number){
- const c=cultureOf(s);const x=c.strains.find(v=>v.id===a),y=c.strains.find(v=>v.id===b);if(!x||!y||a===b||s.produced<CULTURE_AT)return null;
+ const c=cultureOf(s);const x=c.strains.find(v=>v.id===a),y=c.strains.find(v=>v.id===b);if(!x||!y||a===b||!featureOpen(s,'culture'))return null;
  const cost=crossCost(s);if(s.plants.B.stock.catalyst<cost)return null;s.plants.B.stock.catalyst-=cost;
  const season=seasonOf(s);const child:Strain={id:c.next++,name:`Hybride ${c.next-4}`,speed:Math.max(x.speed,y.speed),yield:Math.max(x.yield,y.yield),hardiness:Math.max(x.hardiness,y.hardiness)};
  if(season.trait)child[season.trait]=Math.min(9,child[season.trait]+1);else child.hardiness=Math.min(9,child.hardiness+1);

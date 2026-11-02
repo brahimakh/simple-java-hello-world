@@ -35,7 +35,7 @@ export function runCampaign(style,hours=4){
   for(const x of PATENTS)if(buyPatent(s,x.id))say(`brevet ${x.id}`);
   const p=progressOf(s);if(!p.contract&&contractOffers(s).length){const i=contractOffers(s).findIndex(c=>c.kind!=='harmony'||s.plants.A.lanes.length>1);if(i>=0)acceptContract(s,i);}
   const ms=s.plants.A.lanes.flatMap(l=>l.machines);
-  if(ms.some(m=>m.status==='Manque de matière')&&s.plants.A.stock.components>=upgradeCost(s.plants.A.oreLevel)*1.5&&upgrade(s,'A','oreLevel'))say(`extraction ${s.plants.A.oreLevel}`);
+  if(ms.some(m=>m.status.startsWith('Manque de matière'))&&s.plants.A.stock.components>=upgradeCost(s.plants.A.oreLevel)*1.5&&upgrade(s,'A','oreLevel'))say(`extraction ${s.plants.A.oreLevel}`);
   if(ms.some(m=>m.status.includes('Énergie insuffisante'))&&s.plants.A.stock.components>=upgradeCost(s.plants.A.energyLevel)*1.5&&upgrade(s,'A','energyLevel'))say(`énergie ${s.plants.A.energyLevel}`);
   const used=MASTERY_FAMILIES.filter(k=>s.plants.A.lanes.some(l=>l.machines.some(m=>m.kind===k)));
   for(const k of used)if(s.plants.A.stock.components>=masteryCost(s,k)&&buyMastery(s,k))say(`maîtrise ${k}`);
