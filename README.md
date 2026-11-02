@@ -1,15 +1,9 @@
-# sample-java-maven-app
+# Résonance industrielle
 
-This repository is for the
-[Build a Java app with Maven](https://jenkins.io/doc/tutorials/build-a-java-app-with-maven/)
-tutorial in the [Jenkins User Documentation](https://jenkins.io/doc/).
+Jeu incrémental de laboratoire : combinez des machines, mesurez, inventez. Jouable sur ordinateur, sur mobile (version web installable) et sur Android (APK).
 
-The repository contains a simple Java application which outputs the string
-"Hello world!" and is accompanied by a couple of unit tests to check that the
-main application works as expected. The results of these tests are saved to a
-JUnit XML report.
+Tout le projet est dans [`Resonance-Industrielle/`](Resonance-Industrielle/) : voir son [README](Resonance-Industrielle/README.md) pour jouer, développer et vérifier.
 
-The `jenkins` directory contains an example of the `Jenkinsfile` (i.e. Pipeline)
-you'll be creating yourself during the tutorial and the `scripts` subdirectory
-contains a shell script with commands that are executed when Jenkins processes
-the "Deliver" stage of your Pipeline.
+Workflows GitHub Actions (`.github/workflows/`) :
+- `resonance-pages.yml` publie la version web sur GitHub Pages ;
+- `resonance-android.yml` construit l’APK et le publie en release (`resonance-vX.Y.Z`) si les secrets de signature sont configurés.
