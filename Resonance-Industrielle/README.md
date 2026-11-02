@@ -4,12 +4,13 @@ Un jeu incrémental solo, en français ou en anglais : construire des chaînes d
 
 Pour comprendre le rôle du joueur : lire [le guide des bases](GUIDE-JOUEUR.md). Toutes les idées d’évolution et leur statut : [IDEES.md](IDEES.md).
 
-## Quatre façons de jouer
+## Cinq façons de jouer
 
 1. **Fichier unique** : double-cliquer sur `Resonance-Industrielle.html`. Aucun outil à installer.
 2. **Page claude.ai** : la même partie, ouverte depuis un ordinateur ou un téléphone. Elle ajoute la galerie partagée, le classement du puzzle du jour et la sauvegarde en ligne.
 3. **Application installable** : la version publiée sur GitHub Pages s’installe sur l’écran d’accueil et fonctionne hors ligne. Une seule action est nécessaire dans le dépôt GitHub : *Settings → Pages → Source : GitHub Actions* ; la publication suit chaque mise à jour de la branche principale.
-4. **Lanceur Windows** : `Demarrer.cmd` (Node.js 24) sert le jeu sur http://127.0.0.1:4317.
+4. **Application Android** : un APK (cible Android 17, fonctionne dès Android 8) est publié dans les *Releases* GitHub à chaque nouvelle version. Les mises à jour s’installent par-dessus et gardent la partie. L’export ouvre l’écran « Enregistrer sous » d’Android ; le bouton retour ferme le tiroir ou le dialogue ouvert.
+5. **Lanceur Windows** : `Demarrer.cmd` (Node.js 24) sert le jeu sur http://127.0.0.1:4317.
 
 Chaque version garde ses propres sauvegardes. Pour passer de l’une à l’autre : **Exporter** puis **Importer** (menu ☰ sur téléphone).
 
@@ -160,6 +161,7 @@ node scripts/campaign.mjs 5        # partie complète par un joueur automatique
 node scripts/i18n-audit.mjs        # textes sans traduction anglaise
 node scripts/e2e.mjs               # parcours navigateur (si Playwright est présent)
 node scripts/site.mjs              # version installable dans site/
+pnpm run android                   # APK Android (SDK Android 37 et Java 21 requis)
 node scripts/server.mjs --open
 ```
 

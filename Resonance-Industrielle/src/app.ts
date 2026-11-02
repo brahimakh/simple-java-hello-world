@@ -209,7 +209,7 @@ document.addEventListener('click',e=>{
  else if(a==='transfer')state.transfers[Number(d.index)].enabled=!state.transfers[Number(d.index)].enabled;
  else if(a==='claim')result=claim(state,d.id!);
  else if(a==='save'){if(save())toast('Partie sauvegardée sur cet ordinateur.');}
- else if(a==='export'){try{const json=storageBlocked?(localStorage.getItem(SAVE_KEY)??serialize(state)):serialize(state);const filename=`resonance-${new Date().toISOString().slice(0,10)}.json`;if(hostDownloads){hostDownloads.save({filename,data:json}).catch((e:{code?:string})=>{if(e?.code!=='declined')toast('Export impossible ici : copiez votre partie depuis l’ordinateur.');});}else{const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}catch(e){toast((e as Error).message);}}
+ else if(a==='export'){try{const json=storageBlocked?(localStorage.getItem(SAVE_KEY)??serialize(state)):serialize(state);const filename=`resonance-${new Date().toISOString().slice(0,10)}.json`;const bridge=(globalThis as {AndroidBridge?:{saveFile(name:string,text:string):void}}).AndroidBridge;if(bridge){bridge.saveFile(filename,json);}else if(hostDownloads){hostDownloads.save({filename,data:json}).catch((e:{code?:string})=>{if(e?.code!=='declined')toast('Export impossible ici : copiez votre partie depuis l’ordinateur.');});}else{const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download=filename;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}catch(e){toast((e as Error).message);}}
  else if(a==='import'){$<HTMLInputElement>('#import-file').click();return;}
  else if(a==='reset'){popup('Recommencer une partie ?',`<p>La partie courante sera remplacée. Exportez-la pour conserver vos inventions.</p>${variantChoices('confirm-reset')}`);return;}
  else if(a==='confirm-reset'){try{if(!storageBlocked)persist(localStorage,state);state=createState((d.variant as Variant)??'standard');observation=null;benchReference=null;benchResult=null;try{localStorage.removeItem(BENCH_KEY);}catch{}preferences.guide=defaultPreferences().guide;preferences.lessons=defaultPreferences().lessons;savePreferences();storageBlocked=false;save();selectedLane=state.plants.A.lanes[0].id;plant='A';view='atelier';$<HTMLDialogElement>('#dialog').close();}catch(e){toast((e as Error).message);}}
@@ -282,6 +282,16 @@ let suppressClick=false;document.addEventListener('click',e=>{if(suppressClick){
 let sheet:{y:number}|null=null;
 document.addEventListener('touchstart',e=>{const el=(e.target as Element).closest('.inspector.has-machine');sheet=el&&el.scrollTop<=0?{y:e.touches[0].clientY}:null;},{passive:true});
 document.addEventListener('touchend',e=>{if(sheet&&e.changedTouches[0].clientY-sheet.y>90){selectedMachine=0;render();}sheet=null;},{passive:true});
+// Android back button: close what is open, then come back to the workshop; returns false to let the app exit.
+(globalThis as {__resonanceBack?:()=>boolean}).__resonanceBack=()=>{
+ const dlg=$<HTMLDialogElement>('#dialog');if(dlg.open){dlg.close();render();return true;}
+ const tier=document.getElementById('tier-screen');if(tier){tier.remove();return true;}
+ if(view==='showcase'){view='atelier';render();return true;}
+ if(selectedMachine){selectedMachine=0;render();return true;}
+ if(puzzle){exitPuzzle();render();return true;}
+ if(view!=='atelier'){view='atelier';render();window.scrollTo({top:0});return true;}
+ save();return false;};
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
 applyDisplay();
 render();
 startCloud().then(c=>{if(c)render();});

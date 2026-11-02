@@ -26,7 +26,13 @@ node scripts/campaign.mjs 5
 
 95 tests passent : moteur, nouveaux modules, migration des sauvegardes, contrats, refondation, puzzles résolubles, interface (dont puzzles et mobile). Audit des traductions sans manque. Parcours navigateur bureau et téléphone sans débordement ni erreur. Version installable vérifiée hors ligne.
 
+## Android
+
+`android/` : application native minimale (Java, WebView, `WebViewAssetLoader` sur une origine https fixe pour que les sauvegardes survivent aux mises à jour). Elle embarque `Resonance-Industrielle.html`. compileSdk et targetSdk 37 (Android 17), minSdk 26, AGP 9.5, Gradle 9.8. Version Android = version de `package.json` (versionCode = majeur×10000 + mineur×100 + correctif). Le workflow `.github/workflows/resonance-android.yml` publie une release `resonance-vX.Y.Z` avec l’APK à chaque nouvelle version, si les secrets de signature existent. La clé de signature n’est pas dans Git : la perdre empêcherait d’installer les mises à jour par-dessus.
+
 ## Limites connues
+
+- L’APK n’a pas été lancé sur un appareil ni un émulateur (pas de virtualisation ici) ; la partie web et le pont Android ont été testés dans Chromium.
 
 - Aucune partie humaine longue n’a été jouée : les durées viennent d’un joueur automatique.
 - Les fonctions en ligne (galerie, classement, sauvegarde) n’ont pas pu être testées de bout en bout ici : elles dépendent de la base de la page claude.ai.

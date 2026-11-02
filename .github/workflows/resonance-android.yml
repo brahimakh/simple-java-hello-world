@@ -1,0 +1,83 @@
+# Builds the Android 17 (API 37) APK of Résonance industrielle and publishes it as a GitHub Release
+# for each new game version (the "version" field of Resonance-Industrielle/package.json).
+#
+# One-time setup, so that every APK is signed with the same key and installs over the previous one:
+#   Settings → Secrets and variables → Actions → New repository secret
+#     RESONANCE_KEYSTORE_BASE64    the content of keystore-base64.txt
+#     RESONANCE_KEYSTORE_PASSWORD  the content of password.txt
+# Without these secrets the APK is still built (downloadable from the run), but no release is published.
+name: Résonance industrielle · APK Android
+on:
+  push:
+    paths: ['Resonance-Industrielle/**', '.github/workflows/resonance-android.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: resonance-android-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Resonance-Industrielle
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: android-actions/setup-android@v3
+      - name: Android 17 SDK
+        run: sdkmanager "platforms;android-37.0" "build-tools;37.0.0"
+      - name: Game build and tests
+        run: |
+          pnpm install --frozen-lockfile
+          node node_modules/typescript/bin/tsc --noEmit
+          node --test --test-isolation=none tests/*.test.mjs
+          node scripts/standalone.mjs
+      - name: Version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if gh release view "resonance-v$VERSION" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Signing key
+        id: key
+        env:
+          KEYSTORE: ${{ secrets.RESONANCE_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE" ]; then echo "$KEYSTORE" | base64 -d > "$RUNNER_TEMP/release.keystore"; echo "path=$RUNNER_TEMP/release.keystore" >> "$GITHUB_OUTPUT"; echo "signed=true" >> "$GITHUB_OUTPUT";
+          else echo "::warning::RESONANCE_KEYSTORE_BASE64 is missing: APK signed with a temporary debug key, no release published."; echo "signed=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Build APK
+        working-directory: Resonance-Industrielle/android
+        env:
+          RESONANCE_KEYSTORE: ${{ steps.key.outputs.path }}
+          RESONANCE_KEYSTORE_PASSWORD: ${{ secrets.RESONANCE_KEYSTORE_PASSWORD }}
+        run: |
+          [ -n "$RESONANCE_KEYSTORE" ] || unset RESONANCE_KEYSTORE
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "../Resonance-Industrielle-${{ steps.version.outputs.version }}.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Resonance-Industrielle-${{ steps.version.outputs.version }}-apk
+          path: Resonance-Industrielle/Resonance-Industrielle-${{ steps.version.outputs.version }}.apk
+      - name: Publish release
+        if: steps.version.outputs.exists == 'false' && steps.key.outputs.signed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=${{ steps.version.outputs.version }}
+          gh release create "resonance-v$V" "Resonance-Industrielle-$V.apk" "Resonance-Industrielle.html" \
+            --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Résonance industrielle $V" \
+            --notes "APK Android (cible Android 17, API 37 ; fonctionne dès Android 8). Installer : ouvrir le fichier sur le téléphone et autoriser l’installation depuis cette source. Les mises à jour s’installent par-dessus la version précédente et conservent la partie. Le fichier HTML se joue sur ordinateur par double-clic."

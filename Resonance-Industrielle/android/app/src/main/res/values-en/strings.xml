@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Resonance</string>
+    <string name="export_done">Game exported.</string>
+    <string name="export_failed">Export failed.</string>
+</resources>
