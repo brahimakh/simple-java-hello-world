@@ -40,6 +40,8 @@ export function validate(value:unknown):State {
  requireValue(s.allowed===undefined||Array.isArray(s.allowed)&&s.allowed.length<=20&&s.allowed.every(k=>Object.hasOwn(MODULES,k)),'modules permis');
  if(s.mastery!==undefined)requireValue(s.mastery&&typeof s.mastery==='object'&&!Array.isArray(s.mastery)&&Object.entries(s.mastery).every(([k,v])=>MASTERY_FAMILIES.includes(k as never)&&integer(v,40)),'maîtrises');
  if(s.journey!==undefined){const j=s.journey;requireValue(j&&integer(j.step,50)&&integer(j.manual,1e9)&&Array.isArray(j.flags)&&j.flags.length<=20&&j.flags.every(f=>typeof f==='string'&&f.length<=24),'parcours');requireValue((j.doneTick===undefined||integer(j.doneTick))&&(j.open===undefined||Array.isArray(j.open)&&j.open.length<=20&&j.open.every(x=>typeof x==='string'&&x.length<=20))&&((j as {lastOpen?:number}).lastOpen===undefined||integer((j as {lastOpen?:number}).lastOpen)),'étapes');}
+ requireValue(s.tempo===undefined||[60,90,120,150,180,240].includes(s.tempo),'tempo');
+ if(s.protos!==undefined)requireValue(s.protos&&Array.isArray(s.protos.owned)&&s.protos.owned.length<=10&&s.protos.owned.every(x=>typeof x==='string'&&x.length<=20)&&(s.protos.offer===null||Array.isArray(s.protos.offer)&&s.protos.offer.length<=3&&s.protos.offer.every(x=>typeof x==='string'&&x.length<=20)),'prototypes');
  requireValue(s.specialty===undefined||['cadence','batch','weave'].includes(s.specialty),'spécialité');
  if(s.lastChange!==undefined)requireValue(s.lastChange&&integer(s.lastChange.tick)&&s.lastChange.tick<=s.tick&&number(s.lastChange.rate),'modification');
  if(s.eurekas!==undefined)requireValue(Array.isArray(s.eurekas)&&s.eurekas.length<=30&&s.eurekas.every(e=>e&&integer(e.tick)&&number(e.ratio)&&number(e.before)&&number(e.after)),'eurêkas');
@@ -52,7 +54,7 @@ export function validate(value:unknown):State {
  const packet=(p:import('./engine.ts').Packet)=>{
    requireValue(p&&number(p.qty,PACKET)&&p.qty>0&&number(p.quality,LIMITS.quality)&&p.quality>=1&&(p.kind==='matter'||p.kind==='exhaust')&&typeof p.recovered==='boolean'&&typeof p.exchanged==='boolean'&&number(p.energy,PACKET*2)&&PLANTS.includes(p.origin),'lot');
    requireValue((p.marks===undefined||number(p.marks,160))&&(p.stamped===undefined||typeof p.stamped==='boolean')&&(!(p.marks??0)||p.stamped===true),'empreintes');
-   requireValue((p.colors===undefined||[0,1,2,3,4,5,6,7].includes(p.colors))&&(p.lane===undefined||integer(p.lane))&&(p.assembled===undefined||typeof p.assembled==='boolean')&&(p.res===undefined||integer(p.res,1000))&&(p.loops===undefined||integer(p.loops,8))&&(p.charged===undefined||integer(p.charged,1e6))&&(p.split===undefined||typeof p.split==='boolean'),'propriétés du lot');
+   requireValue((p.colors===undefined||[0,1,2,3,4,5,6,7].includes(p.colors))&&(p.lane===undefined||integer(p.lane))&&(p.assembled===undefined||typeof p.assembled==='boolean')&&(p.echoed===undefined||typeof p.echoed==='boolean')&&((p as {beat?:number}).beat===undefined||integer((p as {beat?:number}).beat))&&(p.res===undefined||integer(p.res,1000))&&(p.loops===undefined||integer(p.loops,8))&&(p.charged===undefined||integer(p.charged,1e6))&&(p.split===undefined||typeof p.split==='boolean'),'propriétés du lot');
  };
  for(const pid of PLANTS){
    const p=s.plants[pid];requireValue(p&&p.stock&&Object.keys(p.stock).length===6,'réserves');

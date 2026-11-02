@@ -2,7 +2,7 @@ import {MODULES, LIMITS, UNLOCKS, PLANTS, PLANT_INPUT, PLANT_UNLOCK, MASTERY_FAM
 import {updateChallenge,type ChallengeState} from './challenges.ts';
 import {updateProgress,hasPatent,type ProgressState} from './progression.ts';
 export const DT = 0.1;
-export interface Packet {qty:number; quality:number; kind:'matter'|'exhaust'; recovered:boolean; exchanged:boolean; energy:number; origin:PlantId; marks?:number; stamped?:boolean; colors?:number; res?:number; loops?:number; charged?:number; split?:boolean; lane?:number; assembled?:boolean;}
+export interface Packet {qty:number; quality:number; kind:'matter'|'exhaust'; recovered:boolean; exchanged:boolean; energy:number; origin:PlantId; marks?:number; stamped?:boolean; colors?:number; res?:number; loops?:number; charged?:number; split?:boolean; lane?:number; assembled?:boolean; echoed?:boolean;}
 export type RouteMode='small'|'large'|'alternate'|'overflow';
 export interface Routing {target:number;mode:RouteMode;threshold:number;turn:boolean;main:number;branch:number;lastBranch?:boolean;}
 export interface LastPacket {tick:number;qty:number;quality:number;marks:number;result?:number;bulk?:number;catalysis?:number;plasma?:number;legacy?:number;bicolor?:boolean;synergy?:number;mold?:number;}
@@ -18,7 +18,7 @@ export interface Sample {tick:number; total:number;}
 export interface Transit {plant:PlantId;target:number;packet:Packet;}
 export type Variant='standard'|'slow'|'small'|'nores';
 export interface State {version:1; tick:number; nextId:number; plants:Record<PlantId,Plant>; produced:number; catalystProduced:number; recovered:number; largestLot:number; peak:number; totalSpent:number; library:Blueprint[]; configurations:Configuration[]; transfers:Transfer[]; pending:Pending[]; history:Sample[]; log:{tick:number;text:string}[]; claimed:string[]; paused:boolean; fault:string|null;transit?:Transit[];challenges?:ChallengeState;
- plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string; mastery?:Partial<Record<Kind,number>>; journey?:import('./journey.ts').JourneyState; specialty?:Kind; lastChange?:{tick:number;rate:number}; eurekas?:{tick:number;ratio:number;before:number;after:number}[];}
+ plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string; mastery?:Partial<Record<Kind,number>>; tempo?:number; protos?:{owned:string[];offer:string[]|null}; journey?:import('./journey.ts').JourneyState; specialty?:Kind; lastChange?:{tick:number;rate:number}; eurekas?:{tick:number;ratio:number;before:number;after:number}[];}
 export const clone = <T>(x:T):T => structuredClone(x);
 export const TRANSFERS:Omit<Transfer,'enabled'|'moved'>[] = [
  {resource:'residue',from:'A',to:'B',rate:20},{resource:'catalyst',from:'B',to:'A',rate:4},
@@ -45,7 +45,7 @@ export const TUNING={synergy:1.2,synergyMax:12,discovery:1.05,discoveryReward:30
 export const SYNERGY_WINDOW=100;
 function syn(s:State,lane:Lane,key:string) {(lane.syn??={})[key]=s.tick;}
 export function synergyKeys(s:State,lane:Lane) {return Object.entries(lane.syn??{}).filter(([,t])=>s.tick-t<=SYNERGY_WINDOW).map(([k])=>k);}
-export function synergyFactor(s:State,lane:Lane) {return TUNING.synergy**Math.min(TUNING.synergyMax,synergyKeys(s,lane).length);}
+export function synergyFactor(s:State,lane:Lane) {return (TUNING.synergy+(proto(s,'synergy')?.1:0))**Math.min(TUNING.synergyMax,synergyKeys(s,lane).length);}
 export const discoveryFactor=(s:State)=>TUNING.discovery**(s.discoveries?.length??0);
 // Rules that depend on the run: variant, patents and refoundations. All of them are shown in the interface.
 export const variantOf=(s:State):Variant=>s.variant??'standard';
@@ -55,10 +55,13 @@ export function plantUnlockAt(s:State,id:PlantId) {return id==='C'&&(s.progress?
 export function plantUnlocked(s:State,id:PlantId) {return s.produced>=plantUnlockAt(s,id);}
 export const lanesMax=(s:State)=>LIMITS.lanes+(hasPatent(s,'lanes')?2:0);
 export const nodesMax=(s:State)=>LIMITS.nodes+(hasPatent(s,'nodes')?2:0);
-export const packetMax=(s:State)=>variantOf(s)==='small'?40:hasPatent(s,'packet')?320:LIMITS.packet;
+export const proto=(s:State,id:string)=>!!s.protos?.owned.includes(id);
+export const packetMax=(s:State)=>(variantOf(s)==='small'?40:hasPatent(s,'packet')?320:LIMITS.packet)*(proto(s,'big-lot')?2:1);
 export const bulkAt=(s:State)=>variantOf(s)==='small'?40:80;
 export const catalysisFactor=(s:State)=>hasPatent(s,'catalysis')?6:4;
-export const transferFactor=(s:State)=>hasPatent(s,'transfer')?4:1;
+export const transferFactor=(s:State)=>(hasPatent(s,'transfer')?4:1)*(proto(s,'pipelines')?3:1);
+export const tempoOf=(s:State)=>s.tempo??120;
+export const beatTicks=(s:State)=>Math.round(600/tempoOf(s));
 export const legacyFactor=(s:State)=>s.progress?.legacy??1;
 export const masteryLevel=(s:State,k:Kind)=>s.mastery?.[k]??0;
 export const MASTERY_FACTOR=2;
@@ -122,7 +125,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    if(buffer(m)+1e-8<m.param){m.status=`Accumulation · ${Math.floor(buffer(m))}/${m.param}`;return;}
    let need=m.param;const parts:{p:Packet;take:number}[]=[];
    for(const part of m.queue){const take=Math.min(need,part.qty);parts.push({p:part,take});need-=take;if(need<=1e-8)break;}
-   p={...p,...merge(parts,m.param)};
+   p={...p,...merge(parts,m.param)};if(proto(s,'max-batch'))p.quality=Math.max(...parts.map(x=>x.p.quality));
    if(!next){m.status='Relier une sortie';return;}
    if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
    need=m.param;
@@ -151,7 +154,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
  if(m.kind==='filter') {
    const back=lane.machines[1];
    if(p.quality+1e-9<m.param&&(p.loops??0)<8&&back&&back!==m){
-     const returned={...p,loops:(p.loops??0)+1};
+     const returned={...p,loops:(p.loops??0)+1,quality:Math.min(LIMITS.quality,p.quality*(proto(s,'loop-boost')?1.5:1))};
      if(!canSend(s,back,returned)){m.status='Retour saturé · le lot attend';return;}
      (s.transit??=[]).push({plant:id,target:back.id,packet:returned});m.queue.shift();m.clock=.1;stat(s,'loops');syn(s,lane,'refine');record(returned);m.status='Lot renvoyé en amont';return;
    }
@@ -174,10 +177,23 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    if(!next){m.status='Relier une sortie';return;}if(!canSend(s,next,fused)){m.status=blocked(next,fused);return;}
    delete m.memoryAt;m.queue.splice(partner,1);m.queue.shift();send(fused);m.clock=.5;stat(s,'assembly');syn(s,lane,'assembly');discover(s,'assembly');if(fused.quality>=1e4)discover(s,'assembly-rich');return;
  }
+ if(m.kind==='metronome') {
+   if(s.tick%beatTicks(s)!==0){m.status='Attend le temps';return;}
+   const lifted={...p,quality:Math.min(LIMITS.quality,p.quality*(1+60/tempoOf(s))),beat:s.tick} as Packet;
+   if(!next){m.status='Relier une sortie';return;}if(!canSend(s,next,lifted)){m.status=blocked(next,lifted);return;}
+   m.queue.shift();send(lifted);syn(s,lane,'tempo');stat(s,'beats');return;
+ }
+ if(m.kind==='echo') {
+   if(m.memory!==undefined&&s.tick-(m.memoryAt??0)>30){delete m.memory;delete m.memoryAt;}
+   const original=p.marks??0;
+   if(!next){m.status='Relier une sortie';return;}if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
+   if(!p.echoed&&m.memory){p.marks=Math.min(160,original+m.memory);p.stamped=true;if(!p.colors)p.colors=1;p.echoed=true;syn(s,lane,'echo');stat(s,'echoes');discover(s,'echo');}
+   m.memory=original;m.memoryAt=s.tick;m.queue.shift();send(p);m.clock=.1;return;
+ }
  if(m.kind==='split') {
    if(!next){m.status='Relier une sortie';return;}
    if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
-   const half:Packet={...p,qty:p.qty/2,marks:(p.marks??0)/2,split:true};
+   const half:Packet={...p,qty:p.qty/2,marks:(p.marks??0)/2,split:true};if(proto(s,'split-mark')&&!(colorsOf(half)&1)){half.marks=(half.marks??0)+1;half.colors=colorsOf(half)|1;half.stamped=true;}
    m.queue.shift();push(next,{...half});push(next,{...half});record(half);m.clock=.2;stat(s,'split');syn(s,lane,'split');return;
  }
  if(!next&&p.kind==='matter'&&m.kind!=='press'){m.status='Relier une sortie';return;}
@@ -186,14 +202,14 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    const bit=m.variant===2?4:m.variant===1?2:1;const colors=colorsOf(p);
    if(!(colors&bit)){p.marks=(p.marks??0)+1;p.colors=colors|bit;p.stamped=true;}m.clock=.1;
  } else if(m.kind==='weave') {
-   const marks=Math.min(7,p.marks??0);p.quality*=1+marks;if(marks>0){p.quality*=mf(s,'weave');syn(s,lane,'weave');}
+   const marks=proto(s,'double-weave')?Math.min(14,2*(p.marks??0)):Math.min(7,p.marks??0);p.quality*=1+marks;if(marks>0){p.quality*=mf(s,'weave');syn(s,lane,'weave');}
    const hues=[1,2,4].filter(b=>colorsOf(p)&b).length;const bicolor=hues>=2&&marks>0;
    if(bicolor&&hues===3){p.quality*=5;stat(s,'prism');syn(s,lane,'prism');discover(s,'prism');}
    else if(bicolor){p.quality*=2;stat(s,'bicolor');syn(s,lane,'bicolor');discover(s,'bicolor');}
    if(marks>=7)discover(s,'weave8');if(marks>=3&&!p.split)discover(s,'order');
    p.marks=0;m.clock=.2;
  } else if(m.kind==='cadence') {
-   const win=m.variant===1?1:m.variant===2?4:2,maxAccord=m.variant===1?5:m.variant===2?3:4;
+   const win=(m.variant===1?1:m.variant===2?4:2)*(proto(s,'long-accord')?3:1),maxAccord=m.variant===1?5:m.variant===2?3:4;
    m.streak=p.qty<=12?(now-m.last<=win+1e-5?Math.min(maxAccord,m.streak+1):1):0;
    m.last=now;const rank=(p.res??0)+1;const divisor=hasPatent(s,'resonance')?Math.max(1,rank-1):rank;
    p.quality*=1+m.streak/divisor;if(m.streak>0){p.res=rank;p.quality*=mf(s,'cadence');syn(s,lane,'accord');}m.clock=0.1;
@@ -201,7 +217,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
  } else if(m.kind==='charge') {
    const cost=0.2*p.qty*m.param;
    if(!spend(plant,'energy',cost)){m.status='Énergie insuffisante · charge';return;}
-   p.quality*=(1+m.param/2)*mf(s,'charge');syn(s,lane,'charge');p.charged=(p.charged??0)+1;if(p.charged>=2)discover(s,'charge-loop');m.clock=m.param;
+   p.quality*=(1+m.param/2)*mf(s,'charge');syn(s,lane,'charge');p.charged=(p.charged??0)+1;if(p.charged>=2)discover(s,'charge-loop');m.clock=m.param*(proto(s,'quick-charge')?.5:1);
    p.quality=Math.min(LIMITS.quality,p.quality);m.working=p;m.queue.shift();m.status='Charge en cours';return;
  } else if(m.kind==='sync') {
    if(plant.stock.catalyst<10){m.status='Seuil requis · 10 catalyseurs';return;}
@@ -218,7 +234,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    m.heat=Math.min(100,(m.heat??0)+p.qty/10);p.quality*=(1+m.heat/25)*mf(s,'furnace');if(m.heat>=20)syn(s,lane,'furnace');if(m.heat>=80)discover(s,'blaze');m.clock=.1;
  } else if(m.kind==='harmonic') {
    const partner=plant.lanes.some(l=>l.id!==lane.id&&l.machines.some(o=>o.kind==='harmonic'&&now-o.last<=.10001));
-   if(partner){p.quality*=3*mf(s,'harmonic');syn(s,lane,'harmony');stat(s,'harmony');discover(s,'harmony');}m.last=now;m.clock=.1;
+   if(partner){p.quality*=3*mf(s,'harmonic');syn(s,lane,'harmony');if((p as {beat?:number}).beat)discover(s,'tempo');stat(s,'harmony');discover(s,'harmony');}m.last=now;m.clock=.1;
  } else if(m.kind==='sensor') {
    const r:Resource=(['energy','catalyst',PLANT_INPUT[id],'plasma'] as Resource[])[m.variant??0]??'energy';
    if(plant.stock[r]+1e-9<m.param){m.status='Capteur · seuil non atteint';return;}m.clock=.1;
@@ -230,8 +246,9 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    const bulk=id==='A'&&p.qty>=bulkAt(s)?8*mf(s,'batch'):1;const legacy=id==='A'?legacyFactor(s):1;
    if(bulk>1)syn(s,lane,'bulk');if(cat>1)syn(s,lane,'catalysis');if(plasma>1)syn(s,lane,'plasma');
    const synergy=synergyFactor(s,lane),known=id==='A'?discoveryFactor(s):1;
+   const hot=proto(s,'hot-press')&&lane.machines.some(x=>x.kind==='furnace'&&(x.heat??0)>50)?2:1;
    const moldKind=m.variant??0;const mold=moldKind===1?(p.qty<=12?3:.5):moldKind===2?(bulk>1?1.5:.5):moldKind===3?4:1;
-   const result=p.qty/def.divisor*p.quality*bulk*cat*plasma*legacy*synergy*known*mold;
+   const result=p.qty/def.divisor*p.quality*bulk*cat*plasma*legacy*synergy*known*mold*hot;
    const out:Resource=id==='A'?'components':id==='B'?'catalyst':'plasma';
    if(!canCredit(s,id,out,result)||(id==='A'&&!canCredit(s,id,'residue',p.qty*.5))){m.status='Réserve de sortie saturée';return;}
    if(!spend(plant,'energy',cost)){m.status='Énergie insuffisante · pressage';return;}
@@ -382,3 +399,5 @@ export function automateIntake(s:State,cost:number) {
  const m=s.plants.A.lanes[0]?.machines[0];if(!m?.manual||!spend(s.plants.A,'components',cost))return false;
  delete m.manual;s.totalSpent+=cost;note(s,'Injecteur automatisé : la Fonderie produit désormais sans vous.');return true;
 }
+export const TEMPOS=[60,90,120,150,180,240];
+export function setTempo(s:State,bpm:number){if(!TEMPOS.includes(bpm)||s.produced<3e6)return false;s.tempo=bpm;return true;}

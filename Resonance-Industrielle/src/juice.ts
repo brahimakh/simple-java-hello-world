@@ -48,13 +48,19 @@ function fanfare(p:EffectsPreferences,steps:number[]) {
 }
 // Generative music: each line of each facility owns a degree of the scale; its presses play it on a quarter-second grid.
 let lastBeat=-1;const beatNotes=new Set<number>();
-function musicNote(lane:number,plant:PlantId,quality:number) {
- if(!audio||!master)return;const grid=.25;const now=audio.currentTime;const at=Math.ceil(now/grid)*grid;
+function musicNote(lane:number,plant:PlantId,quality:number,tempo=120) {
+ if(!audio||!master)return;const grid=30/tempo;const now=audio.currentTime;const at=Math.ceil(now/grid)*grid;
  const step=lane*2+(plant==='B'?1:plant==='C'?3:0);const key=Math.round(at/grid)*100+step;if(beatNotes.has(key))return;beatNotes.add(key);
  if(beatNotes.size>200)beatNotes.clear();
  const octave=Math.min(2,Math.floor(Math.log10(Math.max(1,quality))/3));
  tone(note(step%10,plant==='A'?196:plant==='B'?262:330)*2**octave,at,.45,.07,'sine');
  const beat=Math.floor(at/2);if(beat!==lastBeat){lastBeat=beat;tone(note(0,55),Math.ceil(now/2)*2,1.6,.05,'sine');}
+}
+// Each family has its own soft texture; a full line plays a small chord. Limited to a few sounds per second.
+let lastFamily=0;const FAMILY_TONE:Partial<Record<Kind,[number,OscillatorType]>>={intake:[0,'sine'],cadence:[7,'sine'],stamp:[9,'triangle'],batch:[2,'triangle'],weave:[11,'sine'],charge:[4,'sawtooth'],sync:[12,'sine'],furnace:[1,'sawtooth'],mirror:[14,'sine'],split:[5,'triangle'],filter:[6,'triangle'],compress:[3,'square'],harmonic:[10,'sine'],metronome:[8,'square'],echo:[13,'sine'],assembler:[4,'triangle']};
+function familySound(p:EffectsPreferences,kind:Kind){
+ if(!p.sound||!audio||!master)return;const now=audio.currentTime;if(now-lastFamily<.12)return;lastFamily=now;
+ const t=FAMILY_TONE[kind];if(!t)return;tone(note(t[0],330),now,.09,.04,t[1]);
 }
 function vibrate(pattern:number|number[]) {try{navigator.vibrate?.(pattern);}catch{}}
 
@@ -167,6 +173,7 @@ export function startEffects(ctx:EffectsContext) {
    const before=seen.get(m.id);seen.set(m.id,m.lastPacket.tick);
    if(before===undefined||before===m.lastPacket.tick)return;
    if(m.kind!=='press'){
+    if(id===plant&&laneIndex===0)familySound(ctx.preferences,m.kind);
     if(id!==plant||!motion)return;const next=lane.machines[i+1];if(!next)return;
     const a=rect(m),b=rect(next);if(a&&b)travel(a,b,m.lastPacket.qty,m.lastPacket.quality,Math.min(700,Math.max(250,Math.abs(b.left-a.right)*2)));return;
    }
@@ -175,7 +182,7 @@ export function startEffects(ctx:EffectsContext) {
    if(id==='A')peak=Math.max(peak,s.peak);
    const factors=[lp.quality>1.0001?`q×${formatCompact(lp.quality)}`:'',(lp.bulk??1)>1?'×'+lp.bulk:'',(lp.catalysis??1)>1?'✧×'+lp.catalysis:'',(lp.plasma??1)>1?'✺×'+lp.plasma:'',(lp.legacy??1)>1?'∞×'+formatCompact(lp.legacy!):''].filter(Boolean);
    pressSound(ctx.preferences,result,factors.length-(lp.quality>1.0001?1:0));
-   if(ctx.music())musicNote(laneIndex,id,lp.quality);
+   if(ctx.music())musicNote(laneIndex,id,lp.quality,s.tempo??120);
    if(id!==plant||!motion)return;
    const size=Math.min(36,13+Math.log10(Math.max(1,result))*3.4);
    const special=factors.length>=2;const variant=id==='B'?'catalyst':id==='C'?'plasma':record?'record':special?'special':'';

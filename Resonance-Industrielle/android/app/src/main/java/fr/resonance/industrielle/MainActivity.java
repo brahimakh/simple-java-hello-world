@@ -34,6 +34,7 @@ public class MainActivity extends ComponentActivity {
     private WebView web;
     private ValueCallback<Uri[]> pendingChooser;
     private String pendingExport;
+    private byte[] pendingImage;
 
     private final ActivityResultLauncher<String[]> openFile =
             registerForActivityResult(new ActivityResultContracts.OpenDocument(), uri -> {
@@ -51,6 +52,18 @@ public class MainActivity extends ComponentActivity {
                     Toast.makeText(this, R.string.export_failed, Toast.LENGTH_LONG).show();
                 }
                 pendingExport = null;
+            });
+
+    private final ActivityResultLauncher<String> createImage =
+            registerForActivityResult(new ActivityResultContracts.CreateDocument("image/png"), uri -> {
+                if (uri == null || pendingImage == null) return;
+                try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                    if (out != null) out.write(pendingImage);
+                    Toast.makeText(this, R.string.export_done, Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    Toast.makeText(this, R.string.export_failed, Toast.LENGTH_LONG).show();
+                }
+                pendingImage = null;
             });
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -143,6 +156,14 @@ public class MainActivity extends ComponentActivity {
 
     /** Lets the page hand a save file to the system "save as" screen. */
     private class Bridge {
+        @JavascriptInterface
+        public void saveImage(String name, String base64) {
+            runOnUiThread(() -> {
+                pendingImage = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+                createImage.launch(name);
+            });
+        }
+
         @JavascriptInterface
         public void saveFile(String name, String text) {
             runOnUiThread(() -> {

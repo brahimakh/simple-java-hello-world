@@ -13,6 +13,7 @@ const paths:Record<Kind,string>={
  split:'M3 12h6 M9 12l6-6h6 M9 12l6 6h6 M12 3v3 M12 18v3',filter:'M3 4h18l-7 8v7l-4 2v-9z',
  mirror:'M12 2v20 M4 6l5 6-5 6z M20 6l-5 6 5 6',furnace:'M5 21h14V9l-7-6-7 6z M9 21v-5a3 3 0 0 1 6 0v5 M12 6v3',
  compress:'M4 4h16v16H4z M8 8l4 4 4-4 M8 16l4-4 4 4',harmonic:'M2 9c3-4 5 4 8 0s5 4 8 0 3-1 4 0 M2 15c3-4 5 4 8 0s5 4 8 0 3-1 4 0',
+ metronome:'M8 21h8l-2-17h-4z M12 15l5-9 M6 21h12',echo:'M4 12a8 8 0 0 1 16 0 M7 12a5 5 0 0 1 10 0 M10 12a2 2 0 0 1 4 0',
  assembler:'M3 6h6l4 6-4 6H3 M21 6h-6l-4 6 4 6h6 M12 12h0',
  sensor:'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0 M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 2v3 M12 19v3'
 };

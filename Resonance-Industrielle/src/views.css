@@ -116,3 +116,8 @@
 .puzzle.sandbox{border-color:#91ddc066}
 .fx-scale{animation:fx-scale .6s ease-out}@keyframes fx-scale{0%{transform:scale(1)}35%{transform:scale(1.25);color:#ffe08a}100%{transform:scale(1)}}
 .rating-big{font-size:42px;font-weight:600;color:#ffd479;margin:6px 0;font-variant-numeric:tabular-nums}
+/* 1.0 Tempo */
+.proto-offer{margin:0 0 14px;padding:16px;border:1px solid #c9a3ff88;border-radius:12px;background:linear-gradient(135deg,#2a2236,#162224)}
+.proto-offer .eyebrow{color:#d2b4f5}.proto-offer h2{margin:6px 0}.proto-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:10px}
+.proto-grid button{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px;text-align:left;min-height:70px}.proto-grid small{color:var(--muted);font-weight:400;line-height:1.35}
+.tempo-row{display:flex;flex-wrap:wrap;gap:6px}.tempo-row button{min-width:52px;min-height:40px}.tempo-row button.active{border-color:var(--teal);color:var(--teal)}

@@ -1,7 +1,7 @@
 // Pages for the long game: notebook (discoveries, badges, records) and contracts (patents, refoundation).
 import {MODULES,TIERS} from './content.ts';
 import {unlocked,measuredRate,type State} from './engine.ts';
-import {DISCOVERIES,BADGES,THEMES,PATENTS,contractOffers,contractProgress,contractText,progressOf,canRefound,legacyFor,discoveryCount,REFOUND_AT,CONTRACTS_AT} from './progression.ts';
+import {PROTOTYPES,DISCOVERIES,BADGES,THEMES,PATENTS,contractOffers,contractProgress,contractText,progressOf,canRefound,legacyFor,discoveryCount,REFOUND_AT,CONTRACTS_AT} from './progression.ts';
 import {t,formatCompact as fmt} from './i18n.ts';
 import {ghostDelta,type Meta} from './meta.ts';
 const btn=(action:string,text:string,extra='',disabled=false)=>`<button data-action="${action}" ${extra} ${disabled?'disabled':''}>${text}</button>`;
@@ -15,7 +15,7 @@ export function timelineLabel(text:string) {
  if(kind==='brevet')return `${t('Brevet')} · ${t(PATENTS.find(d=>d.id===id)?.name??id)}`;
  if(kind==='contrat')return t('Contrat rempli');
  if(kind==='refondation')return t('Refondation du laboratoire');
- if(kind==='eureka')return t('Eurêka');if(kind==='spécialité')return `${t('Spécialité')} · ${t(id)}`;
+ if(kind==='eureka')return t('Eurêka');if(kind==='prototype')return `${t('Prototype')} · ${t(PROTOTYPES.find(x=>x.id===id)?.name??id)}`;if(kind==='prototype-offert')return t('Prototype proposé');if(kind==='spécialité')return `${t('Spécialité')} · ${t(id)}`;
  return t(text);
 }
 
@@ -43,6 +43,7 @@ export function notebookPage(s:State,meta:Meta,ghostBase:Meta) {
  <section class="panel"><h3>Découvertes</h3><p class="muted">${t('Le carnet reconnaît les combinaisons remarquables quand elles se produisent réellement. Les découvertes manquantes restent masquées ; seule la famille concernée est indiquée quand vous la possédez.')}</p>
  <div class="discovery-grid">${DISCOVERIES.map(d=>found.has(d.id)?`<article class="discovery found"><span class="eyebrow">✦ ${clock(found.get(d.id)!)}</span><h4>${t(d.name)}</h4><p>${t(d.text)}</p></article>`:`<article class="discovery"><span class="eyebrow">???</span><h4>${unlocked(s,d.hint)?t('Concerne') +' : '+t(MODULES[d.hint].name):t('Indice verrouillé')}</h4></article>`).join('')}</div>
  ${p.legacy>1?`<p class="rule-note">${t('Mémoire du laboratoire')} : ×${fmt(p.legacy)} ${t('sur chaque presse de Fonderie (refondation).')}</p>`:''}</section>
+ ${(s.protos?.owned.length??0)?`<section class="panel"><h3>Prototypes installés</h3><div class="badge-grid">${s.protos!.owned.map(id=>{const x=PROTOTYPES.find(p=>p.id===id);return x?`<article class="badge earned"><strong>${t(x.name)}</strong><small>${t(x.text)}</small></article>`:'';}).join('')}</div></section>`:''}
  <section class="panel"><h3>Badges</h3><div class="badge-grid">${BADGES.map(b=>`<article class="badge ${p.badges.includes(b.id)?'earned':''}"><strong>${p.badges.includes(b.id)?'★':'☆'} ${t(b.name)}</strong><small>${t(b.text)}</small></article>`).join('')}</div>
  <h4>Thèmes visuels</h4><div class="theme-row">${THEMES.map(th=>btn('theme',`${t(th.name)}${p.badges.length<th.badges?` · ${th.badges} ${t('badges')}`:''}`,`data-theme="${th.id}" class="${meta.theme===th.id?'active':''}"`,p.badges.length<th.badges)).join('')}</div></section>`;
 }

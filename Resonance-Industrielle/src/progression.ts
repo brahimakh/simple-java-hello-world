@@ -1,7 +1,7 @@
 // Long-term goals layered on top of the simulation: contracts, patents, badges, discoveries and one refoundation.
 // Everything here is deterministic and derived from real production; nothing is random or timed against the player.
 import type {State,Variant} from './engine.ts';
-import {measuredRate,createState,clone,mark,variantOf,unlocked,unlockAt,plantUnlocked} from './engine.ts';
+import {measuredRate,createState,clone,mark,variantOf,unlocked,unlockAt,plantUnlocked,discover} from './engine.ts';
 import {journeyActive} from './journey.ts';
 import type {Kind} from './content.ts';
 export interface Contract {kind:string;goal:number;base:number;reward:number;patents:number;start:number;level:number;}
@@ -52,6 +52,9 @@ export const DISCOVERIES:{id:string;name:string;text:string;hint:Kind}[]=[
  {id:'gear',name:'Engrenage',text:'Un moule à engrenage renforce la prime de gros lot.',hint:'press'},
  {id:'crystal',name:'Cristal',text:'Un moule à cristal quadruple un lot, en prenant son temps.',hint:'press'},
  {id:'prism',name:'Prisme',text:'Trois couleurs d’empreinte sur un lot : tissage ×5.',hint:'stamp'},
+ {id:'echo',name:'Écho',text:'Un lot hérite des empreintes du lot qui le précède.',hint:'echo'},
+ {id:'tempo',name:'Au temps',text:'Des métronomes font livrer plusieurs lignes ensemble : l’harmoniseur répond.',hint:'metronome'},
+ {id:'prototype',name:'Prototype',text:'Une machine unique change une règle de votre partie.',hint:'press'},
  {id:'nested',name:'Invention dans l’invention',text:'Les modules d’une invention sont insérés dans une autre ligne.',hint:'press'}
 ];
 export const discoveryCount=(s:State)=>s.discoveries?.length??0;
@@ -125,7 +128,7 @@ export function checkEureka(s:State) {
  (s.eurekas??=[]).push({tick:s.tick,ratio,before:c.rate,after:now});if(s.eurekas.length>30)s.eurekas.shift();delete s.lastChange;mark(s,'eureka');
 }
 export function updateProgress(s:State) {
- const p=progressOf(s);checkEureka(s);
+ const p=progressOf(s);checkEureka(s);updatePrototypes(s);
  if(p.contract&&contractProgress(s,p.contract).ratio>=1){
   s.plants.A.stock.components=Math.min(1e21,s.plants.A.stock.components+p.contract.reward);p.points+=p.contract.patents;p.done++;
   mark(s,'contrat:'+p.contract.kind);p.contract=null;
@@ -157,12 +160,13 @@ export const PISTE_HINTS:Record<string,string>={
  compress:'Plusieurs lots peuvent-ils n’en faire qu’un ?',harmony:'Deux lignes peuvent-elles jouer ensemble ?',
  bicolor:'Deux couleurs valent-elles mieux qu’une ?','greenhouse-loop':'La Serre gaspille-t-elle ses résidus ?',
  plasma:'Que peut apporter la troisième installation ?',quality6:'Un lot peut-il atteindre une qualité d’un million ?',
- press9:'Une seule presse peut-elle produire un milliard d’un coup ?',assembly:'Deux lots de lignes différentes peuvent-ils n’en faire qu’un ?','assembly-rich':'Jusqu’où peut monter la qualité d’un lot assemblé ?',spring:'Une presse peut-elle préférer les petits lots ?',gear:'Une presse peut-elle aimer encore plus les gros lots ?',crystal:'Que vaut une presse qui prend son temps ?',prism:'Et avec trois couleurs ?',nested:'Une invention peut-elle en enrichir une autre ?'
+ press9:'Une seule presse peut-elle produire un milliard d’un coup ?',echo:'Les empreintes d’un lot peuvent-elles survivre à son passage\u00a0?',tempo:'Que se passe-t-il quand plusieurs lignes battent la même mesure\u00a0?',prototype:'Un palier franchi peut-il changer les règles\u00a0?',assembly:'Deux lots de lignes différentes peuvent-ils n’en faire qu’un ?','assembly-rich':'Jusqu’où peut monter la qualité d’un lot assemblé ?',spring:'Une presse peut-elle préférer les petits lots ?',gear:'Une presse peut-elle aimer encore plus les gros lots ?',crystal:'Que vaut une presse qui prend son temps ?',prism:'Et avec trois couleurs ?',nested:'Une invention peut-elle en enrichir une autre ?'
 };
 function pisteOpen(s:State,id:string,hint:string) {
  if(id==='catalysis'||id==='greenhouse-loop')return plantUnlocked(s,'B');if(id==='plasma')return plantUnlocked(s,'C');
  if(id==='quality6')return s.produced>=1e6;if(id==='press9')return s.produced>=1e9;if(id==='nested')return s.library.length>0;
  if(id==='accord5'||id==='weave8')return s.produced>=300;
+ if(id==='prototype')return s.produced>=1e4;if(id==='tempo')return unlocked(s,'harmonic' as never)&&unlocked(s,'metronome' as never);
  if(id==='spring'||id==='gear'||id==='crystal')return s.produced>=5e4;if(id==='prism')return s.produced>=3e7;
  return unlocked(s,hint as never);
 }
@@ -173,8 +177,30 @@ export function pistes(s:State) {
  if(!open.length)return [];
  // The newest mechanic first (to introduce it), then the oldest leads still open.
  const byUnlock=[...open].sort((a,b)=>unlockAt(s,a.hint as never)-unlockAt(s,b.hint as never));
- const newest=byUnlock.at(-1)!;const AREA:Record<string,string>={spring:'Moules de presse',gear:'Moules de presse',crystal:'Moules de presse',prism:'Empreinte magenta',catalysis:'Serre catalytique','greenhouse-loop':'Serre catalytique',plasma:'Forge à plasma',quality6:'Presse',press9:'Presse',nested:'Inventions'};
+ const newest=byUnlock.at(-1)!;const AREA:Record<string,string>={prototype:'Prototypes',spring:'Moules de presse',gear:'Moules de presse',crystal:'Moules de presse',prism:'Empreinte magenta',catalysis:'Serre catalytique','greenhouse-loop':'Serre catalytique',plasma:'Forge à plasma',quality6:'Presse',press9:'Presse',nested:'Inventions'};
  return [newest,...byUnlock.filter(d=>d!==newest)].slice(0,3).map(d=>({...d,area:AREA[d.id],question:PISTE_HINTS[d.id],fresh:d===newest&&s.produced<unlockAt(s,d.hint as never)*4}));
 }
 export const SPECIALTIES=[{kind:'cadence',name:'Cadence',text:'Le résonateur double son effet.'},{kind:'batch',name:'Masse',text:'La prime de gros lot double : ×16 au lieu de ×8.'},{kind:'weave',name:'Empreinte',text:'Le tisseur double son effet.'}] as const;
 export function chooseSpecialty(s:State,kind:string) {if(s.specialty||!SPECIALTIES.some(x=>x.kind===kind))return false;s.specialty=kind as State['specialty'];mark(s,'spécialité:'+kind);return true;}
+
+// ---------- Prototypes: at each threshold, choose one unique machine-rule among three. Deterministic offers. ----------
+export const PROTOTYPES=[
+ {id:'double-weave',name:'Tisseur double',text:'Le tisseur compte chaque empreinte deux fois (jusqu’à ×15).'},
+ {id:'max-batch',name:'Accumulateur sélectif',text:'L’accumulateur garde la meilleure qualité de ses lots au lieu de la moyenne.'},
+ {id:'long-accord',name:'Longue résonance',text:'La fenêtre d’accord de chaque résonateur est triplée.'},
+ {id:'split-mark',name:'Diviseur marqueur',text:'Chaque moitié d’un lot divisé reçoit une empreinte cyan si elle n’en a pas.'},
+ {id:'hot-press',name:'Presse chaude',text:'Une presse produit ×2 si un four de sa ligne dépasse 50 de chaleur.'},
+ {id:'loop-boost',name:'Affinage intense',text:'Un lot renvoyé par un filtre gagne ×1,5 à chaque retour.'},
+ {id:'pipelines',name:'Pipelines géants',text:'Tous les transferts entre installations ×3.'},
+ {id:'quick-charge',name:'Charge éclair',text:'La chambre de charge garde ses lots deux fois moins longtemps, pour le même effet.'},
+ {id:'big-lot',name:'Lots géants',text:'La limite de lot double.'},
+ {id:'synergy',name:'Résonance collective',text:'Chaque interaction de synergie vaut ×1,3 au lieu de ×1,2.'}
+] as const;
+export const PROTO_AT=[1e4,1e6,1e9,1e12];
+export function protoState(s:State){return (s.protos??={owned:[],offer:null});}
+export function updatePrototypes(s:State){
+ const p=protoState(s);if(p.offer||s.puzzle||journeyActive(s))return;const n=p.owned.length;if(n>=PROTO_AT.length||s.produced<PROTO_AT[n])return;
+ const left=PROTOTYPES.filter(x=>!p.owned.includes(x.id));const start=(n*3+(s.library.length%3))%left.length;
+ p.offer=[0,1,2].map(i=>left[(start+i*Math.max(1,Math.floor(left.length/3)))%left.length].id).filter((x,i,a)=>a.indexOf(x)===i);mark(s,'prototype-offert');
+}
+export function chooseProto(s:State,id:string){const p=protoState(s);if(!p.offer?.includes(id))return false;p.owned.push(id);p.offer=null;mark(s,'prototype:'+id);discover(s,'prototype');return true;}
