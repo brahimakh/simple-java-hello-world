@@ -6,7 +6,7 @@ export interface Packet {qty:number; quality:number; kind:'matter'|'exhaust'; re
 export type RouteMode='small'|'large'|'alternate'|'overflow';
 export interface Routing {target:number;mode:RouteMode;threshold:number;turn:boolean;main:number;branch:number;lastBranch?:boolean;}
 export interface LastPacket {tick:number;qty:number;quality:number;marks:number;result?:number;bulk?:number;catalysis?:number;plasma?:number;legacy?:number;bicolor?:boolean;}
-export interface Machine {id:number; kind:Kind; param:number; queue:Packet[]; clock:number; streak:number; last:number; working:Packet|null; connected:boolean; paid:number; status:string; processed:number; routing?:Routing;lastPacket?:LastPacket;made?:number;variant?:number;memory?:number;memoryAt?:number;heat?:number;}
+export interface Machine {id:number; kind:Kind; param:number; queue:Packet[]; clock:number; streak:number; last:number; working:Packet|null; connected:boolean; paid:number; status:string; processed:number; routing?:Routing;lastPacket?:LastPacket;made?:number;variant?:number;manual?:boolean;memory?:number;memoryAt?:number;heat?:number;}
 export interface Lane {id:number; name:string; machines:Machine[]; capsule:boolean; fee?:number;}
 export interface Plant {stock:Record<Resource,number>; lanes:Lane[]; oreLevel:number; energyLevel:number; catalystOn:boolean; plasmaOn?:boolean;}
 export interface MachineSpec {kind:Kind;param:number;connected:boolean;variant?:number;routing?:{target:number;mode:RouteMode;threshold:number}}
@@ -18,7 +18,7 @@ export interface Sample {tick:number; total:number;}
 export interface Transit {plant:PlantId;target:number;packet:Packet;}
 export type Variant='standard'|'slow'|'small'|'nores';
 export interface State {version:1; tick:number; nextId:number; plants:Record<PlantId,Plant>; produced:number; catalystProduced:number; recovered:number; largestLot:number; peak:number; totalSpent:number; library:Blueprint[]; configurations:Configuration[]; transfers:Transfer[]; pending:Pending[]; history:Sample[]; log:{tick:number;text:string}[]; claimed:string[]; paused:boolean; fault:string|null;transit?:Transit[];challenges?:ChallengeState;
- plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string; mastery?:Partial<Record<Kind,number>>;}
+ plasmaProduced?:number; variant?:Variant; longHistory?:Sample[]; timeline?:{tick:number;text:string}[]; tierTicks?:number[]; discoveries?:{id:string;tick:number}[]; stats?:Record<string,number>; progress?:ProgressState; allowed?:Kind[]; puzzle?:string; mastery?:Partial<Record<Kind,number>>; journey?:import('./journey.ts').JourneyState;}
 export const clone = <T>(x:T):T => structuredClone(x);
 export const TRANSFERS:Omit<Transfer,'enabled'|'moved'>[] = [
  {resource:'residue',from:'A',to:'B',rate:20},{resource:'catalyst',from:'B',to:'A',rate:4},
@@ -70,7 +70,10 @@ function credit(s:State,id:PlantId,r:Resource,qty:number) {s.pending.push({plant
 function canCredit(s:State,id:PlantId,r:Resource,qty:number) {return s.plants[id].stock[r]+s.pending.filter(e=>e.plant===id&&e.resource===r).reduce((n,e)=>n+e.qty,0)+qty<=LIMITS.stock;}
 export function buffer(m:Machine) {return m.queue.reduce((a,p)=>a+p.qty,0)+(m.working?.qty??0);}
 export function incoming(s:State,m:Machine) {return (s.transit??[]).filter(e=>e.target===m.id).reduce((n,e)=>n+e.packet.qty,0);}
-function canSend(s:State,next:Machine|undefined,p:Packet) {return !next||(MODULES[next.kind].input===p.kind&&buffer(next)+incoming(s,next)+p.qty<=LIMITS.queue+1e-8);}
+// A press queues at most one large batch, so a new setting reaches it within seconds; other machines buffer up to 800.
+export const capacity=(s:State,m:Machine)=>m.kind==='press'?packetMax(s):LIMITS.queue;
+function canSend(s:State,next:Machine|undefined,p:Packet) {return !next||(MODULES[next.kind].input===p.kind&&buffer(next)+incoming(s,next)+p.qty<=capacity(s,next)+1e-8);}
+function blocked(next:Machine|undefined,p:Packet) {return next&&MODULES[next.kind].input!==p.kind?'Type d’entrée incompatible avec la carte suivante':next?.kind==='press'?'Sortie saturée · la presse est encore occupée':'Sortie saturée · la carte suivante est pleine';}
 function push(next:Machine|undefined,p:Packet) {if(next)next.queue.push(p);}
 function spend(p:Plant,r:Resource,n:number) {if(p.stock[r]+1e-8<n)return false;p.stock[r]=Math.max(0,p.stock[r]-n);return true;}
 const colorsOf=(p:Packet)=>p.colors??(p.stamped?1:0);
@@ -91,13 +94,14 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
  const send=(p:Packet)=>{push(next,p);record(p);};
  if(m.kind==='intake') {
    const r=PLANT_INPUT[id];const p:Packet={qty:m.param,quality:1,kind:'matter',recovered:false,exchanged:false,energy:0,origin:id};
+   if(m.manual){m.status='Attend votre signal';return;}
    if(!next){m.status='Relier une sortie';return;}
-   if(!canSend(s,next,p)){m.status='Sortie saturée ou type incompatible';return;}
+   if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
    if(!spend(plant,r,p.qty)){m.status=id==='A'?'Manque de matière':id==='B'?'Manque de résidus · vérifier le transfert':'Manque de catalyseurs · vérifier le transfert';return;}
    send(p);m.clock=0.5;return;
  }
  if(m.working) {
-   if(!canSend(s,next,m.working)){m.status='Sortie saturée ou type incompatible';return;}
+   if(!canSend(s,next,m.working)){m.status=blocked(next,m.working);return;}
    send(m.working);m.working=null;return;
  }
  if(!m.queue.length){m.status='Manque d’entrée';return;}
@@ -109,7 +113,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    for(const part of m.queue){const take=Math.min(need,part.qty);parts.push({p:part,take});need-=take;if(need<=1e-8)break;}
    p={...p,...merge(parts,m.param)};
    if(!next){m.status='Relier une sortie';return;}
-   if(!canSend(s,next,p)){m.status='Sortie saturée ou type incompatible';return;}
+   if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
    need=m.param;
    while(need>1e-8){const head=m.queue[0];const take=Math.min(need,head.qty);if(head.marks)head.marks*=Math.max(0,1-take/head.qty);head.qty-=take;need-=take;if(head.qty<1e-8)m.queue.shift();}
    send(p);m.clock=1;return;
@@ -120,7 +124,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    const merged=merge(parts,total);
    p={...p,...merged,qty:total/m.param,quality:Math.min(LIMITS.quality,merged.quality!*m.param*.75*mf(s,'compress')),marks:Math.min(160,parts.reduce((n,x)=>n+(x.p.marks??0),0))};
    if(!next){m.status='Relier une sortie';return;}
-   if(!canSend(s,next,p)){m.status='Sortie saturée ou type incompatible';return;}
+   if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
    m.queue.splice(0,m.param);send(p);m.clock=1;stat(s,'compress');discover(s,'compress');return;
  }
  if(m.kind==='router') {
@@ -129,7 +133,7 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    const useBranch=r.mode==='small'?p.qty<=r.threshold:r.mode==='large'?p.qty>=r.threshold:r.mode==='alternate'?r.turn:!next||!canSend(s,next,p);
    const target=useBranch?branch:next;
    if(!target){m.status=useBranch?'Choisir une ligne de destination':'Relier une sortie';return;}
-   if(!canSend(s,target,p)){m.status='Sortie saturée ou type incompatible';return;}
+   if(!canSend(s,target,p)){m.status=blocked(target,p);return;}
    (s.transit??=[]).push({plant:id,target:target.id,packet:p});m.queue.shift();m.clock=.2;
    if(useBranch)r.branch++;else r.main++;if(r.branch>0&&r.main>0)discover(s,'branch');r.lastBranch=useBranch;if(r.mode==='alternate')r.turn=!r.turn;record(p);return;
  }
@@ -142,17 +146,17 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
    }
    if((p.loops??0)>0&&p.quality+1e-9>=m.param)discover(s,'refine');
    if(!next){m.status='Relier une sortie';return;}
-   if(!canSend(s,next,p)){m.status='Sortie saturée ou type incompatible';return;}
+   if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
    m.queue.shift();send(p);m.clock=.1;return;
  }
  if(m.kind==='split') {
    if(!next){m.status='Relier une sortie';return;}
-   if(!canSend(s,next,p)){m.status='Sortie saturée ou type incompatible';return;}
+   if(!canSend(s,next,p)){m.status=blocked(next,p);return;}
    const half:Packet={...p,qty:p.qty/2,marks:(p.marks??0)/2,split:true};
    m.queue.shift();push(next,{...half});push(next,{...half});record(half);m.clock=.2;stat(s,'split');return;
  }
  if(!next&&p.kind==='matter'&&m.kind!=='press'){m.status='Relier une sortie';return;}
- if(!canSend(s,next,{...p,kind:MODULES[m.kind].output})){m.status='Sortie saturée ou type incompatible';return;}
+ if(!canSend(s,next,{...p,kind:MODULES[m.kind].output})){m.status=blocked(next,{...p,kind:MODULES[m.kind].output});return;}
  if(m.kind==='stamp') {
    const bit=m.variant===1?2:1;const colors=colorsOf(p);
    if(!(colors&bit)){p.marks=(p.marks??0)+1;p.colors=colors|bit;p.stamped=true;}m.clock=.1;
@@ -334,3 +338,15 @@ export const EXPERIMENTS = [
  {id:'heart',name:'Le cœur de Résonance',description:'Produire 10¹⁵ composants cumulés. Aucun reset imposé : l’atelier reste ouvert.',reward:1e14,test:(s:State)=>s.produced>=1e15,progress:(s:State)=>Math.log10(Math.max(1,s.produced))/15}
 ];
 export function claim(s:State,id:string) {const e=EXPERIMENTS.find(x=>x.id===id);if(!e||s.claimed.includes(id)||!e.test(s))return false;s.claimed.push(id);s.plants.A.stock.components=Math.min(LIMITS.stock,s.plants.A.stock.components+e.reward);note(s,`Expérience validée : ${e.name}.`);return true;}
+// First-run journey: a manual injector launches one lot per tap until the player pays to automate it.
+export function manualInject(s:State,laneId:number) {
+ const lane=s.plants.A.lanes.find(l=>l.id===laneId)??s.plants.A.lanes[0];const m=lane?.machines[0];const next=lane?.machines[1];
+ if(!m||m.kind!=='intake'||!m.manual||!next||s.paused)return false;
+ const p:Packet={qty:m.param,quality:1,kind:'matter',recovered:false,exchanged:false,energy:0,origin:'A'};
+ if(!canSend(s,next,p)||!spend(s.plants.A,'ore',p.qty))return false;
+ next.queue.push(p);m.processed++;m.lastPacket={tick:s.tick,qty:p.qty,quality:1,marks:0};if(s.journey)s.journey.manual++;return true;
+}
+export function automateIntake(s:State,cost:number) {
+ const m=s.plants.A.lanes[0]?.machines[0];if(!m?.manual||!spend(s.plants.A,'components',cost))return false;
+ delete m.manual;s.totalSpent+=cost;note(s,'Injecteur automatisé : la Fonderie produit désormais sans vous.');return true;
+}

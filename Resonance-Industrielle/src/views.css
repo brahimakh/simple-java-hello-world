@@ -79,3 +79,26 @@
 .leaderboard li.mine{color:var(--teal)}.leaderboard b{font-variant-numeric:tabular-nums}
 .node.dragging{outline:2px dashed var(--teal);outline-offset:3px;transform:scale(1.04);box-shadow:0 12px 30px #000a}
 .mastery-list{display:grid;gap:6px;margin-top:8px}.mastery{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;opacity:.7}.mastery.used{opacity:1;border-color:#91ddc044}.mastery>div{flex:1;min-width:0}.mastery small{display:block;color:var(--muted)}.mastery .module-icon svg{width:20px;height:20px}
+/* First-run journey: one objective, one obvious action, the element to touch pulses. */
+.journey{position:relative;padding:18px 18px 16px;margin-bottom:14px;border:1px solid #91ddc088;border-radius:12px;background:linear-gradient(135deg,#1c3330,#152225);box-shadow:0 10px 30px #0006}
+.journey.advanced{animation:journey-pop .9s ease-out}
+@keyframes journey-pop{0%{box-shadow:0 0 0 0 #91ddc0aa}40%{box-shadow:0 0 0 8px #91ddc033;transform:scale(1.01)}100%{box-shadow:0 10px 30px #0006}}
+.journey-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.journey .eyebrow{color:var(--teal);letter-spacing:2px}
+.journey-dots{display:flex;gap:4px}.journey-dots i{width:8px;height:8px;border-radius:50%;background:#ffffff22}.journey-dots i.done{background:var(--teal)}.journey-dots i.now{background:#ffd479;box-shadow:0 0 6px #ffd479}
+.journey h2{margin:8px 0 6px;font-size:21px;text-wrap:balance}
+.journey p{margin:0 0 12px;color:#c9d8d5;line-height:1.5;max-width:62ch}
+.journey-goal{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px}
+.journey-goal progress{flex:1;max-width:320px}
+.journey-cta{min-height:48px;padding:10px 22px;font-size:16px;font-weight:600;border-radius:10px}
+.journey-cta:not([disabled]){animation:cta-breathe 2s ease-in-out infinite}
+@keyframes cta-breathe{0%,100%{box-shadow:0 0 0 0 #91ddc055}50%{box-shadow:0 0 0 6px #91ddc022}}
+.coach{position:relative;outline:3px solid #ffd479;outline-offset:3px;animation:coach 1.4s ease-in-out infinite;border-radius:9px}
+@keyframes coach{0%,100%{outline-color:#ffd479}50%{outline-color:#ffd47944}}
+:root.journey-mode .hero,:root.journey-mode .inspector:not(.has-machine),:root.journey-mode .workshop-footer,:root.journey-mode .diagnosis{display:none}
+.line-toolbar.hidden-early>div{display:none}
+@media (prefers-reduced-motion:reduce){.coach,.journey-cta,.journey.advanced{animation:none}}
+@media (max-width:760px){.journey{margin:0 0 12px;padding:16px 14px}.journey h2{font-size:19px}.journey-cta{width:100%}}
+:root.journey-early .pause-button,:root.journey-mode .workshop>.section-head,:root.journey-mode.single-lane .lane-tabs,:root.journey-mode .line-toolbar.hidden-early{display:none}
+@media (max-width:760px){html{scroll-padding-top:76px;scroll-padding-bottom:calc(var(--tabbar) + 12px)}:root:has(.inspector.has-machine){scroll-padding-bottom:calc(64vh + var(--tabbar))}}
+.plant-nav.hidden-early{display:none}

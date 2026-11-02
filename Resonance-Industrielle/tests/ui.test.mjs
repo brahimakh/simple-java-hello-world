@@ -7,6 +7,7 @@ import {t,EN,hasTranslation} from '../src/i18n.ts';
 import {serialize,SAVE_KEY} from '../src/save.ts';
 import {defaultPreferences,PREFERENCES_KEY} from '../src/onboarding.ts';
 import {startChallenge} from '../src/challenges.ts';
+import {startJourney} from '../src/journey.ts';
 
 // DOM integration, not a visual browser test. Timers are deliberately disabled.
 async function mount({state,preferences}={}) {
@@ -19,10 +20,10 @@ async function mount({state,preferences}={}) {
  await import('../src/app.ts?test='+Math.random());
  const click=(action,extra='')=>{const b=window.document.querySelector(`[data-action="${action}"]${extra}`);assert.ok(b,action+extra);assert.equal(b.disabled,false,action+' should be enabled');b.click();};
  const lang=value=>{const select=window.document.querySelector('[data-language]');select.value=value;select.dispatchEvent(new window.Event('change',{bubbles:true}));};
- return {window,document:window.document,click,lang,close:async()=>{for(const [k,descriptor] of saved){if(descriptor)Object.defineProperty(globalThis,k,descriptor);else delete globalThis[k];}await window.happyDOM.abort();}};
+ return {window,document:window.document,click,lang,advance:sec=>{globalThis.__resonanceAdvance(sec);},close:async()=>{for(const [k,descriptor] of saved){if(descriptor)Object.defineProperty(globalThis,k,descriptor);else delete globalThis[k];}await window.happyDOM.abort();}};
 }
 test('interface : premiers pas, sélection réelle, aide globale, langue réversible et préférences persistées',async()=>{
- const ui=await mount();try{
+ const ui=await mount({state:createState()});try{
    const {document:d,click,lang}=ui;assert.match(d.querySelector('#onboarding').textContent,/1. D’où vient/);
    click('guide-intake');assert.match(d.querySelector('.inspector').textContent,/Toutes les 0,5 s/);assert.match(d.querySelector('#onboarding').textContent,/2. Comment/);
    click('guide-press');assert.match(d.querySelector('.inspector').textContent,/1 lot\/s/);assert.match(d.querySelector('#onboarding').textContent,/3. Changer/);
@@ -47,7 +48,7 @@ test('interface apprentissage : réglage gratuit, observation, comparaison et ch
  const s=createState();simulate(s,45);s.plants.A.stock.components+=200;s.paused=true;
  const ui=await mount({state:s});try{
    const {document:d,click}=ui;click('guide-intake');const select=d.querySelector('[data-param]');select.value='12';select.dispatchEvent(new ui.window.Event('change',{bubbles:true}));
-   assert.match(d.querySelector('.change-panel').textContent,/Observer ma modification/);assert.match(d.querySelector('.change-panel').textContent,/45/);translatedScreen(ui);
+   assert.match(d.querySelector('.change-panel').textContent,/Observer ma modification/);assert.match(d.querySelector('.change-panel').textContent,/26/);translatedScreen(ui);
    click('change-compare');assert.ok(d.querySelector('.bench-results'));assert.match(d.querySelector('.bench-intro').textContent,/old batches keep/);
    click('nav','[data-view="atelier"]');ui.lang('fr');click('add-lane');assert.match(d.querySelector('#dialog').textContent,/Alimentation propre/);translatedScreen(ui,'#dialog');click('close');click('add-lane');assert.match(d.querySelector('#dialog').textContent,/Own supply/);click('add-branch-line');click('save');
    const saved=JSON.parse(ui.window.localStorage.getItem(SAVE_KEY));assert.equal(saved.plants.A.lanes[1].machines[0].connected,false);assert.ok(d.querySelector('.change-panel'));
@@ -112,7 +113,7 @@ test('interface anglais : parcours avancé, noms personnels préservés et dialo
    click('rate');assert.match(d.querySelector('#dialog').textContent,/Average rate and peak production/);click('close');
    click('plant','[data-plant="B"]');assert.match(d.querySelector('.topbar').textContent,/Catalytic greenhouse/);
    click('nav','[data-view="guide"]');click('detailed-rules');assert.match(d.querySelector('#dialog').textContent,/Announced limits: six lines/);click('close');
-   click('reset');assert.match(d.querySelector('#dialog').textContent,/Start a new game/);click('confirm-reset');assert.equal(d.documentElement.lang,'en');assert.match(d.querySelector('#onboarding').textContent,/1. Where does material/);
+   click('reset');assert.match(d.querySelector('#dialog').textContent,/Start a new game/);click('confirm-reset');assert.equal(d.documentElement.lang,'en');assert.match(d.querySelector('.journey').textContent,/Launch your first batch/);
  }finally{await ui.close();}
 });
 test('interface réseau : réglages réels de branche, schéma et progression visibles dans les deux langues',async()=>{
@@ -138,7 +139,7 @@ test('interface banc : capture, modification d’ordre, vraie comparaison, bilin
 });
 
 test('interface mobile : tiroir de machine refermable, menu complet et retour sonore désactivé par défaut',async()=>{
- const ui=await mount();try{
+ const ui=await mount({state:createState()});try{
    const {document:d,click}=ui;
    assert.match(d.querySelector('.sound-button').textContent,/Son coupé/);
    click('select-module',`[data-id="${d.querySelectorAll('.node')[1].dataset.id}"]`);assert.ok(d.querySelector('.inspector.has-machine'));click('deselect');assert.equal(d.querySelector('.inspector.has-machine'),null);
@@ -158,5 +159,31 @@ test('interface puzzles : la partie est mise de côté, le puzzle se résout, pu
    click('add-module','[data-kind="cadence"]');click('save');assert.equal(JSON.parse(ui.window.localStorage.getItem(SAVE_KEY)).tick,before,'the real game is saved, not the puzzle');
    click('puzzle-exit');assert.equal(d.querySelector('.puzzle-banner'),null);click('nav','[data-view="atelier"]');assert.equal(d.querySelectorAll('.node').length,2);
    click('nav','[data-view="experiments"]');click('puzzle-start','[data-id="daily"]');click('daily-measure');assert.match(d.querySelector('#dialog').textContent,/composants\/s/);click('close');click('puzzle-exit');
+ }finally{await ui.close();}
+});
+
+test('premier lancement : rien ne tourne sans le joueur, un seul objectif, l’interface se dévoile en jouant',async()=>{
+ const ui=await mount();try{
+   const {document:d,click,window:w}=ui;const visibleNav=()=>[...d.querySelectorAll('.sidebar nav button')].map(b=>b.dataset.view);
+   assert.ok(d.querySelector('.journey'));assert.match(d.querySelector('.journey h2').textContent,/premier lot/);
+   assert.deepEqual(visibleNav(),['atelier','guide'],'only the workshop and help at first');
+   assert.equal(d.querySelectorAll('.resource').length,1,'only components at first');assert.equal(d.querySelector('.catalog'),null);assert.equal(d.querySelector('.network-frame'),null);
+   assert.ok(d.querySelector('.node[data-kind="intake"].coach'),'the injector is highlighted');
+   const saved=()=>JSON.parse(w.localStorage.getItem(SAVE_KEY)??'null');
+   click('manual-inject');assert.match(d.querySelector('.journey h2').textContent,/presse/);
+   click('save');assert.equal(saved().plants.A.lanes[0].machines[0].manual,true,'still manual until automation is bought');
+   assert.equal(d.querySelector('[data-action="automate"]'),null);
+ }finally{await ui.close();}
+});
+test('parcours complet : chaque objectif se valide par une action réelle sur une mécanique',async()=>{
+ const s=createState();startJourney(s);
+ const ui=await mount({state:s});try{
+   const {document:d,click}=ui;const title=()=>d.querySelector('.journey h2')?.textContent??'';
+   for(let i=0;i<5;i++){click('manual-inject');ui.advance(1.2);}
+   assert.match(title(),/Automatisez/);click('automate');assert.match(title(),/résonateur/);assert.ok(d.querySelector('.resource-ore'));
+   ui.advance(80);click('add-module','[data-kind="cadence"]');assert.match(title(),/accord/);
+   click('journey-select','[data-kind="cadence"]');assert.ok(d.querySelector('.inspector.has-machine'));ui.advance(20);assert.match(title(),/Doublez/);
+   click('journey-select','[data-kind="intake"]');const sel=d.querySelector('[data-param]');sel.value='12';sel.dispatchEvent(new ui.window.Event('change',{bubbles:true}));
+   assert.match(title(),/gros lots/);assert.ok([...d.querySelectorAll('.sidebar nav button')].some(b=>b.dataset.view==='experiments'));
  }finally{await ui.close();}
 });

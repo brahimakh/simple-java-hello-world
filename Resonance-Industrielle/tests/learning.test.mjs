@@ -31,8 +31,8 @@ test('diagnostic : une destination absente est prioritaire sur une saturation en
 
 test('observation : anciennes files comptées, comparaison sans mutation et facteurs de pressage réels',()=>{
  const s=createState();simulate(s,45);const before=clone(s);insertModule(s,'A',s.plants.A.lanes[0].id,'cadence');
- const o=observeChange(before,'A','Configuration modifiée');assert.equal(o.waiting,45);simulate(s,60);
- const raw=serialize(s),panel=changePanel(s,o);assert.match(panel,/45/);assert.match(panel,/value="45"/,'old queue has cleared');assert.match(panel,/lots traités depuis l’ajout/);assert.equal(serialize(s),raw);
+ const o=observeChange(before,'A','Configuration modifiée');assert.equal(o.waiting,26);simulate(s,60);
+ const raw=serialize(s),panel=changePanel(s,o);assert.match(panel,/26/);assert.match(panel,/value="26"/,'old queue has cleared');assert.match(panel,/lots traités depuis l’ajout/);assert.equal(serialize(s),raw);
  const press=s.plants.A.lanes[0].machines.at(-1),last=press.lastPacket;
  assert.equal(last.result,last.qty/10*last.quality*last.bulk*last.catalysis);assert.ok(last.quality>1);assert.match(lotDetails(s,'A',press),/Résultat réel/);
  const restored=deserialize(raw);assert.deepEqual(restored.plants.A.lanes[0].machines.at(-1).lastPacket,last);

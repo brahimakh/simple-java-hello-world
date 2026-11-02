@@ -39,6 +39,7 @@ export function validate(value:unknown):State {
  requireValue(s.plasmaProduced===undefined||number(s.plasmaProduced),'plasma');
  requireValue(s.allowed===undefined||Array.isArray(s.allowed)&&s.allowed.length<=20&&s.allowed.every(k=>Object.hasOwn(MODULES,k)),'modules permis');
  if(s.mastery!==undefined)requireValue(s.mastery&&typeof s.mastery==='object'&&!Array.isArray(s.mastery)&&Object.entries(s.mastery).every(([k,v])=>MASTERY_FAMILIES.includes(k as never)&&integer(v,40)),'maîtrises');
+ if(s.journey!==undefined){const j=s.journey;requireValue(j&&integer(j.step,50)&&integer(j.manual,1e9)&&Array.isArray(j.flags)&&j.flags.length<=20&&j.flags.every(f=>typeof f==='string'&&f.length<=24),'parcours');}
  requireValue(s.puzzle===undefined||typeof s.puzzle==='string'&&s.puzzle.length<=32,'puzzle');
  requireValue(s.variant===undefined||['standard','slow','small','nores'].includes(s.variant),'variante');
  requireValue(typeof s.paused==='boolean'&&(s.fault===null||label(s.fault)),'état du moteur');
@@ -61,6 +62,7 @@ export function validate(value:unknown):State {
      requireValue(m.working===null||m.kind==='charge','charge en cours');
      requireValue(m.queue.reduce((n,p)=>n+p.qty,0)+(m.working?.qty??0)<=LIMITS.queue+1e-6,'capacité');
      requireValue(number(m.clock,8)&&integer(m.streak,4)&&typeof m.last==='number'&&Number.isFinite(m.last)&&m.last>=-1000&&m.last<=s.tick*.1+1e-6&&label(m.status)&&integer(m.processed,1e15),'cycle');
+     requireValue(m.manual===undefined||m.manual===true&&m.kind==='intake','injecteur manuel');
      requireValue((m.memory===undefined||number(m.memory,LIMITS.quality))&&(m.memoryAt===undefined||integer(m.memoryAt))&&(m.heat===undefined||number(m.heat,100)),'mémoire de machine');
      if(m.routing){requireValue(typeof m.routing.turn==='boolean'&&integer(m.routing.main,1e15)&&integer(m.routing.branch,1e15)&&(m.routing.lastBranch===undefined||typeof m.routing.lastBranch==='boolean')&&(m.routing.target===0||p.lanes.some(dest=>dest.id===m.routing!.target&&dest.id!==l.id)),'aiguillage');}
      if(m.lastPacket){const a=m.lastPacket;requireValue(integer(a.tick)&&a.tick<=s.tick&&number(a.qty,PACKET)&&number(a.quality,LIMITS.quality)&&number(a.marks,160),'mesure');}

@@ -190,17 +190,18 @@ export function startEffects(ctx:EffectsContext) {
   // Unlocks, tiers and the final goal.
   const produced=s.produced;
   if(produced>previousProduced){
-   for(const u of UNLOCKS)if(previousProduced<u.at&&produced>=u.at){
+   // During the guided first run, the current objective is the only voice: unlock cards would cover it.
+   if(!(s.journey&&s.journey.step<9))for(const u of UNLOCKS)if(previousProduced<u.at&&produced>=u.at){
     const kinds=(Object.keys(MODULES) as Kind[]).filter(k=>MODULES[k].unlock===u.at);const kind=kinds[0]??null;
     celebrate({eyebrow:'NOUVELLE POSSIBILITÉ',title:kinds.map(k=>t(MODULES[k].name)).join(' · ')||t(u.at===1e8?'Forge à plasma':u.at===1e12?'Refondation':u.at===3e6?'Empreinte ambre':'Serre catalytique'),text:t(u.text),icon:kind?moduleSymbol(kind):'✦',big:u.at>=1000,action:kind?{label:'Voir le module',run:()=>ctx.onShowModule(kind)}:undefined});
     fanfare(ctx.preferences,u.at>=1000?[2,4,5,7,9]:[3,5,7]);
    }
-   for(const tier of TIERS)if(previousProduced<tier.at&&produced>=tier.at){fanfare(ctx.preferences,[0,2,4,5,7,9,12]);if(!reducedMotion())tierScreen(s,tier,ctx.ghost(),()=>{});}
+   for(const tier of TIERS)if(previousProduced<tier.at&&produced>=tier.at&&!(s.journey&&s.journey.step<9)){fanfare(ctx.preferences,[0,2,4,5,7,9,12]);if(!reducedMotion())tierScreen(s,tier,ctx.ghost(),()=>{});}
   }
   previousProduced=produced;
   // Notebook, badges and contracts.
   const disc=s.discoveries??[];
-  for(const d of disc.slice(known.discoveries)){const def=DISCOVERIES.find(x=>x.id===d.id);if(def){celebrate({eyebrow:'NOUVELLE DÉCOUVERTE',title:t(def.name),text:t(def.text),icon:'✦',big:false,action:{label:'Ouvrir le carnet',run:()=>ctx.onOpen('notebook')}});fanfare(ctx.preferences,[4,7,9]);}}
+  for(const d of disc.slice(known.discoveries)){if(s.journey&&s.journey.step<9)break;const def=DISCOVERIES.find(x=>x.id===d.id);if(def){celebrate({eyebrow:'NOUVELLE DÉCOUVERTE',title:t(def.name),text:t(def.text),icon:'✦',big:false,action:{label:'Ouvrir le carnet',run:()=>ctx.onOpen('notebook')}});fanfare(ctx.preferences,[4,7,9]);}}
   known.discoveries=disc.length;
   const badges=s.progress?.badges??[];
   for(const id of badges.slice(known.badges)){const def=BADGES.find(x=>x.id===id);if(def)celebrate({eyebrow:'NOUVEAU BADGE',title:t(def.name),text:t(def.text),icon:'★',big:false,action:{label:'Ouvrir le carnet',run:()=>ctx.onOpen('notebook')}});}

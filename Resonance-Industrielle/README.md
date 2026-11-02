@@ -14,6 +14,15 @@ Pour comprendre le rôle du joueur : lire [le guide des bases](GUIDE-JOUEUR.md).
 
 Chaque version garde ses propres sauvegardes. Pour passer de l’une à l’autre : **Exporter** puis **Importer** (menu ☰ sur téléphone).
 
+## Nouveautés 0.7 : une première partie où l’on agit
+
+- **Rien ne tourne avant votre premier geste.** Vous lancez les premiers lots à la main, puis vous achetez l’automatisation de l’injecteur avec ce que vous venez de produire.
+- **Un objectif à la fois** (9 au total), chacun validé par une action réelle : ajouter un résonateur et le regarder monter à ×5, régler l’injecteur, former des lots de 80, placer les machines dans le bon ordre. L’élément à toucher est mis en évidence.
+- **L’interface se dévoile en jouant** : une ressource au départ, deux onglets, puis le reste quand il sert.
+- **Effets plus rapides et plus lisibles** : la presse ne garde qu’un lot d’avance ; un blocage dit quelle machine est occupée.
+- Les parties existantes ne sont pas concernées : elles gardent toute l’interface.
+- Audit et test de première partie sur téléphone Android : `AUDIT-UX-2026-11-02.md`, `node scripts/ux-first-run.mjs`.
+
 ## Nouveautés 0.6 : un vrai long jeu
 
 **Progression jusqu’à 10¹⁵.** Cinq paliers nommés (Atelier 10³, Manufacture 10⁶, Complexe 10⁹, Métropole industrielle 10¹², Le cœur de Résonance 10¹⁵), chacun célébré par un écran avec la courbe de votre partie. Un joueur automatique compétent atteint 10¹⁵ en 1 h 08 ; une première partie humaine devrait durer de 2 à 4 heures.
