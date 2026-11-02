@@ -37,7 +37,7 @@ export function runCampaign(style,hours=4){
   if(ms.some(m=>m.status.includes('Énergie insuffisante'))&&s.plants.A.stock.components>=upgradeCost(s.plants.A.energyLevel)*1.5&&upgrade(s,'A','energyLevel'))say(`énergie ${s.plants.A.energyLevel}`);
   const used=MASTERY_FAMILIES.filter(k=>s.plants.A.lanes.some(l=>l.machines.some(m=>m.kind===k)));
   for(const k of used)if(s.plants.A.stock.components>=masteryCost(s,k)&&buyMastery(s,k))say(`maîtrise ${k}`);
-  hooks.decide?.(s,say);hooks.decide2?.(s,say);
+  hooks.decide?.(s,say);hooks.decide2?.(s,say);hooks.decide3?.(s,say);
   for(const l of s.plants.A.lanes)if(improveLane(l))return;
   if(s.plants.A.lanes.length<6&&s.plants.A.stock.components>=costOf(s,'intake')+costOf(s,'press')+laneFee(s,'A')*1.3&&s.produced>=400&&addLane(s,'A'))say(`nouvelle ligne (${s.plants.A.lanes.length})`);
   for(const id of ['B','C']){if(!plantUnlocked(s,id))continue;const p2=s.plants[id];

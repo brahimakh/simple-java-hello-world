@@ -6,7 +6,7 @@ const esc=(v:unknown)=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 export function diagnosis(s:State,id:PlantId) {
  const ms=s.plants[id].lanes.flatMap(l=>l.machines);
  // A missing destination is a cause; upstream saturation is only its consequence.
- return ms.find(m=>m.kind==='router'&&(!m.routing||!s.plants[id].lanes.some(l=>l.id===m.routing!.target)))
+ return ms.find(m=>(m.kind==='router'||m.kind==='relay')&&(!m.routing||!s.plants[id].lanes.some(l=>l.id===m.routing!.target)))
  ??ms.find(m=>/insuffisante|incompatible|Seuil|Choisir|Configurer|Relier|trop grand/.test(m.status))
  ??ms.find(m=>m.connected&&/saturée|Manque de matière|Manque de résidus/.test(m.status));
 }
@@ -18,7 +18,7 @@ export function routeWarning(l:Lane,m?:Machine) {
 export function insertionHint(l:Lane|undefined,k:Kind) {
  if(!l)return '';
  const press=l.machines.findIndex(m=>m.kind==='press');
- const hasRouter=l.machines.slice(0,press).some(m=>m.kind==='router');
+ const hasRouter=l.machines.slice(0,press).some(m=>m.kind==='router'||m.kind==='relay');
  if(hasRouter)return MODULES[k].input==='matter'?'Ajout avant le premier aiguillage pour recevoir le flux.':'Ajout après la presse locale : si les lots partent ailleurs, placez la récupération sur la destination.';
  if(k==='stamp')return 'Prépare des empreintes pour le tisseur ; seul, ne multiplie pas la production.';
  if(k==='batch')return 'Comparez les seuils : 80 active la prime de gros lot à la Fonderie.';

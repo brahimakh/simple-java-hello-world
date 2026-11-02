@@ -1,5 +1,5 @@
 import {MODULES, LIMITS, PLANTS, MASTERY_FAMILIES} from './content.ts';
-import {type State,EXPERIMENTS,TRANSFERS,PARAMS,VARIANTS,ROUTE_THRESHOLDS,emptyStock,UPGRADE_MAX} from './engine.ts';
+import {type State,EXPERIMENTS,TRANSFERS,PARAMS,VARIANTS,ROUTE_THRESHOLDS,RELAY_MODES,RELAY_THRESHOLDS,emptyStock,UPGRADE_MAX} from './engine.ts';
 import {CHALLENGES} from './challenges.ts';
 import {PATENTS,BADGES,DISCOVERIES} from './progression.ts';
 export const SAVE_KEY='resonance-industrielle-v1';
@@ -20,14 +20,15 @@ export function migrate(value:unknown) {
  if(Array.isArray(s.transfers)&&s.transfers.length===2)for(const t of TRANSFERS.slice(2))s.transfers.push({...t,enabled:true,moved:0});
  return s;
 }
+const relayRoute=(r:{target:number;mode:string;threshold:number})=>{requireValue(r&&Number.isSafeInteger(r.target)&&r.target>=0&&RELAY_MODES.includes(r.mode)&&RELAY_THRESHOLDS[r.mode].includes(r.threshold),'relais');};
 const route=(r:{target:number;mode:string;threshold:number})=>{requireValue(r&&integer(r.target)&&['small','large','alternate','overflow'].includes(r.mode)&&ROUTE_THRESHOLDS.includes(r.threshold),'aiguillage');};
 const spec=(m:import('./engine.ts').MachineSpec)=>{
    requireValue(m&&Object.hasOwn(MODULES,m.kind),'module inconnu');
    requireValue(typeof m.connected==='boolean'&&number(m.param,1e9),'paramètre');
-   const allowed=PARAMS[m.kind];requireValue(allowed?allowed.includes(m.param):m.param===0||m.kind==='router','réglage');
+   const allowed=PARAMS[m.kind];requireValue(allowed?allowed.includes(m.param):m.param===0||m.kind==='router'||m.kind==='relay','réglage');
    requireValue(m.variant===undefined||!!VARIANTS[m.kind]?.includes(m.variant),'variante de module');
-   if(m.kind==='router')requireValue(m.routing,'aiguillage');
-   if(m.routing){requireValue(m.kind==='router','aiguillage');route(m.routing);}
+   if(m.kind==='router'||m.kind==='relay')requireValue(m.routing,'aiguillage');
+   if(m.routing){requireValue(m.kind==='router'||m.kind==='relay','aiguillage');m.kind==='relay'?relayRoute(m.routing):route(m.routing);}
  };
 export const checkBlueprint=(b:import('./engine.ts').Blueprint)=>{requireValue(b&&label(b.name)&&(b.rating===undefined||number(b.rating))&&(b.rate===undefined||number(b.rate))&&Array.isArray(b.machines)&&b.machines.length>=2&&b.machines.length<=LIMITS.nodes+2,'plan');b.machines.forEach(spec);requireValue(b.machines[0].kind==='intake'&&b.machines.filter(m=>m.kind==='intake').length===1&&b.machines.filter(m=>m.kind==='press').length===1,'structure de chaîne');};
 export function validate(value:unknown):State {
@@ -65,9 +66,10 @@ export function validate(value:unknown):State {
      id(m.id);requireValue(number(m.paid,MAX),'coût du module');
      requireValue(Array.isArray(m.queue)&&m.queue.length<=800,'file');m.queue.forEach(packet);if(m.working)packet(m.working);
      requireValue(m.working===null||m.kind==='charge','charge en cours');
-     requireValue(m.queue.reduce((n,p)=>n+p.qty,0)+(m.working?.qty??0)<=LIMITS.queue+1e-6,'capacité');
+     requireValue(m.queue.reduce((n,p)=>n+p.qty,0)+(m.working?.qty??0)<=LIMITS.queue*2+1e-6,'capacité');
      requireValue(number(m.clock,8)&&integer(m.streak,4)&&typeof m.last==='number'&&Number.isFinite(m.last)&&m.last>=-1000&&m.last<=s.tick*.1+1e-6&&label(m.status)&&integer(m.processed,1e15),'cycle');
      requireValue(m.manual===undefined||m.manual===true&&m.kind==='intake','injecteur manuel');
+     if(m.mods!==undefined)requireValue(Array.isArray(m.mods)&&m.mods.length>=1&&m.mods.length<=3&&m.mods.every(x=>x&&['turbo','tampon','marque','stabilisateur'].includes(x.id)&&number(x.paid))&&new Set(m.mods.map(x=>x.id)).size===m.mods.length,'emplacements');
      requireValue((m.memory===undefined||number(m.memory,LIMITS.quality))&&(m.memoryAt===undefined||integer(m.memoryAt))&&(m.heat===undefined||number(m.heat,100)),'mémoire de machine');
      if(m.routing){requireValue(typeof m.routing.turn==='boolean'&&integer(m.routing.main,1e15)&&integer(m.routing.branch,1e15)&&(m.routing.lastBranch===undefined||typeof m.routing.lastBranch==='boolean')&&(m.routing.target===0||p.lanes.some(dest=>dest.id===m.routing!.target&&dest.id!==l.id)),'aiguillage');}
      if(m.lastPacket){const a=m.lastPacket;requireValue(integer(a.tick)&&a.tick<=s.tick&&number(a.qty,PACKET)&&number(a.quality,LIMITS.quality)&&number(a.marks,160),'mesure');}
@@ -75,7 +77,7 @@ export function validate(value:unknown):State {
      if(m.made!==undefined)requireValue(number(m.made),'mesure');
    }}
  }
- if(s.transit!==undefined){requireValue(Array.isArray(s.transit)&&s.transit.length<=LIMITS.events,'transit');for(const e of s.transit){requireValue(e&&PLANTS.includes(e.plant)&&integer(e.target),'transit');packet(e.packet);const target=s.plants[e.plant].lanes.flatMap(l=>l.machines).find(m=>m.id===e.target);requireValue(target&&e.packet.kind==='matter'&&MODULES[target.kind].input==='matter','destination');}for(const p of Object.values(s.plants))for(const l of p.lanes)for(const m of l.machines){const queued=s.transit.filter(e=>e.target===m.id).reduce((n,e)=>n+e.packet.qty,0);requireValue(m.queue.reduce((n,p)=>n+p.qty,0)+(m.working?.qty??0)+queued<=LIMITS.queue+1e-6,'capacité');}}
+ if(s.transit!==undefined){requireValue(Array.isArray(s.transit)&&s.transit.length<=LIMITS.events,'transit');for(const e of s.transit){requireValue(e&&PLANTS.includes(e.plant)&&integer(e.target),'transit');packet(e.packet);const target=s.plants[e.plant].lanes.flatMap(l=>l.machines).find(m=>m.id===e.target);requireValue(target&&e.packet.kind==='matter'&&MODULES[target.kind].input==='matter','destination');}for(const p of Object.values(s.plants))for(const l of p.lanes)for(const m of l.machines){const queued=s.transit.filter(e=>e.target===m.id).reduce((n,e)=>n+e.packet.qty,0);requireValue(m.queue.reduce((n,p)=>n+p.qty,0)+(m.working?.qty??0)+queued<=LIMITS.queue*2+1e-6,'capacité');}}
  requireValue(Array.isArray(s.library)&&s.library.length<=30,'bibliothèque');s.library.forEach(blueprint);
  requireValue(Array.isArray(s.configurations)&&s.configurations.length<=20,'configurations');for(const c of s.configurations){requireValue(c&&label(c.name)&&PLANTS.includes(c.plant)&&Array.isArray(c.lanes)&&c.lanes.length<=LIMITS.lanes+2,'configuration');c.lanes.forEach(blueprint);if(c.laneIds!==undefined)requireValue(Array.isArray(c.laneIds)&&c.laneIds.length===c.lanes.length&&new Set(c.laneIds).size===c.laneIds.length&&c.laneIds.every(x=>integer(x)&&x>0),'configuration');}
  requireValue(Array.isArray(s.transfers)&&s.transfers.length===TRANSFERS.length,'transferts');s.transfers.forEach((t,i)=>{const ref=TRANSFERS[i];requireValue(t&&t.resource===ref.resource&&t.from===ref.from&&t.to===ref.to&&t.rate===ref.rate&&typeof t.enabled==='boolean'&&number(t.moved),'route');});

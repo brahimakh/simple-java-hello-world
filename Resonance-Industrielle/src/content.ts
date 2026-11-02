@@ -1,4 +1,4 @@
-export type Kind = 'intake' | 'batch' | 'cadence' | 'charge' | 'sync' | 'press' | 'recovery' | 'exchanger' | 'stamp' | 'weave' | 'router' | 'split' | 'filter' | 'mirror' | 'furnace' | 'compress' | 'harmonic' | 'sensor' | 'assembler' | 'echo' | 'metronome';
+export type Kind = 'intake' | 'batch' | 'cadence' | 'charge' | 'sync' | 'press' | 'recovery' | 'exchanger' | 'stamp' | 'weave' | 'router' | 'split' | 'filter' | 'mirror' | 'furnace' | 'compress' | 'harmonic' | 'sensor' | 'assembler' | 'echo' | 'metronome' | 'relay';
 export type Resource = 'ore' | 'energy' | 'components' | 'residue' | 'catalyst' | 'plasma';
 export type PlantId = 'A' | 'B' | 'C';
 export const PLANTS:PlantId[] = ['A','B','C'];
@@ -24,6 +24,7 @@ export const MODULES: Record<Kind, ModuleDefinition> = {
   assembler: {name:'Assembleur', icon:'⊕', cost:3000, unlock:20000, input:'matter', output:'matter', description:'Fusionne deux lots venus de lignes différentes (par aiguillage) : matières additionnées, qualités multipliées, empreintes et couleurs réunies. Un lot attend au plus 3 s un partenaire, puis passe seul. La somme ne dépasse pas la limite de lot. Cycle : 0,5 s.'},
   metronome: {name:'Métronome', icon:'♩', cost:60000, unlock:3e6, input:'matter', output:'matter', description:'Retient les lots et en relâche un à chaque temps du tempo de l’atelier (réglable de 60 à 240 battements par minute). Un lot relâché sur le temps gagne ×(1 + 60 ÷ tempo) : ×2 à 60, ×1,5 à 120, ×1,25 à 240. Tous les métronomes battent ensemble.'},
   echo: {name:'Écho', icon:'◌', cost:120000, unlock:1e7, input:'matter', output:'matter', description:'Retient les empreintes d’origine du dernier lot et les ajoute au lot suivant, une seule fois par lot. Un écho ne s’entend pas lui-même : seules les empreintes d’origine sont retenues. Mémoire effacée après 3 s sans lot. Cycle : 0,1 s.'},
+  relay: {name:'Relais', icon:'⋔', cost:1000000, unlock:3e8, input:'matter', output:'matter', description:'Aiguillage conditionnel : envoie vers une autre ligne les lots qui remplissent la condition choisie (qualité au moins égale au seuil, empreintes au moins égales, au moins 2 ou 3 couleurs, ou énergie de la réserve sous le seuil). Les autres continuent. Cycle : 0,2 s.'},
   sensor: {name:'Capteur', icon:'◎', cost:30000, unlock:1e6, input:'matter', output:'matter', description:'Laisse passer un lot seulement si la réserve choisie de l’installation atteint le seuil (énergie, catalyseurs, matière ou plasma). Sinon il le garde. Protège une ressource pour les machines qui suivent. Cycle : 0,1 s.'}
 };
 export const RESOURCE_NAMES: Record<Resource,string> = {ore:'Matière',energy:'Énergie',components:'Composants',residue:'Résidus',catalyst:'Catalyseurs',plasma:'Plasma'};
@@ -54,6 +55,8 @@ export const UNLOCKS = [
   {at:1e7, text:'Écho disponible · un lot peut hériter des empreintes du précédent.'},
   {at:3e7, text:'Empreinte magenta disponible · trois couleurs font un lot prismatique.'},
   {at:1e8, text:'Forge à plasma disponible · une troisième installation ferme le triangle.'},
+  {at:3e8, text:'Relais disponible · un lot peut choisir sa route selon ce qu’il est.'},
+  {at:1e9, text:'Emplacements d’amélioration disponibles · personnalisez chaque machine.'},
   {at:1e12, text:'Refondation possible · recommencer plus fort, inventions conservées.'}
 ];
 // Orders of magnitude of lifetime production: each one is celebrated and named.
@@ -64,3 +67,11 @@ export const FINAL_GOAL = 1e15;
 // Family masteries: each level doubles the multiplier of a family, only where that family really acts.
 export const MASTERY_FAMILIES:Kind[]=['cadence','weave','batch','charge','sync','furnace','compress','harmonic'];
 export const MASTERY_AT=1e6;
+// Improvement slots: one per machine at 10⁹, a second at 10¹¹, a third with the « Établi » patent.
+export const MODS=[
+ {id:'turbo',name:'Turbo',text:'Le cycle de la machine dure deux fois moins longtemps.'},
+ {id:'tampon',name:'Tampon',text:'La machine accepte deux fois plus de matière en file.'},
+ {id:'marque',name:'Marque',text:'Chaque lot qui sort reçoit une empreinte cyan s’il n’en a pas.'},
+ {id:'stabilisateur',name:'Stabilisateur',text:'Résonateur seulement : un silence ne rompt plus la série d’accords.'}
+] as const;
+export const MODS_AT=1e9;
