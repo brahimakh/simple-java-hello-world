@@ -14,6 +14,27 @@ Pour comprendre le rôle du joueur : lire [le guide des bases](GUIDE-JOUEUR.md).
 
 Chaque version garde ses propres sauvegardes. Pour passer de l’une à l’autre : **Exporter** puis **Importer** (menu ☰ sur téléphone).
 
+## Nouveautés 0.8 à 1.2 : liberté, réseau, tempo, logique, monde
+
+**Une progression en deux temps.** D’abord les bases, guidées. Ensuite le joueur choisit sa **spécialité** (Cadence, Masse ou Empreinte, ×2 sur une famille) et le guide laisse place à **trois pistes ouvertes** : des questions qui mènent à des découvertes, à suivre dans l’ordre que l’on veut, sans jamais donner la recette. Les espaces de l’interface s’ouvrent un par un, une minute d’écart. Les **nouveautés** (modules, installations) arrivent une à la fois, avec un écart de 2 minutes qui grandit jusqu’à environ 4 min 30 ; la prochaine est annoncée avec son compte à rebours.
+
+**Récompenser l’invention.**
+- **Eurêka** : une modification qui multiplie le débit par 5 ou plus est détectée, célébrée à la mesure de l’exploit et récompensée.
+- **Synergie** : chaque interaction distincte réellement active sur une ligne la multiplie par 1,2.
+- **Découvertes** : chacune paie tout de suite et ajoute ×1,05 durable.
+- **Cote d’invention** : à l’encapsulation, l’invention est mesurée seule contre une ligne nue ; prime et classement.
+- **Prototypes** : à 10⁴, 10⁶, 10⁹ et 10¹², une machine-règle unique à choisir parmi trois.
+
+**Nouvelles mécaniques.**
+- *Réseau* : assembleur (deux lignes fondent leurs lots, qualités multipliées), moules de presse (ressort, engrenage, cristal), troisième couleur magenta et lots prismatiques (×5).
+- *Tempo* : métronome (un lot par temps, bonus plus fort quand le tempo est lent ; les lignes battent ensemble), écho (le lot suivant hérite des empreintes du précédent), sons par famille et musique calée sur le tempo.
+- *Logique* : relais (aiguillage selon la qualité, les empreintes, les couleurs ou l’énergie), emplacements d’amélioration (turbo, tampon, marque, stabilisateur), plans réglables au moment de construire.
+- *Monde* : six chantiers à bâtir, chacun changeant une règle ; Serre vivante (souches, croisements à règle affichée, saisons de 10 minutes) ; doctrines de refondation (Vitesse, Masse, Lumière, Écologie) ; vue Monde, une ville qui grandit avec l’usine.
+
+**Confort.** Annuler la dernière modification, dupliquer et renommer une ligne, rapport d’une ligne en image (y compris sur Android), laboratoire libre (bac à sable), fenêtre d’accord réglable du résonateur.
+
+**Rythme mesuré.** Cinq joueurs automatiques (styles complet, cadence, masse, empreinte, boucles) atteignent 10¹⁵ entre 1 h 09 et 2 h 20, avec au plus un facteur 2 entre styles ; une partie humaine devrait durer de 2 à 5 heures. Détails dans `BALANCE.md`.
+
 ## Nouveautés 0.7 : une première partie où l’on agit
 
 - **Rien ne tourne avant votre premier geste.** Vous lancez les premiers lots à la main, puis vous achetez l’automatisation de l’injecteur avec ce que vous venez de produire.
@@ -166,7 +187,8 @@ node scripts/build.mjs
 node scripts/standalone.mjs
 node --test --test-isolation=none tests/*.test.mjs
 node scripts/balance.mjs
-node scripts/campaign.mjs 5        # partie complète par un joueur automatique
+node scripts/campaign.mjs 5        # parties complètes par cinq joueurs automatiques (styles)
+node scripts/ux-first-run.mjs      # première partie au doigt sur écran Android, avec rapport
 node scripts/i18n-audit.mjs        # textes sans traduction anglaise
 node scripts/e2e.mjs               # parcours navigateur (si Playwright est présent)
 node scripts/site.mjs              # version installable dans site/
@@ -180,7 +202,7 @@ Le moteur de test reste dans le processus courant pour fonctionner dans l’envi
 
 Onze familles de modules, deux installations, branches entre lignes, banc d’essai, plans de configurations, encapsulation, six expériences, objectif final et poursuite libre. Chaque ligne reste ordonnée et typée ; les aiguillages relient les lignes d’une même installation. Pas de routage libre entre cartes arbitraires, de prestige, de son ou de récursion d’inventions.
 
-Compilation, typage, **95 tests automatisés**, audit des traductions, parcours navigateur et mesures de progression vérifiés. Les tests exécutent aussi les boutons, formulaires et changements de langue dans un DOM simulé avec Happy DOM, dépendance de développement uniquement. Ils couvrent le guide, les pages anglaises, les règles chiffrées bilingues, les branches et leur capacité, les empreintes, les boucles, les sauvegardes, les configurations et le banc d’essai sans mutation de la partie.
+Compilation, typage, **114 tests automatisés**, audit des traductions, parcours navigateur et mesures de progression vérifiés. Les tests exécutent aussi les boutons, formulaires et changements de langue dans un DOM simulé avec Happy DOM, dépendance de développement uniquement. Ils couvrent le guide, les pages anglaises, les règles chiffrées bilingues, les branches et leur capacité, les empreintes, les boucles, les sauvegardes, les configurations et le banc d’essai sans mutation de la partie.
 
 Le navigateur intégré a permis de contrôler réellement l’atelier, le réglage de l’injecteur, le panneau avant/après, le dialogue du rôle d’une ligne et les défis en anglais. Les essais actifs et leurs résultats sont également couverts par les tests DOM. La lisibilité sur toutes les tailles d’écran et une partie humaine prolongée restent à évaluer. Aucun outil supplémentaire n’est requis pour jouer à la version compilée.
 

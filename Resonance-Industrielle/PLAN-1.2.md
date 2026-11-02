@@ -1,4 +1,6 @@
-# Plan de travail 0.8 → 1.2 (document vivant)
+# Plan de travail 0.8 → 1.2 — réalisé
+
+Tout ce plan est livré. Écarts par rapport au plan initial : synergie ×1,2 au lieu de ×1,3, découvertes ×1,05 et 30 s de production au lieu de ×1,1 et 60 s (mesures dans `BALANCE.md`) ; compresseur à 85 % ; écart des nouveautés croissant (2 min → environ 4 min 30) ; fenêtre d’Eurêka et seuils conformes.
 
 Demande (2 novembre 2026) : mettre en œuvre les idées d’IDEES-2.md jusqu’à la 1.2. Contraintes : tests, interface mobile, début de partie soigné, rythme (aucune étape trop courte ni trop longue), mécaniques introduites lentement, créativité en second temps, s’inspirer des jeux connus en cas de doute.
 

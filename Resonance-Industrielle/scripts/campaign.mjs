@@ -14,7 +14,9 @@ export const STYLES={
 };
 const clock=tick=>{const sec=Math.floor(tick/10);return `${Math.floor(sec/3600)}:${String(Math.floor(sec/60)%60).padStart(2,'0')}:${String(sec%60).padStart(2,'0')}`;};
 export function runCampaign(style,hours=4){
- const {specialty,recipe,short}=STYLES[style];const s=createState();const log=[];const say=t=>log.push(`${clock(s.tick)} ${t}`);
+ const {specialty,recipe,short}=STYLES[style];const s=createState();
+ // Paced like a new game whose guide is finished (novelties arrive one at a time).
+ if(!process.env.UNPACED)s.journey={step:9,manual:5,flags:['finished'],doneTick:0,open:['atelier','lignes','serre','vue','inventions','banc']};const log=[];const say=t=>log.push(`${clock(s.tick)} ${t}`);
  const EXHAUST=['recovery','exchanger'];
  function improveLane(lane){
   const kinds=lane.machines.map(m=>m.kind);
@@ -37,7 +39,7 @@ export function runCampaign(style,hours=4){
   if(ms.some(m=>m.status.includes('Énergie insuffisante'))&&s.plants.A.stock.components>=upgradeCost(s.plants.A.energyLevel)*1.5&&upgrade(s,'A','energyLevel'))say(`énergie ${s.plants.A.energyLevel}`);
   const used=MASTERY_FAMILIES.filter(k=>s.plants.A.lanes.some(l=>l.machines.some(m=>m.kind===k)));
   for(const k of used)if(s.plants.A.stock.components>=masteryCost(s,k)&&buyMastery(s,k))say(`maîtrise ${k}`);
-  hooks.decide?.(s,say);hooks.decide2?.(s,say);hooks.decide3?.(s,say);
+  hooks.decide?.(s,say);hooks.decide2?.(s,say);hooks.decide3?.(s,say);hooks.decide4?.(s,say);
   for(const l of s.plants.A.lanes)if(improveLane(l))return;
   if(s.plants.A.lanes.length<6&&s.plants.A.stock.components>=costOf(s,'intake')+costOf(s,'press')+laneFee(s,'A')*1.3&&s.produced>=400&&addLane(s,'A'))say(`nouvelle ligne (${s.plants.A.lanes.length})`);
   for(const id of ['B','C']){if(!plantUnlocked(s,id))continue;const p2=s.plants[id];
@@ -48,7 +50,8 @@ export function runCampaign(style,hours=4){
  const unlockTimes=[];const end=hours*3600;
  while(s.tick/10<end&&s.produced<1e15&&!s.fault){const before=s.produced;decide();simulate(s,30);for(const u of UNLOCKS)if(before<u.at&&s.produced>=u.at)unlockTimes.push([u.at,s.tick]);}
  const families=new Set(s.plants.A.lanes.flatMap(l=>l.machines.map(m=>m.kind)));
- const gaps=unlockTimes.slice(1).map(([,t],i)=>(t-unlockTimes[i][1])/10);
+ const intro=(s.timeline??[]).filter(e=>e.text.startsWith('nouveauté:')).map(e=>e.tick);
+ const gaps=intro.slice(1).map((t,i)=>(t-intro[i])/10);
  return {style,s,log,tiers:s.tierTicks??[],families:families.size,eurekas:s.eurekas?.length??0,discoveries:s.discoveries?.length??0,gaps,unlockTimes,clock};
 }
 if(process.argv[1]?.endsWith('campaign.mjs')){
@@ -57,9 +60,9 @@ if(process.argv[1]?.endsWith('campaign.mjs')){
  const hours=Number(args[0]??4);const styles=args[1]&&!args[1].startsWith('--')?[args[1]]:Object.keys(STYLES);
  const rows=styles.map(st=>runCampaign(st,hours));
  const at=(r,k)=>r.tiers[k-1]!==undefined?clock(r.tiers[k-1]):'—';
- console.log('| Style | 10³ | 10⁶ | 10⁹ | 10¹² | 10¹⁵ | Familles | Découvertes | Eurêka | Écart max entre nouveautés |');
+ console.log('| Style | 10³ | 10⁶ | 10⁹ | 10¹² | 10¹⁵ | Familles | Découvertes | Eurêka | Écart entre nouveautés |');
  console.log('|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
- for(const r of rows)console.log(`| ${r.style} | ${at(r,3)} | ${at(r,6)} | ${at(r,9)} | ${at(r,12)} | ${at(r,15)} | ${r.families} | ${r.discoveries} | ${r.eurekas} | ${Math.round(Math.max(0,...r.gaps.slice(8))/60)} min |`);
+ for(const r of rows)console.log(`| ${r.style} | ${at(r,3)} | ${at(r,6)} | ${at(r,9)} | ${at(r,12)} | ${at(r,15)} | ${r.families} | ${r.discoveries} | ${r.eurekas} | ${r.gaps.length?Math.round(Math.min(...r.gaps)/6)/10:0}–${r.gaps.length?Math.round(Math.max(...r.gaps)/6)/10:0} min |`);
  for(const r of rows)if(r.s.fault)console.log('Diagnostic',r.style,r.s.fault);
- if(process.argv.includes('--unlocks'))for(const r of rows)console.log(r.style,r.unlockTimes.map(([a,t])=>`${a.toExponential(0)}@${clock(t)}`).join(' '));
+ if(process.argv.includes('--unlocks'))for(const r of rows)console.log(r.style,(r.s.timeline??[]).filter(e=>e.text.startsWith('nouveauté:')).map(e=>`${e.text.slice(10)}@${clock(e.tick)}`).join(' '));
 }

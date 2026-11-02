@@ -45,3 +45,11 @@ test('moules : ressort, engrenage, cristal ; magenta et prismatique',()=>{
  const s=setup(['intake','stamp','stamp','stamp','weave','press']);s.produced=5e7;const [src,a,b,c]=s.plants.A.lanes[0].machines;src.connected=false;s.plants.A.stock.energy=0;
  assert.ok(setVariant(s,b,1));assert.ok(setVariant(s,c,2));a.queue=[packet()];for(let i=0;i<8;i++)step(s);assert.equal(s.plants.A.lanes[0].machines[5].lastPacket.quality,(1+3)*5);
 });
+test('rythme : pendant le guide, seules les bases ; ensuite une nouveauté à la fois, avec un écart qui grandit',async()=>{
+ const {updateIntro,introGap,INTRO_GAP,unlocked}=await import('../src/engine.ts');
+ const s=createState();startJourney(s);s.produced=1e7;s.tick=10;updateIntro(s);updateIntro(s);updateIntro(s);updateIntro(s);updateIntro(s);
+ assert.deepEqual(s.intro.keys.sort(),['batch','cadence','stamp','weave']);assert.equal(unlocked(s,'router'),false);
+ s.journey.step=JOURNEY.length;const ticks=[];for(let t=0;t<40000;t+=10){s.tick+=10;if(updateIntro(s))ticks.push(s.tick);}
+ assert.ok(ticks.length>=8);assert.ok(unlocked(s,'router'));for(let i=1;i<ticks.length;i++)assert.ok(ticks[i]-ticks[i-1]>=INTRO_GAP);
+ assert.ok(ticks.at(-1)-ticks.at(-2)>ticks[1]-ticks[0],'later novelties wait longer');
+});

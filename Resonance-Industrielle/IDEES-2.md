@@ -4,6 +4,25 @@ Novembre 2026, après la version 0.7. Objectif : que le joueur s’exprime vite,
 
 Repères : **Impact** sur le plaisir, **Effort** (S une session, M quelques sessions, L un chantier), **Réutilise** ce qui existe déjà. ★ = recommandé en priorité.
 
+## Statut après la version 1.2
+
+- **Réalisées (35)** : 1, 2, 5, 6, 7, 8, 9, 10, 12, 14, 15, 16, 17, 18, 21, 22, 24, 25, 26, 27, 30, 31, 33, 35, 36, 37, 38, 39, 40, 41, 44, 47, 48, 49, 50, ainsi que la file des nouveautés et l’ouverture progressive des espaces, ajoutées pour le rythme.
+- **Partielles (7)** :
+  - 3 : renommer une ligne, sans couleur ni pictogramme personnels.
+  - 4 : les pistes acceptent plusieurs solutions, sans message « il existe d’autres façons ».
+  - 11 : la cote est conservée, sans graphique de records.
+  - 20 : la surcharge prend la forme de l’amélioration turbo.
+  - 32 : deux réglages seulement pour le résonateur et la presse.
+  - 34 : laboratoire libre et puzzles, sans classement « golf ».
+  - 42 : annuler et dupliquer, sans comparaison côte à côte (le banc d’essai la remplace).
+- **Non retenues (6)** :
+  - 13 et 45 : elles exigent un serveur.
+  - 19 : les interférences seraient trop proches du métronome.
+  - 23 : la récursion vraie des inventions est incompatible avec une simulation exacte.
+  - 28 : une grille 2D doublerait les lignes et les aiguillages.
+  - 29 : l’observatoire de mesure est remplacé par la synergie affichée.
+- **Reportées (2)** : 43 (prototype imposé dans le puzzle du jour), 46 (variantes combinables du mode Ingénieur).
+
 ## Principes d’équilibrage
 
 Ils guident toutes les idées ci-dessous.

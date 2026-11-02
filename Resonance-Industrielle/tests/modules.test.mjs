@@ -30,9 +30,9 @@ test('four : la chaleur suit le débit et s’annonce plafonnée',()=>{
  const s=setup(['intake','furnace','press']);const [src,f]=nodes(s);src.connected=false;f.queue=[packet(160),packet(160)];step(s);assert.equal(f.heat,16);
  simulate(s,10);assert.ok(f.heat<16&&f.heat>0);f.heat=100;f.queue=[packet(160)];simulate(s,.2);assert.ok(f.heat<=100);
 });
-test('compresseur : N lots fondus, matière ÷ N, qualité × N × 0,75',()=>{
+test('compresseur : N lots fondus, matière ÷ N, qualité × N × 0,85',()=>{
  const s=setup(['intake','compress','press']);const [src,c,pr]=nodes(s);src.connected=false;c.param=4;c.queue=[packet(40,2),packet(40,2),packet(40,2)];step(s);assert.equal(pr.queue.length,0);
- c.queue.push(packet(40,2));step(s);assert.equal(pr.queue[0].qty,40);assert.equal(pr.queue[0].quality,6);
+ c.queue.push(packet(40,2));step(s);assert.equal(pr.queue[0].qty,40);assert.ok(Math.abs(pr.queue[0].quality-6.8)<1e-9);
 });
 test('harmoniseurs : deux lignes au même pas gagnent ×3',()=>{
  const s=setup(['intake','harmonic','press']);addLane(s,'A');const l2=s.plants.A.lanes[1];l2.machines.splice(1,0,machine(s,'harmonic'));

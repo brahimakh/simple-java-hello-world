@@ -61,9 +61,15 @@ waited=0;while(!(await look()).ctaEnabled&&waited<300){await wait(5);waited+=5;}
 await tap('.journey-cta');await wait(20);s=await record('Empreintes tissées');check(s.step.includes('spécialité'),'l’ordre marqueur → accumulateur → tisseur valide l’objectif');
 await tap('.journey .specialty-pick button');s=await record('Spécialité choisie');check(s.step==='(fin du parcours)','le choix d’une spécialité termine le parcours');
 check(await page.locator('.pistes .piste').count()>=1,'des pistes ouvertes prennent le relais du guide');
+// After the guide: the first creative novelty arrives with a visible countdown, not instantly.
+const deck=await page.evaluate(()=>document.querySelector('.progress-deck')?.innerText??'');
+check(/dans|imminente|Prochaine/.test(deck),'la prochaine nouveauté et son délai sont annoncés');
 // After the guide: spaces open one at a time, each announced.
 const tabsOverTime=[s.tabs];for(let m=0;m<8;m++){await wait(60);await page.evaluate(()=>document.querySelector('#celebration .celebration-actions button:last-child')?.click());tabsOverTime.push((await look()).tabs);}
 s=await record('8 minutes après le guide');
+const notes=await page.evaluate(()=>[...document.querySelectorAll('.log-row')].map(r=>r.innerText).join(' | '));
+const intro=await page.evaluate(()=>JSON.parse(localStorage.getItem('resonance-industrielle-v1')??'{}').intro?.keys?.length??0);
+check(intro>=6&&intro<=10,`nouveautés introduites une à une après le guide (${intro} au total après 8 minutes)`);
 check(tabsOverTime.every((n,i)=>i===0||n-tabsOverTime[i-1]<=1),`au plus un nouvel onglet par minute (${tabsOverTime.join(' → ')})`);
 check(s.tabs>=6,`les espaces se sont tous ouverts progressivement (${s.tabs} onglets)`);
 // Rules checked at every step.

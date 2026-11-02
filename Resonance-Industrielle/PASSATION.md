@@ -1,3 +1,24 @@
+# Passation — Résonance industrielle 1.2.0
+
+Mise à jour du 2 novembre 2026. Versions 0.8 à 1.2 livrées selon `PLAN-1.2.md` ; statut des idées dans `IDEES-2.md`.
+
+## Nouveaux fichiers
+
+- `src/journey.ts` : guide, étapes d’espaces. `src/progression.ts` : pistes, spécialités, Eurêka, prototypes (en plus des contrats et brevets).
+- `src/world.ts` et `src/world-view.ts` : chantiers, Serre vivante, saisons, doctrines, vue Monde.
+- `src/engine.ts` : `TUNING` (réglages d’équilibrage), file des nouveautés (`updateIntro`), synergie, modules assembleur, métronome, écho, relais, améliorations.
+- Tests : `libre`, `tempo`, `logique`, `monde` (114 au total). Scripts : `campaign.mjs` (5 styles), `campaign-hooks.mjs`, `ux-first-run.mjs`, `i18n-audit.mjs`.
+
+## Vérification
+
+114 tests, audit des traductions sans manque, parcours navigateur bureau et téléphone, première partie au doigt (guide, spécialité, espaces, nouveautés) sans échec, joueurs automatiques sans diagnostic moteur. L’APK 1.2.0 est construit (cible Android 17) mais pas lancé sur un appareil.
+
+## À observer en vraie partie
+
+Le temps réel entre deux nouveautés, la compréhension des pistes (questions sans recette), la fréquence des Eurêka, l’intérêt des chantiers en fin de partie. Les réglages sont tous dans `TUNING`.
+
+---
+
 # Passation — Résonance industrielle 0.6.0
 
 Mise à jour du 2 novembre 2026. Le dépôt contient le jeu dans `Resonance-Industrielle/` et le workflow GitHub Pages dans `.github/workflows/resonance-pages.yml`.

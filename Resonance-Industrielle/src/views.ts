@@ -15,7 +15,7 @@ export function timelineLabel(text:string) {
  if(kind==='brevet')return `${t('Brevet')} · ${t(PATENTS.find(d=>d.id===id)?.name??id)}`;
  if(kind==='contrat')return t('Contrat rempli');
  if(kind==='refondation')return t('Refondation du laboratoire');
- if(kind==='eureka')return t('Eurêka');if(kind==='prototype')return `${t('Prototype')} · ${t(PROTOTYPES.find(x=>x.id===id)?.name??id)}`;if(kind==='prototype-offert')return t('Prototype proposé');if(kind==='spécialité')return `${t('Spécialité')} · ${t(id)}`;
+ if(kind==='eureka')return t('Eurêka');if(kind==='chantier')return t('Chantier achevé');if(kind==='croisement')return t('Croisement de souches');if(kind==='prototype')return `${t('Prototype')} · ${t(PROTOTYPES.find(x=>x.id===id)?.name??id)}`;if(kind==='prototype-offert')return t('Prototype proposé');if(kind==='spécialité')return `${t('Spécialité')} · ${t(id)}`;
  return t(text);
 }
 

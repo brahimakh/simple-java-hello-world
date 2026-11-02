@@ -58,6 +58,8 @@ export const DISCOVERIES:{id:string;name:string;text:string;hint:Kind}[]=[
  {id:'prototype',name:'Prototype',text:'Une machine unique change une règle de votre partie.',hint:'press'},
  {id:'relay',name:'Aiguillage intelligent',text:'Un relais envoie un lot ailleurs parce qu’il remplit une condition.',hint:'relay'},
  {id:'mod',name:'Sur mesure',text:'Une amélioration installée change le comportement d’une machine.',hint:'press'},
+ {id:'culture',name:'Hybride',text:'Deux souches croisées donnent une souche nouvelle.',hint:'press'},
+ {id:'site',name:'Monument',text:'Un chantier achevé change une règle de votre partie.',hint:'press'},
  {id:'nested',name:'Invention dans l’invention',text:'Les modules d’une invention sont insérés dans une autre ligne.',hint:'press'}
 ];
 export const discoveryCount=(s:State)=>s.discoveries?.length??0;
@@ -143,9 +145,10 @@ export function updateProgress(s:State) {
 export const REFOUND_AT=1e12;
 export const legacyFor=(discoveries:number)=>1.25**discoveries;
 export function canRefound(s:State) {return s.produced>=REFOUND_AT;}
-export function refound(s:State,variant?:Variant):State|null {
+export function refound(s:State,variant?:Variant,doctrineId?:string):State|null {
  if(!canRefound(s))return null;
- const p=progressOf(s);const next=createState(variant??variantOf(s));
+ const p=progressOf(s);const next=createState(variant??variantOf(s));if(doctrineId&&['vitesse','masse','lumiere','ecologie'].includes(doctrineId))next.doctrine=doctrineId;
+ if(s.culture)next.culture=clone(s.culture);
  next.library=clone(s.library);next.configurations=clone(s.configurations);next.discoveries=clone(s.discoveries??[]);
  next.progress={points:p.points,patents:[...p.patents],contract:null,done:p.done,badges:[...p.badges],refounds:p.refounds+1,legacy:Math.max(p.legacy,legacyFor(discoveryCount(s)))};
  next.plants.A.stock.components=1000;
@@ -163,13 +166,13 @@ export const PISTE_HINTS:Record<string,string>={
  compress:'Plusieurs lots peuvent-ils n’en faire qu’un ?',harmony:'Deux lignes peuvent-elles jouer ensemble ?',
  bicolor:'Deux couleurs valent-elles mieux qu’une ?','greenhouse-loop':'La Serre gaspille-t-elle ses résidus ?',
  plasma:'Que peut apporter la troisième installation ?',quality6:'Un lot peut-il atteindre une qualité d’un million ?',
- press9:'Une seule presse peut-elle produire un milliard d’un coup ?',echo:'Les empreintes d’un lot peuvent-elles survivre à son passage\u00a0?',tempo:'Que se passe-t-il quand plusieurs lignes battent la même mesure\u00a0?',prototype:'Un palier franchi peut-il changer les règles\u00a0?',relay:'Et si chaque lot choisissait sa route selon ce qu’il vaut\u00a0?',mod:'Une machine peut-elle devenir plus que sa famille\u00a0?',assembly:'Deux lots de lignes différentes peuvent-ils n’en faire qu’un ?','assembly-rich':'Jusqu’où peut monter la qualité d’un lot assemblé ?',spring:'Une presse peut-elle préférer les petits lots ?',gear:'Une presse peut-elle aimer encore plus les gros lots ?',crystal:'Que vaut une presse qui prend son temps ?',prism:'Et avec trois couleurs ?',nested:'Une invention peut-elle en enrichir une autre ?'
+ press9:'Une seule presse peut-elle produire un milliard d’un coup ?',echo:'Les empreintes d’un lot peuvent-elles survivre à son passage\u00a0?',tempo:'Que se passe-t-il quand plusieurs lignes battent la même mesure\u00a0?',prototype:'Un palier franchi peut-il changer les règles\u00a0?',culture:'La Serre peut-elle sélectionner ses propres plantes\u00a0?',site:'Que faire de toute cette production\u00a0?',relay:'Et si chaque lot choisissait sa route selon ce qu’il vaut\u00a0?',mod:'Une machine peut-elle devenir plus que sa famille\u00a0?',assembly:'Deux lots de lignes différentes peuvent-ils n’en faire qu’un ?','assembly-rich':'Jusqu’où peut monter la qualité d’un lot assemblé ?',spring:'Une presse peut-elle préférer les petits lots ?',gear:'Une presse peut-elle aimer encore plus les gros lots ?',crystal:'Que vaut une presse qui prend son temps ?',prism:'Et avec trois couleurs ?',nested:'Une invention peut-elle en enrichir une autre ?'
 };
 function pisteOpen(s:State,id:string,hint:string) {
  if(id==='catalysis'||id==='greenhouse-loop')return plantUnlocked(s,'B');if(id==='plasma')return plantUnlocked(s,'C');
  if(id==='quality6')return s.produced>=1e6;if(id==='press9')return s.produced>=1e9;if(id==='nested')return s.library.length>0;
  if(id==='accord5'||id==='weave8')return s.produced>=300;
- if(id==='prototype')return s.produced>=1e4;if(id==='mod')return s.produced>=1e9;if(id==='tempo')return unlocked(s,'harmonic' as never)&&unlocked(s,'metronome' as never);
+ if(id==='prototype')return s.produced>=1e4;if(id==='culture')return s.produced>=1e7;if(id==='site')return s.produced>=1e10;if(id==='mod')return s.produced>=1e9;if(id==='tempo')return unlocked(s,'harmonic' as never)&&unlocked(s,'metronome' as never);
  if(id==='spring'||id==='gear'||id==='crystal')return s.produced>=5e4;if(id==='prism')return s.produced>=3e7;
  return unlocked(s,hint as never);
 }
@@ -180,7 +183,7 @@ export function pistes(s:State) {
  if(!open.length)return [];
  // The newest mechanic first (to introduce it), then the oldest leads still open.
  const byUnlock=[...open].sort((a,b)=>unlockAt(s,a.hint as never)-unlockAt(s,b.hint as never));
- const newest=byUnlock.at(-1)!;const AREA:Record<string,string>={mod:'Emplacements',prototype:'Prototypes',spring:'Moules de presse',gear:'Moules de presse',crystal:'Moules de presse',prism:'Empreinte magenta',catalysis:'Serre catalytique','greenhouse-loop':'Serre catalytique',plasma:'Forge à plasma',quality6:'Presse',press9:'Presse',nested:'Inventions'};
+ const newest=byUnlock.at(-1)!;const AREA:Record<string,string>={culture:'Serre vivante',site:'Chantiers',mod:'Emplacements',prototype:'Prototypes',spring:'Moules de presse',gear:'Moules de presse',crystal:'Moules de presse',prism:'Empreinte magenta',catalysis:'Serre catalytique','greenhouse-loop':'Serre catalytique',plasma:'Forge à plasma',quality6:'Presse',press9:'Presse',nested:'Inventions'};
  return [newest,...byUnlock.filter(d=>d!==newest)].slice(0,3).map(d=>({...d,area:AREA[d.id],question:PISTE_HINTS[d.id],fresh:d===newest&&s.produced<unlockAt(s,d.hint as never)*4}));
 }
 export const SPECIALTIES=[{kind:'cadence',name:'Cadence',text:'Le résonateur double son effet.'},{kind:'batch',name:'Masse',text:'La prime de gros lot double : ×16 au lieu de ×8.'},{kind:'weave',name:'Empreinte',text:'Le tisseur double son effet.'}] as const;

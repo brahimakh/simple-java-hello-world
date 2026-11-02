@@ -1,5 +1,5 @@
 import {MODULES,UNLOCKS,FINAL_GOAL,type Kind,type PlantId} from './content.ts';
-import {buffer,incoming,type State,type Machine} from './engine.ts';
+import {buffer,incoming,paced,introQueue,introGap,GUIDED,INTRO_GAP,type State,type Machine} from './engine.ts';
 import {t,formatNumber as fmt,formatCompact} from './i18n.ts';
 import {routeWarning} from './insights.ts';
 const esc=(s:unknown)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
@@ -22,12 +22,15 @@ export function family(kind:Kind) {return ['intake'].includes(kind)?'supply':['p
 export function flowActive(s:State,m:Machine) {return !s.paused&&!!m.lastPacket&&s.tick-m.lastPacket.tick<=8;}
 export function progressDeck(s:State) {
  const stages=[{at:0,text:'Démarrage'},{at:10,text:'Cadence'},{at:80,text:'Tissage'},{at:1000,text:'Coopération'},{at:1e5,text:'Contrats'},{at:1e6,text:'Manufacture'},{at:1e8,text:'Triangle'},{at:1e9,text:'Complexe'},{at:1e12,text:'Refondation'},{at:1e15,text:'Résonance'}];
- const nextUnlock=UNLOCKS.find(u=>u.at>s.produced);const goal=nextUnlock?.at??FINAL_GOAL;
+ const nextUnlock=UNLOCKS.find(u=>u.at>s.produced);let goal=nextUnlock?.at??FINAL_GOAL;
  const special:Record<number,string>={1000:'Serre catalytique',1e5:'Four et contrats',3e6:'Empreinte ambre',1e8:'Forge à plasma',1e12:'Refondation'};
- const nextModule=special[goal]??Object.values(MODULES).find(m=>m.unlock===goal)?.name??'Le cœur de Résonance';
+ let nextModule=special[goal]??Object.values(MODULES).find(m=>m.unlock===goal)?.name??'Le cœur de Résonance';let wait='';
+ // Paced games: the next novelty in the queue, with its countdown once its threshold is reached.
+ if(paced(s)){const q=introQueue(s).find(x=>!(GUIDED as string[]).includes(x.key));if(q){nextModule=q.key.startsWith('plant-')?(q.key==='plant-B'?'Serre catalytique':'Forge à plasma'):MODULES[q.key as Kind].name;goal=q.at;
+  if(s.produced>=q.at){const left=Math.max(0,introGap(s)-(s.tick-(s.intro?.last??-INTRO_GAP)));wait=left>0?`dans ${Math.floor(left/600)}:${String(Math.ceil(left/10)%60).padStart(2,'0')}`:'imminente';}}}
  const previous=[0,...UNLOCKS.map(u=>u.at)].filter(n=>n<goal&&n<=s.produced).at(-1)??0;
  const fraction=Math.max(0,Math.min(1,(s.produced-previous)/Math.max(1,goal-previous)));
- return `<section class="progress-deck" aria-label="Progression du laboratoire"><div class="progress-heading"><div><span class="eyebrow">LE LABORATOIRE PREND FORME</span><h2>${s.produced>=FINAL_GOAL?'Objectif atteint · continuez à inventer':'Prochaine possibilité'} <span class="next-unlock">${esc(t(nextModule))}</span></h2></div><div class="lifetime-total"><strong data-live="produced">${formatCompact(s.produced)}</strong><small>composants cumulés</small></div></div><div class="next-progress"><progress value="${fraction}" max="1" aria-label="Prochain déblocage"></progress><span>${formatCompact(Math.min(s.produced,goal))} / ${formatCompact(goal)}</span></div><ol class="milestone-track">${stages.map((m,i)=>`<li class="${s.produced>=m.at?'achieved':''}"><span class="milestone-dot">${s.produced>=m.at?'✓':String(i+1).padStart(2,'0')}</span><div><strong>${m.text}</strong><small>${formatCompact(m.at)}</small></div></li>`).join('')}</ol><p class="industrial-goal">Objectif industriel : 10¹⁵ composants cumulés. Les dépenses ne retirent aucun déblocage.</p>${s.produced>=1000?`<p class="suggestion-note">${t(`Défis réussis : ${s.challenges?.completed.length??0} / 3`)} <button data-action="nav" data-view="experiments">Voir les défis d’invention</button></p>`:''}</section>`;
+ return `<section class="progress-deck" aria-label="Progression du laboratoire"><div class="progress-heading"><div><span class="eyebrow">LE LABORATOIRE PREND FORME</span><h2>${s.produced>=FINAL_GOAL?'Objectif atteint · continuez à inventer':'Prochaine possibilité'} <span class="next-unlock">${esc(t(nextModule))}</span>${wait?` <small class="next-wait">${t(wait)}</small>`:''}</h2></div><div class="lifetime-total"><strong data-live="produced">${formatCompact(s.produced)}</strong><small>composants cumulés</small></div></div><div class="next-progress"><progress value="${fraction}" max="1" aria-label="Prochain déblocage"></progress><span>${formatCompact(Math.min(s.produced,goal))} / ${formatCompact(goal)}</span></div><ol class="milestone-track">${stages.map((m,i)=>`<li class="${s.produced>=m.at?'achieved':''}"><span class="milestone-dot">${s.produced>=m.at?'✓':String(i+1).padStart(2,'0')}</span><div><strong>${m.text}</strong><small>${formatCompact(m.at)}</small></div></li>`).join('')}</ol><p class="industrial-goal">Objectif industriel : 10¹⁵ composants cumulés. Les dépenses ne retirent aucun déblocage.</p>${s.produced>=1000?`<p class="suggestion-note">${t(`Défis réussis : ${s.challenges?.completed.length??0} / 3`)} <button data-action="nav" data-view="experiments">Voir les défis d’invention</button></p>`:''}</section>`;
 }
 export function networkOverview(s:State,id:PlantId,selected:number) {
  const lanes=s.plants[id].lanes;if(!lanes.length)return '';

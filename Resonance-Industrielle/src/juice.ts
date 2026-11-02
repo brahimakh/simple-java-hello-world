@@ -136,7 +136,7 @@ export function startEffects(ctx:EffectsContext) {
  const shown=new Map<string,number>();const seen=new Map<number,number>();
  let lastPlant:PlantId|null=null,lastFrame=performance.now(),previousProduced=ctx.state().produced,lastState=ctx.state();
  let rateMilestone=Math.floor(Math.log10(Math.max(1,measuredRate(ctx.state()).rate)));let peak=ctx.state().peak;
- let knownStages=ctx.state().journey?.open?.length??0;let knownEureka=ctx.state().eurekas?.length??0;let known={discoveries:ctx.state().discoveries?.length??0,badges:ctx.state().progress?.badges.length??0,done:ctx.state().progress?.done??0};
+ let knownIntro=ctx.state().intro?.keys.length??0;let knownStages=ctx.state().journey?.open?.length??0;let knownEureka=ctx.state().eurekas?.length??0;let known={discoveries:ctx.state().discoveries?.length??0,badges:ctx.state().progress?.badges.length??0,done:ctx.state().progress?.done??0};
  const frame=(now:number)=>{
   const dt=Math.min(.25,(now-lastFrame)/1000);lastFrame=now;
   try{tick(dt);}catch{/* feedback must never break the game */}
@@ -147,7 +147,7 @@ export function startEffects(ctx:EffectsContext) {
   const s=ctx.state(),plant=ctx.plant();
   if(s!==lastState){// new game or import: resynchronize without celebrating
    lastState=s;previousProduced=s.produced;peak=s.peak;seen.clear();shown.clear();rateMilestone=Math.floor(Math.log10(Math.max(1,measuredRate(s).rate)));
-   knownStages=s.journey?.open?.length??0;knownEureka=s.eurekas?.length??0;known={discoveries:s.discoveries?.length??0,badges:s.progress?.badges.length??0,done:s.progress?.done??0};
+   knownIntro=s.intro?.keys.length??0;knownStages=s.journey?.open?.length??0;knownEureka=s.eurekas?.length??0;known={discoveries:s.discoveries?.length??0,badges:s.progress?.badges.length??0,done:s.progress?.done??0};
   }
   if(plant!==lastPlant){shown.clear();lastPlant=plant;}
   const motion=!reducedMotion()&&!s.paused;
@@ -200,7 +200,7 @@ export function startEffects(ctx:EffectsContext) {
   const produced=s.produced;
   if(produced>previousProduced){
    // During the guided first run, the current objective is the only voice: unlock cards would cover it.
-   if(!(s.journey&&s.journey.step<9))for(const u of UNLOCKS)if(previousProduced<u.at&&produced>=u.at){
+   if(!s.journey)for(const u of UNLOCKS)if(previousProduced<u.at&&produced>=u.at){
     const kinds=(Object.keys(MODULES) as Kind[]).filter(k=>MODULES[k].unlock===u.at);const kind=kinds[0]??null;
     celebrate({eyebrow:'NOUVELLE POSSIBILITÉ',title:kinds.map(k=>t(MODULES[k].name)).join(' · ')||t(u.at===1e8?'Forge à plasma':u.at===1e12?'Refondation':u.at===3e6?'Empreinte ambre':'Serre catalytique'),text:t(u.text),icon:kind?moduleSymbol(kind):'✦',big:u.at>=1000,action:kind?{label:'Voir le module',run:()=>ctx.onShowModule(kind)}:undefined});
     fanfare(ctx.preferences,u.at>=1000?[2,4,5,7,9]:[3,5,7]);
@@ -219,6 +219,11 @@ export function startEffects(ctx:EffectsContext) {
   known.done=s.progress?.done??0;
   const opened=s.journey?.open??[];if(opened.length>knownStages){const g=STAGES.find(x=>x.id===opened.at(-1));if(g)celebrate({eyebrow:'NOUVEL ESPACE',title:t(g.name),text:t(STAGE_TEXT[g.id]??''),icon:'◇',big:false});}
   knownStages=opened.length;
+  // Paced games: each novelty is announced when it actually arrives.
+  const keys=s.intro?.keys??[];if(keys.length>knownIntro&&s.journey&&s.journey.step>=9){for(const key of keys.slice(knownIntro)){
+   const kind=key.startsWith('plant-')?null:key as Kind;const at=kind?MODULES[kind].unlock:key==='plant-B'?1000:1e8;const u=UNLOCKS.find(x=>x.at===at);
+   celebrate({eyebrow:'NOUVELLE POSSIBILITÉ',title:kind?t(MODULES[kind].name):t(key==='plant-B'?'Serre catalytique':'Forge à plasma'),text:u?t(u.text):'',icon:kind?moduleSymbol(kind):'✦',big:!kind,action:kind?{label:'Voir le module',run:()=>ctx.onShowModule(kind)}:undefined});fanfare(ctx.preferences,[3,5,7]);}}
+  knownIntro=keys.length;
   // Eureka: the celebration grows with the multiplier the player found.
   const eu=s.eurekas??[];if(eu.length>knownEureka){const e=eu.at(-1)!;const big=e.ratio>=20;
    celebrate({eyebrow:'EURÊKA',title:`×${formatCompact(e.ratio)}`,text:t('Votre modification a multiplié le débit stabilisé. Récompense : {0} ⬡.').replace('{0}',formatCompact(e.after*20*Math.log2(e.ratio))),icon:'!',big,action:{label:'Ouvrir le carnet',run:()=>ctx.onOpen('notebook')}});

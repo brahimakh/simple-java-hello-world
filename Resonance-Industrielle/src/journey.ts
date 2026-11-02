@@ -55,6 +55,7 @@ export function reveal(s:State,feature:string) {
   case 'nav-experiments':return at('batch')||s.produced>=50;
   case 'nav-library':case 'nav-bench':return s.produced>=1000;
   case 'nav-notebook':return (s.discoveries?.length??0)>0;
+  case 'nav-world':return s.produced>=1e9||!!s.sites?.done.length;
   case 'add-lane':return at('end')||s.produced>=400;
   case 'locked-offers':return at('end');
   default:return true;
@@ -78,3 +79,5 @@ export function openStages(s:State) {
  const last=open.length?Math.max(j.doneTick,(j as {lastOpen?:number}).lastOpen??0):j.doneTick-STAGE_GAP;
  if(s.tick-last<STAGE_GAP)return null;open.push(next.id);(j as {lastOpen?:number}).lastOpen=s.tick;return next;
 }
+
+if(JOURNEY.length!==9)throw Error('JOURNEY_STEPS must match the guide length');

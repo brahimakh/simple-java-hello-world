@@ -1,4 +1,20 @@
-# Design — Résonance industrielle 0.6
+# Design — Résonance industrielle 1.2
+
+## 0.8 à 1.2 : liberté, couches et rythme
+
+**Deux temps.** Les bases sont guidées (0.7) ; la créativité commence après, avec la spécialité et les pistes. Inspirations : le dévoilement d’A Dark Room et de Paperclips, les objectifs ouverts de Kittens Game, les choix de faction de Realm Grinder.
+
+**Rythme garanti.** Un seuil de production rend une nouveauté possible ; elle n’arrive qu’au tour suivant de la file (2 min, puis l’écart grandit de 8 s à chaque nouveauté). Les parties créées avant 0.7 n’ont pas de file. La file évite qu’un joueur rapide reçoive tout en quelques minutes ; pendant l’attente, pistes, contrats et Eurêka donnent de quoi expérimenter.
+
+**Récompenses proportionnées.** Eurêka (×5 ou plus après une modification, récompense 20 s × log₂ du rapport), synergie (interactions distinctes sur 10 s), découvertes (paiement immédiat et ×1,05), cote d’invention (mesure isolée contre une ligne nue). Les effets visuels et sonores grandissent avec le rapport.
+
+**Couches.** Chaque version ajoute une dimension sans retirer les précédentes : ordre (bases), réseau (assembleur, moules, couleurs), temps (métronome, écho), logique (relais, emplacements), monde (chantiers, Serre vivante, doctrines). Les prototypes changent une règle par partie : deux parties ne se ressemblent plus.
+
+**Fidélité.** L’assembleur conserve la matière ; l’écho ne s’entend pas lui-même ; le miroir ne reflète pas un reflet ; les améliorations et redevances sont rendues au retrait ; les chantiers ne dépensent que les réserves, jamais les compteurs.
+
+**Non retenu.** Grille 2D (doublerait lignes et aiguillages), récursion vraie des inventions (incompatible avec une simulation exacte), interférences physiques (trop proches du métronome), observatoire de mesure, brevets d’auteur et défis communautaires hebdomadaires (exigent un serveur).
+
+## Historique 0.6
 
 ## Mise à jour 0.6 : du prototype au long jeu
 

@@ -9,7 +9,7 @@ import {progressOf} from '../src/progression.ts';
 const kinds=['intake','split','cadence','stamp','batch','weave','filter','mirror','furnace','compress','harmonic','sensor','charge','sync','router','press','recovery','exchanger'];
 function rich(){const s=createState();s.produced=2e12;s.plants.A.stock.components=1e15;for(const p of Object.values(s.plants)){p.stock.ore=1e6;p.stock.energy=1e9;p.stock.catalyst=100;}
  s.plants.A.lanes[0].machines=['intake','split','cadence','stamp','batch','weave','filter','mirror','furnace','press','recovery','exchanger'].map(k=>machine(s,k));addLane(s,'A');s.plants.A.lanes[1].machines.splice(1,0,...['compress','harmonic','sensor','charge','sync','router','assembler','metronome','echo','relay'].map(k=>machine(s,k)));
- addLane(s,'B');addLane(s,'C');progressOf(s).points=3;s.discoveries=[{id:'accord',tick:1}];s.protos={owned:['big-lot'],offer:['synergy','pipelines','max-batch']};s.plants.A.lanes[0].machines.at(-3).mods=[{id:'turbo',paid:1}];simulate(s,30);s.library.push({name:'Plan',machines:[{kind:'intake',param:6,connected:true},{kind:'press',param:0,connected:true}]});return s;}
+ addLane(s,'B');addLane(s,'C');progressOf(s).points=3;s.discoveries=[{id:'accord',tick:1}];s.protos={owned:['big-lot'],offer:['synergy','pipelines','max-batch']};s.plants.A.lanes[0].machines.at(-3).mods=[{id:'turbo',paid:1}];s.culture=undefined;s.sites={done:['pont'],paid:{}};simulate(s,30);s.library.push({name:'Plan',machines:[{kind:'intake',param:6,connected:true},{kind:'press',param:0,connected:true}]});return s;}
 const missing=new Set();
 async function screen(state,visit){
  const window=new Window({url:'http://127.0.0.1:4317',settings:{disableCSSFileLoading:true,disableJavaScriptFileLoading:true}});
@@ -31,7 +31,7 @@ await screen(s,async({d,click,collect})=>{
  click('[data-action="guide-dismiss"]');collect('#app');
  for(const id of [...d.querySelectorAll('.node[data-id]')].map(n=>n.dataset.id)){click(`.node[data-id="${id}"]`);collect('#app');}
  click('[data-action="select-lane"]:nth-of-type(2)');for(const id of [...d.querySelectorAll('.node[data-id]')].map(n=>n.dataset.id)){click(`.node[data-id="${id}"]`);collect('#app');}
- for(const v of ['overview','library','experiments','notebook','bench','guide']){click(`[data-view="${v}"]`);collect('#app');}
+ for(const v of ['overview','library','experiments','notebook','bench','guide','world']){click(`[data-view="${v}"]`);collect('#app');}
  for(const p of ['B','C']){click(`[data-view="atelier"]`);click(`.plant-nav [data-plant="${p}"]`);collect('#app');}
  const dialogs=[['[data-view="atelier"]','[data-action="estimate"]'],['[data-view="library"]','[data-action="share-blueprint"]'],['[data-view="library"]','[data-action="import-code"]'],['[data-view="experiments"]','[data-action="refound"]'],['[data-view="atelier"]','[data-action="reset"]'],['[data-view="atelier"]','[data-action="menu"]'],['[data-view="atelier"]','[data-resource="plasma"]'],['[data-view="atelier"]','[data-action="rate"]'],['[data-view="atelier"]','[data-action="add-lane"]']];
  for(const [nav,btn] of dialogs){click('#dialog [data-action="close"]');click(nav);click(btn);if(d.querySelector('#dialog').open)collect('#dialog');click('#dialog [data-action="close"]');}

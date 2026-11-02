@@ -1,5 +1,25 @@
 # Équilibrage — mesures de référence
 
+## 1.2 : cinq styles, nouveautés au rythme
+
+`node scripts/campaign.mjs 5`. Partie « nouvelle » dont le guide est terminé : les nouveautés arrivent une à une (écart de 2 min à 4 min 18). Chaque style choisit une spécialité, une recette et un module signature ; tous utilisent les maîtrises, brevets, contrats, prototypes, turbo, chantiers et croisements. Décisions toutes les 30 s.
+
+| Style | 10³ | 10⁶ | 10⁹ | 10¹² | 10¹⁵ |
+|---|---:|---:|---:|---:|---:|
+| complet | 1:39 | 4:22 | 14:15 | 51:30 | 1:15:37 |
+| cadence | 1:39 | 4:08 | 14:05 | 37:31 | 1:09:02 |
+| masse | 1:39 | 4:48 | 18:14 | 51:57 | 2:20:18 |
+| empreinte | 1:43 | 4:22 | 14:16 | 51:14 | 1:50:40 |
+| boucles | 1:39 | 4:22 | 14:15 | 55:37 | 1:54:38 |
+
+Écart maximal entre styles : ×2,03. Réglages (`TUNING` dans `src/engine.ts`) : synergie ×1,2 par interaction (au plus 12), découverte ×1,05 et 30 s de production, maîtrises ×2 par niveau avec un prix commun de 10⁷ × 6,5ⁿ, compresseur à 85 %.
+
+Balayages qui ont mené à ces valeurs :
+- Sans file des nouveautés, 24 nouveautés arrivaient en 7 min 30 : la file à écart croissant a été ajoutée.
+- Synergie ×1,3 et découvertes ×1,1 : 10¹⁵ en 16 minutes, archétypes « purs » jusqu’à ×10 d’écart. Les styles ont été redéfinis (chacun combine les bases) et les gains réduits.
+- Prix des maîtrises ×4, ×6, ×7 et ×8 : ×6,5 avec une base de 10⁷ place 10¹⁵ entre 1 h 10 et 2 h 20 en restant sous un écart de ×2,1.
+
+
 ## 0.6 : partie complète par un joueur automatique
 
 `node scripts/campaign.mjs 5`. Politique : injecteurs sur 12, recette Fonderie complétée au fil des déblocages (résonateur, marqueur, accumulateur 80, tisseur, four, charge 2 s, synchroniseur, harmoniseur), six lignes, Serre et Forge à deux lignes, maîtrises des familles utilisées dès que finançables, brevets et contrats pris au passage. Elle n’utilise ni filtre, ni miroir, ni diviseur, ni compresseur, ni refondation : un joueur qui invente peut aller plus vite. Décision toutes les 30 s, sans temps de réflexion.

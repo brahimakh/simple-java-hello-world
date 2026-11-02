@@ -19,7 +19,7 @@ export const MODULES: Record<Kind, ModuleDefinition> = {
   filter: {name:'Filtre', icon:'⊻', cost:500, unlock:10000, input:'matter', output:'matter', description:'Laisse passer les lots dont la qualité atteint le seuil choisi. Les autres repartent vers la première carte après l’injecteur de la même ligne, au pas suivant. Au 8e retour, le lot passe quand même. Cycle : 0,1 s.'},
   mirror: {name:'Miroir', icon:'◫', cost:1500, unlock:30000, input:'matter', output:'matter', description:'Retient la qualité d’origine du dernier lot reçu. Un lot plus faible reçoit cette qualité, contre 0,2 énergie par matière. Un reflet ne se reflète pas : seule la qualité d’origine est retenue. Mémoire effacée après 3 s sans lot. Cycle : 0,2 s.'},
   furnace: {name:'Four', icon:'♨', cost:5000, unlock:100000, input:'matter', output:'matter', description:'Chaque lot apporte une chaleur égale à ses matières ÷ 10 ; le four perd 10 % de sa chaleur par seconde (maximum 100). Qualité × (1 + chaleur ÷ 25), jusqu’à ×5. Coût : 0,1 énergie/matière. Il récompense les lignes à fort débit. Cycle : 0,1 s.'},
-  compress: {name:'Compresseur', icon:'⧈', cost:15000, unlock:300000, input:'matter', output:'matter', description:'Attend N lots (2, 4 ou 8), puis livre un seul lot : matières totales ÷ N, qualité moyenne × N × 0,75. Moins de matière, plus de densité : contourne la limite d’un lot par seconde de la presse. Cycle : 1 s.'},
+  compress: {name:'Compresseur', icon:'⧈', cost:15000, unlock:300000, input:'matter', output:'matter', description:'Attend N lots (2, 4 ou 8), puis livre un seul lot : matières totales ÷ N, qualité moyenne × N × 0,85. Moins de matière, plus de densité : contourne la limite d’un lot par seconde de la presse. Cycle : 1 s.'},
   harmonic: {name:'Harmoniseur', icon:'♒', cost:50000, unlock:1e6, input:'matter', output:'matter', description:'Si un harmoniseur d’une autre ligne de la même installation a livré au même pas ou au pas précédent : qualité ×3. Sinon ×1. Des lignes réglées sur la même cadence se renforcent. Cycle : 0,1 s.'},
   assembler: {name:'Assembleur', icon:'⊕', cost:3000, unlock:20000, input:'matter', output:'matter', description:'Fusionne deux lots venus de lignes différentes (par aiguillage) : matières additionnées, qualités multipliées, empreintes et couleurs réunies. Un lot attend au plus 3 s un partenaire, puis passe seul. La somme ne dépasse pas la limite de lot. Cycle : 0,5 s.'},
   metronome: {name:'Métronome', icon:'♩', cost:60000, unlock:3e6, input:'matter', output:'matter', description:'Retient les lots et en relâche un à chaque temps du tempo de l’atelier (réglable de 60 à 240 battements par minute). Un lot relâché sur le temps gagne ×(1 + 60 ÷ tempo) : ×2 à 60, ×1,5 à 120, ×1,25 à 240. Tous les métronomes battent ensemble.'},
@@ -52,11 +52,12 @@ export const UNLOCKS = [
   {at:300000, text:'Compresseur disponible · densifier plutôt qu’accumuler.'},
   {at:1e6, text:'Harmoniseur, capteur et maîtrises disponibles · chaque famille utilisée peut doubler son effet.'},
   {at:3e6, text:'Empreinte ambre et métronome disponibles · le temps devient un rythme.'},
-  {at:1e7, text:'Écho disponible · un lot peut hériter des empreintes du précédent.'},
+  {at:1e7, text:'Écho et Serre vivante disponibles · souches, croisements et saisons.'},
   {at:3e7, text:'Empreinte magenta disponible · trois couleurs font un lot prismatique.'},
   {at:1e8, text:'Forge à plasma disponible · une troisième installation ferme le triangle.'},
   {at:3e8, text:'Relais disponible · un lot peut choisir sa route selon ce qu’il est.'},
   {at:1e9, text:'Emplacements d’amélioration disponibles · personnalisez chaque machine.'},
+  {at:1e10, text:'Chantiers disponibles · six monuments à bâtir, six règles à changer.'},
   {at:1e12, text:'Refondation possible · recommencer plus fort, inventions conservées.'}
 ];
 // Orders of magnitude of lifetime production: each one is celebrated and named.
