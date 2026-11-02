@@ -3,3 +3,4 @@ dist/
 *.log
 .test-output/
 .pnpm-store/
+site/

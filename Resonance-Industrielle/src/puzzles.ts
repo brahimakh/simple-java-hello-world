@@ -36,3 +36,9 @@ export function measureDaily(s:State):number {
  for(const l of trial.plants.A.lanes)for(const m of l.machines){m.queue=[];m.working=null;m.clock=0;m.streak=0;m.last=-1000;delete m.heat;delete m.memory;delete m.memoryAt;}
  simulate(trial,60);const start=trial.produced;simulate(trial,120);return trial.fault?0:(trial.produced-start)/120;
 }
+// A single invention measured alone, from empty machines, with every family unlocked: comparable between players.
+export function measureBlueprint(bp:import('./engine.ts').Blueprint):number {
+ const s=createState();s.produced=2e8;s.plants.A.stock.components=1e12;s.plants.A.lanes=[];
+ s.plants.A.lanes.push({id:s.nextId++,name:bp.name,capsule:false,machines:bp.machines.map(x=>{const m={...machine(s,x.kind),param:x.param,connected:x.connected,...(x.variant!==undefined?{variant:x.variant}:{})};return m;})});
+ return measureDaily(s);
+}

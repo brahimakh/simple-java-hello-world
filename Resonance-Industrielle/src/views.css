@@ -72,3 +72,9 @@
 .puzzle-banner progress{width:min(320px,100%)}
 .puzzle-actions{display:flex;gap:8px;flex-wrap:wrap}
 :root.puzzle-mode .sidebar nav button:not([data-view="atelier"]):not([data-view="guide"]),:root.puzzle-mode .plant-nav,:root.puzzle-mode .plant-switch,:root.puzzle-mode #onboarding{display:none!important}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:10px}
+.gallery-item{padding:12px;border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.gallery-item h4{margin:0}.gallery-item small{color:var(--muted)}.gallery-item div{display:flex;gap:6px;flex-wrap:wrap}
+.leaderboard{margin-top:10px;font-size:12px}.leaderboard ol{margin:6px 0 0;padding-left:20px}.leaderboard li{display:flex;justify-content:space-between;gap:8px}
+.leaderboard li.mine{color:var(--teal)}.leaderboard b{font-variant-numeric:tabular-nums}
+.node.dragging{outline:2px dashed var(--teal);outline-offset:3px;transform:scale(1.04);box-shadow:0 12px 30px #000a}

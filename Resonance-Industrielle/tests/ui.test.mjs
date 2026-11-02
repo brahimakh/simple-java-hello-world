@@ -157,6 +157,6 @@ test('interface puzzles : la partie est mise de côté, le puzzle se résout, pu
    assert.match(d.querySelector('.puzzle-banner').textContent,/Premier accord/);assert.equal(d.querySelectorAll('[data-action="add-module"]:not([disabled])').length,1);
    click('add-module','[data-kind="cadence"]');click('save');assert.equal(JSON.parse(ui.window.localStorage.getItem(SAVE_KEY)).tick,before,'the real game is saved, not the puzzle');
    click('puzzle-exit');assert.equal(d.querySelector('.puzzle-banner'),null);click('nav','[data-view="atelier"]');assert.equal(d.querySelectorAll('.node').length,2);
-   click('puzzle-start','[data-id="daily"]');click('daily-measure');assert.match(d.querySelector('#dialog').textContent,/composants\/s/);click('close');click('puzzle-exit');
+   click('nav','[data-view="experiments"]');click('puzzle-start','[data-id="daily"]');click('daily-measure');assert.match(d.querySelector('#dialog').textContent,/composants\/s/);click('close');click('puzzle-exit');
  }finally{await ui.close();}
 });
