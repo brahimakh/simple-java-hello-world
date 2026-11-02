@@ -1,5 +1,33 @@
 # Équilibrage — mesures de référence
 
+## 1.3.1 : une économie qui reste tendue
+
+`node scripts/campaign.mjs 4 --prices`. L’option `--prices` mesure, pour chaque achat d’extension (ligne, extraction, énergie, maîtrise), combien de secondes de production il coûtait au moment de l’achat.
+
+| Style | 10³ | 10⁶ | 10⁹ | 10¹² | 10¹⁵ |
+|---|---:|---:|---:|---:|---:|
+| complet | 1:39 | 4:46 | 20:57 | 1:01:09 | 1:49:03 |
+| cadence | 1:39 | 4:23 | 18:12 | 50:55 | 1:36:05 |
+| masse | 1:39 | 7:20 | 21:37 | 59:37 | 2:45:47 |
+| empreinte | 1:43 | 4:46 | 18:29 | 59:00 | 2:18:24 |
+| boucles | 1:39 | 4:46 | 20:17 | 1:01:13 | 2:14:59 |
+
+Écart maximal entre styles : ×1,73.
+
+Prix ressentis (médiane, en secondes de production, style « complet ») :
+
+| Phase | 1.3 | 1.3.1 |
+|---|---:|---:|
+| 10 à 30 min | 0 s (lignes et extraction gratuites, aucune maîtrise) | 18 s (14 à 60 s selon le style), dont 11 maîtrises |
+| 30 à 60 min | 99 s (7 maîtrises d’un coup à leur arrivée) | 279 s |
+| après 60 min | 315 s | 272 s |
+
+Réglages (`TUNING`) : ligne n = 10⁶ × 40ⁿ⁻² (la 2e ligne coûte 1 million), extraction et énergie 1 000 × 10ⁿ, maîtrises ×1,5 par niveau au prix de 10⁵ × 3,3ⁿ, arrivant dans la file vers 2 × 10⁴ composants. La spécialité et la doctrine Lumière doublent toujours. Les modules restent bon marché (×1,15 par exemplaire) : expérimenter ne doit rien coûter, et le démontage rembourse.
+
+Balayages : lignes à 100 × 8ⁿ, 150 × 30ⁿ, 1 000 × 40ⁿ et 3 × 10⁵ × 40ⁿ (toujours gratuites avant 30 min) ; maîtrises ×2 au prix 5ⁿ ou 6ⁿ (un achat toutes les 10 à 20 min seulement), puis ×1,5 au prix 3ⁿ à 4ⁿ.
+
+Limite connue : les dix premières minutes restent généreuses (l’extraction coûte quelques secondes de production). C’est voulu : le joueur y apprend, il ne doit pas attendre.
+
 ## 1.3 : tout passe par la file des nouveautés
 
 `node scripts/campaign.mjs 4`. Mêmes cinq styles qu’en 1.2. Changements mesurés : prototypes, moules, contrats, maîtrises, couleurs d’empreinte, Serre vivante, emplacements et chantiers arrivent eux aussi un à un par la file (27 nouveautés après le guide, entre 45 s et 4 min d’écart). Une découverte ou un Eurêka avance la suivante d’une minute. Prix des maîtrises : 10⁷ × 5ⁿ (au lieu de 6,5ⁿ) pour compenser l’arrivée plus tardive des maîtrises.

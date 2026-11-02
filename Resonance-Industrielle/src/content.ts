@@ -50,7 +50,7 @@ export const UNLOCKS = [
   {at:50000, text:'Moules de presse disponibles · ressorts, engrenages ou cristaux.'},
   {at:100000, text:'Four et contrats disponibles · le débit devient de la chaleur.'},
   {at:300000, text:'Compresseur disponible · densifier plutôt qu’accumuler.'},
-  {at:1e6, text:'Harmoniseur, capteur et maîtrises disponibles · chaque famille utilisée peut doubler son effet.'},
+  {at:1e6, text:'Harmoniseur et capteur disponibles · deux lignes peuvent jouer ensemble.'},
   {at:3e6, text:'Empreinte ambre et métronome disponibles · le temps devient un rythme.'},
   {at:1e7, text:'Écho et Serre vivante disponibles · souches, croisements et saisons.'},
   {at:3e7, text:'Empreinte magenta disponible · trois couleurs font un lot prismatique.'},
@@ -67,7 +67,7 @@ export const TIERS = [
 export const FINAL_GOAL = 1e15;
 // Family masteries: each level doubles the multiplier of a family, only where that family really acts.
 export const MASTERY_FAMILIES:Kind[]=['cadence','weave','batch','charge','sync','furnace','compress','harmonic'];
-export const MASTERY_AT=1e6;
+export const MASTERY_AT=2e4;
 // Improvement slots: one per machine at 10⁹, a second at 10¹¹, a third with the « Établi » patent.
 export const MODS=[
  {id:'turbo',name:'Turbo',text:'Le cycle de la machine dure deux fois moins longtemps.'},

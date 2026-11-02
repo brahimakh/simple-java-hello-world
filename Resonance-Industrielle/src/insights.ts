@@ -1,13 +1,12 @@
 import {MODULES,type PlantId,type Kind} from './content.ts';
-import {discoveryFactor,buffer,incoming,type State,type Lane,type Machine} from './engine.ts';
+import {discoveryFactor,buffer,incoming,laneLimit,lanesMax,type State,type Lane,type Machine} from './engine.ts';
 import {t,formatNumber as fmt} from './i18n.ts';
 const discoveryBonus=(s:State)=>discoveryFactor(s);
 const esc=(v:unknown)=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 export function diagnosis(s:State,id:PlantId) {
  const ms=s.plants[id].lanes.flatMap(l=>l.machines);
  // A missing destination is a cause; upstream saturation is only its consequence.
- return ms.find(m=>(m.kind==='router'||m.kind==='relay')&&(!m.routing||!s.plants[id].lanes.some(l=>l.id===m.routing!.target)))
- ??ms.find(m=>/insuffisante|incompatible|Seuil|Choisir|Configurer|Relier|trop grand/.test(m.status))
+ return ms.find(m=>/insuffisante|incompatible|Seuil|Choisir|Configurer|Relier|trop grand/.test(m.status))
  ??ms.find(m=>m.connected&&/saturée|Manque de matière|Manque de résidus/.test(m.status));
 }
 export function routeWarning(l:Lane,m?:Machine) {
@@ -52,4 +51,12 @@ export function changePanel(s:State,o:ChangeObservation|null) {
  const oldIds=new Set(Object.values(o.before.plants).flatMap(p=>p.lanes.flatMap(l=>l.machines.map(m=>m.id))));
  const added=Object.values(s.plants).flatMap(p=>p.lanes.flatMap(l=>l.machines)).filter(m=>!oldIds.has(m.id));
  return `<section class="panel change-panel" aria-live="polite"><div class="section-head"><h3>Observer ma modification</h3><button data-action="change-dismiss" aria-label="Fermer l’observation">✕</button></div><p>${esc(t(o.label))} · ${fmt(seconds)} ${t('s de simulation écoulées')}</p><div class="change-metrics"><div><small>Avant · moyenne disponible</small><strong>${fmt(oldRate)}/s</strong></div><div><small>Depuis · fenêtre disponible</small><strong>${duration>0?fmt(rate)+'/s':'—'}</strong><small>${fmt(duration)} s</small></div></div><p>${t('Lots déjà devant les presses à la modification')} : <b>${fmt(o.waiting)}</b>. ${t('Ils gardent leurs anciennes propriétés. Une presse traite au plus un lot par seconde ; les blocages peuvent prolonger l’attente.')}</p>${o.waiting?`<label>${t('Lots initiaux encore en attente')} : ${fmt(remaining)} / ${fmt(o.waiting)}<progress max="${o.waiting}" value="${o.waiting-remaining}" aria-label="Évacuation des anciens lots"></progress></label><p class="tiny muted">Ce suivi concerne les anciennes files des presses. Leur démontage rend aussi leur matière ; de nouveaux lots peuvent encore attendre en amont.</p>`:''}${added.map(m=>`<p>${esc(t(MODULES[m.kind].name))} : ${fmt(m.processed)} ${t('lots traités depuis l’ajout')}</p>`).join('')}<p class="tiny muted">Mesure du laboratoire entier. Les réserves, les files et la catalyse peuvent changer : cette observation ne prouve pas à elle seule un gain durable.</p><button data-action="change-compare" class="primary">Comparer les deux plans au banc</button></section>`;
+}
+
+// 1.3.1: name the bottleneck of a line, with the move that lifts it.
+export function bottleneckNote(s:State,id:PlantId,l:Lane) {
+ const k=laneLimit(s,l);if(!k)return '';
+ const text=k==='matter'?t('Goulot : la matière. Améliorez l’extraction (Infrastructure).'):k==='energy'?t('Goulot : l’énergie. Améliorez la production d’énergie (Infrastructure).')
+  :s.plants[id].lanes.length<lanesMax(s)?t('Goulot : la presse, qui traite 1 lot par seconde. Formez de plus gros lots, ou ajoutez une ligne : une deuxième presse double la cadence.'):t('Goulot : la presse, qui traite 1 lot par seconde. Formez de plus gros lots ou rendez chaque lot plus précieux.');
+ return `<p class="bottleneck-note" role="note"><b>⧗</b> ${esc(text)}</p>`;
 }

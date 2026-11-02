@@ -130,7 +130,7 @@ Pour une première session, le retour le plus important est : **« Est-ce que je
 
 ## Après le premier million (version 0.6)
 
-- **Maîtrises** : dans l’atelier, chaque niveau double l’effet d’une famille que vous utilisez. Le prix monte pour toutes les familles à la fois : choisissez celles qui travaillent vraiment.
+- **Maîtrises** : dans l’atelier, chaque niveau multiplie par 1,5 l’effet d’une famille que vous utilisez (elles arrivent vers 20 000 composants cumulés). Le prix monte pour toutes les familles à la fois : choisissez celles qui travaillent vraiment.
 - **Contrats** : dans *Expériences*, une commande à la fois, sans chrono. Elle paie des brevets ; chaque brevet change une règle (plus de lignes, lots de 320, catalyse ×6…).
 - **Carnet** : vos découvertes, badges, thèmes et la courbe de votre partie. Les découvertes manquantes restent cachées : à vous de les provoquer.
 - **Forge à plasma** (10⁸) : la troisième installation. Elle partage les catalyseurs de la Serre avec la Fonderie ; son plasma multiplie une presse par 10.

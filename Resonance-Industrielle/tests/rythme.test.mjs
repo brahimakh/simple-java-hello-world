@@ -48,3 +48,29 @@ test('chantiers et Serre vivante attendent aussi leur tour',()=>{
  const s=finished(1e13);assert.equal(deliverSite(s,'pont'),false);assert.equal(crossStrains(s,1,2),null);
  s.intro={keys:Object.keys(FEATURES),last:0};assert.ok(featureOpen(s,'sites')&&featureOpen(s,'culture'));
 });
+
+// 1.3.1 : économie recalée, goulot nommé, insertion après une machine.
+test('insertion juste après la machine choisie, sinon à la place habituelle',async()=>{
+ const {insertModule,simulate}=await import('../src/engine.ts');
+ const s=createState();s.produced=1e3;s.plants.A.stock.components=1e6;const l=s.plants.A.lanes[0];
+ for(const k of ['stamp','batch','weave'])insertModule(s,'A',l.id,k);
+ const stamp=l.machines.find(m=>m.kind==='stamp');assert.ok(insertModule(s,'A',l.id,'cadence',stamp.id));
+ assert.deepEqual(l.machines.map(m=>m.kind),['intake','stamp','cadence','batch','weave','press']);
+ const press=l.machines.find(m=>m.kind==='press');assert.ok(insertModule(s,'A',l.id,'charge',press.id));
+ assert.equal(l.machines.at(-2).kind,'charge','après la presse : refusé, place habituelle avant la presse');
+ assert.ok(insertModule(s,'A',l.id,'recovery',stamp.id));assert.equal(l.machines.at(-1).kind,'recovery','un module de résidus reste après la presse');
+});
+test('le goulot de chaque ligne est nommé avec le geste qui le lève',async()=>{
+ const {laneLimit,simulate}=await import('../src/engine.ts');const {bottleneckNote}=await import('../src/insights.ts');
+ const s=createState();s.produced=1e3;s.plants.A.stock.ore=1e5;s.plants.A.stock.energy=1e5;const l=s.plants.A.lanes[0];l.machines[0].param=12;simulate(s,20);
+ assert.equal(laneLimit(s,l),'press','des lots de 12 toutes les 0,5 s saturent la presse (1 lot/s)');
+ assert.match(bottleneckNote(s,'A',l),/1 lot par seconde/);assert.match(bottleneckNote(s,'A',l),/deuxième presse/);
+ s.plants.A.stock.ore=0;s.plants.A.oreLevel=0;l.machines[0].param=12;simulate(s,0.5);s.plants.A.stock.ore=0;simulate(s,1);
+ assert.equal(laneLimit(s,l),'matter');assert.match(bottleneckNote(s,'A',l),/extraction/);
+});
+test('économie : les extensions coûtent cher et les maîtrises font ×1,5 et arrivent tôt',async()=>{
+ const {laneFee,upgradeCost,TUNING,addLane}=await import('../src/engine.ts');
+ const s=createState();assert.equal(laneFee(s,'A'),TUNING.laneBase);s.plants.A.stock.components=2e6;s.produced=1e3;assert.ok(addLane(s,'A'));
+ assert.equal(laneFee(s,'A'),TUNING.laneBase*TUNING.laneGrowth);assert.equal(upgradeCost(3),TUNING.upgradeBase*TUNING.upgradeGrowth**3);
+ assert.equal(TUNING.masteryFactor,1.5);assert.equal(FEATURES.mastery.at,2e4);
+});

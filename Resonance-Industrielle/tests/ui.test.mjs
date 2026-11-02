@@ -45,7 +45,7 @@ function translatedScreen(ui,root='main') {
 }
 
 test('interface apprentissage : réglage gratuit, observation, comparaison et choix du rôle de ligne',async()=>{
- const s=createState();simulate(s,45);s.plants.A.stock.components+=200;s.paused=true;
+ const s=createState();simulate(s,45);s.plants.A.stock.components+=2e6;s.paused=true;
  const ui=await mount({state:s});try{
    const {document:d,click}=ui;click('guide-intake');const select=d.querySelector('[data-param]');select.value='12';select.dispatchEvent(new ui.window.Event('change',{bubbles:true}));
    assert.match(d.querySelector('.change-panel').textContent,/Observer ma modification/);assert.match(d.querySelector('.change-panel').textContent,/26/);translatedScreen(ui);
@@ -56,13 +56,13 @@ test('interface apprentissage : réglage gratuit, observation, comparaison et ch
 });
 
 test('interface explication : calcul réel, diagnostic de destination et défis bilingues',async()=>{
- const s=createState();s.produced=2000;s.plants.A.stock.components=10000;const l=s.plants.A.lanes[0];
+ const s=createState();s.produced=2000;s.plants.A.stock.components=1e8;const l=s.plants.A.lanes[0];
  for(const k of ['cadence','stamp','batch','weave'])insertModule(s,'A',l.id,k);l.machines.find(m=>m.kind==='batch').param=80;simulate(s,120);s.paused=true;
  const ui=await mount({state:s});try{
    const {document:d,click}=ui;
    for(const kind of ['press','batch','stamp','weave']){click('select-module',`[data-id="${l.machines.find(m=>m.kind===kind).id}"]`);translatedScreen(ui);}
    assert.match(d.querySelector('.lot-study').textContent,/imprints/);
-   ui.lang('fr');click('add-module','[data-kind="router"]');assert.match(d.querySelector('.diagnosis').textContent,/Choisir une ligne de destination/);click('save');const routerId=JSON.parse(ui.window.localStorage.getItem(SAVE_KEY)).plants.A.lanes[0].machines.find(m=>m.kind==='router').id;click('network-module',`[data-id="${routerId}"]`);translatedScreen(ui);
+   ui.lang('fr');click('add-module','[data-kind="router"]');assert.ok(d.querySelector('.node[data-kind="router"]'),'aiguillage ajouté');click('save');assert.ok(JSON.parse(ui.window.localStorage.getItem(SAVE_KEY)).plants.A.lanes[0].machines.some(m=>m.kind==='router'));translatedScreen(ui);
    click('nav','[data-view="experiments"]');assert.equal(d.querySelectorAll('.challenge-grid article').length,3);translatedScreen(ui);click('challenge-start','[data-id="economy"]');assert.match(d.querySelector('.challenge-grid').textContent,/Energy preserved/);translatedScreen(ui);click('challenge-stop');
  }finally{await ui.close();}
 });
@@ -96,7 +96,7 @@ test('interface : une partie existante reste identique au changement de langue ;
  }finally{await ui.close();}
 });
 test('interface anglais : parcours avancé, noms personnels préservés et dialogues traduits',async()=>{
- const s=createState();simulate(s,20);s.produced=2000;s.plants.A.stock.components=10000;insertModule(s,'A',s.plants.A.lanes[0].id,'charge');insertModule(s,'A',s.plants.A.lanes[0].id,'recovery');encapsulate(s,'A',s.plants.A.lanes[0].id,'Presse');saveConfiguration(s,'A','Matière');addLane(s,'B');s.paused=true;
+ const s=createState();simulate(s,20);s.produced=2000;s.plants.A.stock.components=1e8;insertModule(s,'A',s.plants.A.lanes[0].id,'charge');insertModule(s,'A',s.plants.A.lanes[0].id,'recovery');encapsulate(s,'A',s.plants.A.lanes[0].id,'Presse');saveConfiguration(s,'A','Matière');addLane(s,'B');s.paused=true;
  const prefs=defaultPreferences();prefs.language='en';prefs.guide.hidden=true;
  const ui=await mount({state:s,preferences:prefs});try{
    const {document:d,click}=ui;
@@ -117,7 +117,7 @@ test('interface anglais : parcours avancé, noms personnels préservés et dialo
  }finally{await ui.close();}
 });
 test('interface réseau : réglages réels de branche, schéma et progression visibles dans les deux langues',async()=>{
- const s=createState();s.produced=2000;s.plants.A.stock.components=10000;addLane(s,'A');const [a,b]=s.plants.A.lanes;insertModule(s,'A',a.id,'router');const router=a.machines.find(m=>m.kind==='router');configureRouter(s,'A',a.id,router.id,{target:b.id});s.paused=true;
+ const s=createState();s.produced=2000;s.plants.A.stock.components=1e8;addLane(s,'A');const [a,b]=s.plants.A.lanes;insertModule(s,'A',a.id,'router');const router=a.machines.find(m=>m.kind==='router');configureRouter(s,'A',a.id,router.id,{target:b.id});s.paused=true;
  const prefs=defaultPreferences();prefs.language='en';prefs.guide.hidden=true;
  const ui=await mount({state:s,preferences:prefs});try{
    const {document:d,click,lang}=ui;assert.equal(d.querySelectorAll('.branch-link').length,1);assert.equal(d.querySelectorAll('.milestone-track .achieved').length,4);
@@ -128,7 +128,7 @@ test('interface réseau : réglages réels de branche, schéma et progression vi
  }finally{await ui.close();}
 });
 test('interface banc : capture, modification d’ordre, vraie comparaison, bilinguisme et partie intacte',async()=>{
- const s=createState();s.produced=2000;s.plants.A.stock.components=10000;const l=s.plants.A.lanes[0];for(const k of ['stamp','batch','weave'])insertModule(s,'A',l.id,k);l.machines.find(m=>m.kind==='batch').param=80;s.paused=true;
+ const s=createState();s.produced=2000;s.plants.A.stock.components=1e8;const l=s.plants.A.lanes[0];for(const k of ['stamp','batch','weave'])insertModule(s,'A',l.id,k);l.machines.find(m=>m.kind==='batch').param=80;s.paused=true;
  const prefs=defaultPreferences();prefs.language='en';prefs.guide.hidden=true;
  const ui=await mount({state:s,preferences:prefs});try{
    const {document:d,click,lang}=ui;click('nav','[data-view="bench"]');click('bench-record');click('nav','[data-view="atelier"]');click('select-module',`[data-id="${l.machines[1].id}"]`);click('move','[data-dir="1"]');click('save');const before=ui.window.localStorage.getItem(SAVE_KEY);

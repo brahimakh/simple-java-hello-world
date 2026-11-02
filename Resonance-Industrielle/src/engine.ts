@@ -42,7 +42,8 @@ export function discover(s:State,id:string) {const d=(s.discoveries??=[]);if(!d.
  if(!s.puzzle){const r=Math.max(100,measuredRate(s).rate*TUNING.discoveryReward);s.plants.A.stock.components=Math.min(LIMITS.stock,s.plants.A.stock.components+r);stat(s,'discoveryReward',r);}}}
 // Synergy: each distinct interaction that really acted on a line in the last 10 s multiplies its presses.
 // Balance knobs in one place (measured by scripts/campaign.mjs; see BALANCE.md).
-export const TUNING={synergy:1.2,synergyMax:12,discovery:1.05,discoveryReward:30,masteryGrowth:5,masteryFactor:2,masteryBase:1e7};
+// Economy (1.3.1): extension prices follow production so there is always something worth saving for.
+export const TUNING={synergy:1.2,synergyMax:12,discovery:1.05,discoveryReward:30,masteryGrowth:3.3,masteryFactor:1.5,masteryBase:1e5,laneBase:1e6,laneGrowth:40,upgradeBase:1e3,upgradeGrowth:10,copyGrowth:1.15};
 export const SYNERGY_WINDOW=100;
 function syn(s:State,lane:Lane,key:string) {(lane.syn??={})[key]=s.tick;}
 export function synergyKeys(s:State,lane:Lane) {return Object.entries(lane.syn??{}).filter(([,t])=>s.tick-t<=SYNERGY_WINDOW).map(([k])=>k);}
@@ -66,7 +67,7 @@ export const FEATURES:Record<string,{at:number;name:string;text:string}>={
  proto:{at:1e4,name:'Prototypes',text:'À chaque palier, choisissez une machine unique parmi trois : elle change une règle pour toute la partie.'},
  molds:{at:5e4,name:'Moules de presse',text:'Touchez une presse : un moule change les lots qu’elle préfère (ressort, engrenage, cristal).'},
  contracts:{at:1e5,name:'Contrats',text:'Des commandes à remplir contre des points de brevet. Ouvrez Expériences.'},
- mastery:{at:1e6,name:'Maîtrises',text:'Investissez vos composants pour doubler l’effet d’une famille de machines.'},
+ mastery:{at:2e4,name:'Maîtrises',text:'Investissez vos composants pour doubler l’effet d’une famille de machines.'},
  amber:{at:3e6,name:'Empreinte ambre',text:'Le marqueur peut laisser une empreinte ambre. Deux couleurs sur un lot : le tisseur double encore.'},
  culture:{at:1e7,name:'Serre vivante',text:'La Serre sélectionne ses souches : croisez-les et suivez les saisons.'},
  magenta:{at:3e7,name:'Empreinte magenta',text:'Troisième couleur. Un lot aux trois couleurs devient prismatique : ×5.'},
@@ -104,8 +105,9 @@ export const tempoOf=(s:State)=>s.tempo??120;
 export const beatTicks=(s:State)=>Math.round(600/tempoOf(s));
 export const legacyFactor=(s:State)=>s.progress?.legacy??1;
 export const masteryLevel=(s:State,k:Kind)=>s.mastery?.[k]??0;
-export const MASTERY_FACTOR=2;
-const mf=(s:State,k:Kind)=>TUNING.masteryFactor**(masteryLevel(s,k)+(s.specialty===k?1:0)+(k==='weave'&&doctrine(s,'lumiere')?1:0));
+export const MASTERY_FACTOR=1.5;
+// Mastery levels: ×1,5 each (1.3.1, smaller and more frequent). Specialty and the Light doctrine still double.
+const mf=(s:State,k:Kind)=>TUNING.masteryFactor**masteryLevel(s,k)*2**((s.specialty===k?1:0)+(k==='weave'&&doctrine(s,'lumiere')?1:0));
 // One shared price ladder: every level bought, in any family, raises the price of the next one.
 export const MASTERY_GROWTH=3.2;
 export const masteryTotal=(s:State)=>Object.values(s.mastery??{}).reduce((n,v)=>n+(v??0),0);
@@ -115,10 +117,10 @@ export function buyMastery(s:State,k:Kind) {
  const cost=masteryCost(s,k);if(!spend(s.plants.A,'components',cost))return false;(s.mastery??={})[k]=masteryLevel(s,k)+1;s.totalSpent+=cost;return true;
 }
 // Each extra line of a facility costs more; the fee is refunded when the line is dismantled.
-export function laneFee(s:State,id:PlantId) {const n=s.plants[id].lanes.length;return n===0?0:Math.round(100*8**(n-1)*(id==='C'?1e4:id==='B'?10:1));}
+export function laneFee(s:State,id:PlantId) {const n=s.plants[id].lanes.length;return n===0?0:Math.round(TUNING.laneBase*TUNING.laneGrowth**(n-1)*(id==='C'?1e4:id==='B'?10:1));}
 export function ownedCount(s:State,k:Kind) {let n=0;for(const id of PLANTS)for(const l of s.plants[id].lanes)for(const m of l.machines)if(m.kind===k&&m.paid>0)n++;return n;}
 // Each additional copy of a family costs 15 % more; a refund always returns what was actually paid.
-export function costOf(s:State,k:Kind,extra=0) {return Math.round(MODULES[k].cost*1.15**(ownedCount(s,k)+extra));}
+export function costOf(s:State,k:Kind,extra=0) {return Math.round(MODULES[k].cost*TUNING.copyGrowth**(ownedCount(s,k)+extra));}
 function credit(s:State,id:PlantId,r:Resource,qty:number) {s.pending.push({plant:id,resource:r,qty});}
 function canCredit(s:State,id:PlantId,r:Resource,qty:number) {return s.plants[id].stock[r]+s.pending.filter(e=>e.plant===id&&e.resource===r).reduce((n,e)=>n+e.qty,0)+qty<=LIMITS.stock;}
 export function buffer(m:Machine) {return m.queue.reduce((a,p)=>a+p.qty,0)+(m.working?.qty??0);}
@@ -322,6 +324,10 @@ function process(s:State,id:PlantId,lane:Lane,m:Machine,next:Machine|undefined) 
  }
  p.quality=Math.min(LIMITS.quality,p.quality);m.queue.shift();send(p);
 }
+// 1.3.1: what limits each line, remembered for a few seconds (not saved) so the interface can name the bottleneck.
+const limits=new WeakMap<Lane,Record<string,number>>();
+function noteLimit(s:State,lane:Lane,m:Machine){const st=m.status;const k=st==='Sortie saturée · la presse est encore occupée'?'press':st.startsWith('Manque de matière')?'matter':st.includes('Énergie insuffisante')?'energy':null;if(!k)return;let r=limits.get(lane);if(!r){r={};limits.set(lane,r);}r[k]=s.tick;}
+export function laneLimit(s:State,lane:Lane):'press'|'matter'|'energy'|null{const r=limits.get(lane);if(!r)return null;for(const k of ['matter','energy','press'] as const)if(r[k]!==undefined&&s.tick-r[k]<=30)return k;return null;}
 export function step(s:State) {
  if(s.paused||s.fault)return;
  s.tick++;
@@ -339,7 +345,7 @@ export function step(s:State) {
    const factor=transferFactor(s);
    for(const t of s.transfers)if(t.enabled&&plantUnlocked(s,t.from)&&plantUnlocked(s,t.to)){const src=s.plants[t.from].stock,dst=s.plants[t.to].stock;const qty=Math.max(0,Math.min(src[t.resource],t.rate*factor*DT,LIMITS.stock-dst[t.resource]));src[t.resource]-=qty;dst[t.resource]+=qty;t.moved+=qty;}
    const before=s.produced;
-   for(const id of PLANTS)if(plantUnlocked(s,id))for(const lane of s.plants[id].lanes)for(let i=lane.machines.length-1;i>=0;i--){const m=lane.machines[i];const clock=m.clock;process(s,id,lane,m,lane.machines[i+1]);if(m.clock>clock+1e-9){if(hasMod(m,'turbo'))m.clock/=2;if(doctrine(s,'vitesse'))m.clock*=.75;}}
+   for(const id of PLANTS)if(plantUnlocked(s,id))for(const lane of s.plants[id].lanes)for(let i=lane.machines.length-1;i>=0;i--){const m=lane.machines[i];const clock=m.clock;process(s,id,lane,m,lane.machines[i+1]);noteLimit(s,lane,m);if(m.clock>clock+1e-9){if(hasMod(m,'turbo'))m.clock/=2;if(doctrine(s,'vitesse'))m.clock*=.75;}}
    if(s.pending.length>LIMITS.events||(s.transit?.length??0)>LIMITS.events)throw Error('File d’événements dépassée');
    if(!paced(s))for(const u of UNLOCKS)if(before<u.at&&s.produced>=u.at){note(s,u.text);mark(s,u.text);}
    const tiers=(s.tierTicks??=[]);while(tiers.length<21&&s.produced>=10**(tiers.length+1))tiers.push(s.tick);
@@ -353,7 +359,7 @@ export function step(s:State) {
 export function simulate(s:State,seconds:number) {for(let i=0;i<Math.round(seconds/DT);i++)step(s);return s;}
 export function measuredRate(s:State,seconds=60) {const end=s.history.at(-1)!;const start=s.history.find(x=>x.tick>=end.tick-seconds/DT)??end;const duration=(end.tick-start.tick)*DT;return {rate:duration>0?(end.total-start.total)/duration:0,duration};}
 export const UPGRADE_MAX=16;
-export function upgradeCost(level:number) {return 40*4**level;}
+export function upgradeCost(level:number) {return Math.round(TUNING.upgradeBase*TUNING.upgradeGrowth**level);}
 export function upgrade(s:State,id:PlantId,type:'oreLevel'|'energyLevel') {const p=s.plants[id];const cost=upgradeCost(p[type]);if(!plantUnlocked(s,id)||(id!=='A'&&type==='oreLevel')||p[type]>=UPGRADE_MAX||!spend(s.plants.A,'components',cost))return false;p[type]++;s.totalSpent+=cost;return true;}
 function build(s:State,spec:MachineSpec[]) {
  // Costs are computed one machine at a time, so a lane of three resonators pays the growing price of each.
@@ -368,15 +374,20 @@ export function addLane(s:State,id:PlantId,bp?:Blueprint,role:'source'|'branch'=
  const fee=laneFee(s,id);const {total,costs}=build(s,spec);if(!spend(s.plants.A,'components',total+fee))return false;
  s.plants[id].lanes.push({id:s.nextId++,name:bp?.name??`Ligne ${s.plants[id].lanes.length+1}`,capsule:!!bp,...(fee?{fee}:{}),machines:spec.map((x,i)=>{const m={...machine(s,x.kind,costs[i]),param:x.param,connected:x.connected,...(x.variant!==undefined?{variant:x.variant}:{})};if(x.routing&&m.routing)Object.assign(m.routing,x.routing,{target:0});return m;})});s.totalSpent+=total+fee;return true;
 }
-function insertionIndex(lane:Lane,kind:Kind) {
+function insertionIndex(lane:Lane,kind:Kind,after?:number) {
  const press=lane.machines.findIndex(x=>x.kind==='press');const router=lane.machines.findIndex(x=>x.kind==='router'||x.kind==='relay');
+ // 1.3.1: right after a chosen machine when that place is valid (matter modules between the injector and the press,
+ // residue modules after the press).
+ const at=after===undefined?-1:lane.machines.findIndex(x=>x.id===after);
+ if(at>=0){const i=at+1;const p=press<0?lane.machines.length:press;if(MODULES[kind].input==='exhaust'?i>p:i>=1&&i<=p)return i;}
  return MODULES[kind].input==='exhaust'?lane.machines.length:router>0?Math.min(router,Math.max(1,press)):Math.max(1,press);
 }
-export function insertModule(s:State,id:PlantId,laneId:number,kind:Kind) {
+export const insertionPlace=(s:State,id:PlantId,laneId:number,kind:Kind,after?:number)=>{const lane=s.plants[id].lanes.find(l=>l.id===laneId);return lane?insertionIndex(lane,kind,after):-1;};
+export function insertModule(s:State,id:PlantId,laneId:number,kind:Kind,after?:number) {
  const lane=s.plants[id].lanes.find(l=>l.id===laneId);if(!lane||lane.machines.length>=nodesMax(s)||!unlocked(s,kind)||kind==='intake'||kind==='press')return false;
  const cost=costOf(s,kind);if(!spend(s.plants.A,'components',cost))return false;
  const m=machine(s,kind,cost);if(kind==='stamp'&&featureOpen(s,'amber')&&lane.machines.some(x=>x.kind==='stamp'&&(x.variant??0)===0))m.variant=1;
- lane.machines.splice(insertionIndex(lane,kind),0,m);s.totalSpent+=cost;return true;
+ lane.machines.splice(insertionIndex(lane,kind,after),0,m);s.totalSpent+=cost;return true;
 }
 // Insert the modifiers of a saved invention into an existing line (one level of nesting).
 export function insertBlueprint(s:State,id:PlantId,laneId:number,index:number) {

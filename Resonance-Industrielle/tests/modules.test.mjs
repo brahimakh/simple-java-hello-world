@@ -79,9 +79,9 @@ test('longue partie mixte : aucune anomalie et sauvegarde valide',()=>{
 test('maîtrises : ×2 sur la famille qui agit, échelle de prix partagée',()=>{
  const s=setup(['intake','cadence','press']);const [src,c]=nodes(s);src.connected=false;c.streak=3;c.last=0;s.tick=10;s.plants.A.stock.components=1e12;
  assert.ok(buyMastery(s,'cadence'));const second=masteryCost(s);assert.ok(buyMastery(s,'weave'));assert.ok(masteryCost(s)>second);
- c.queue=[packet()];s.plants.A.stock.energy=0;step(s);assert.equal(nodes(s)[2].queue[0].quality,5*2);
+ c.queue=[packet()];s.plants.A.stock.energy=0;step(s);assert.equal(nodes(s)[2].queue[0].quality,5*1.5);
 });
 test('lignes supplémentaires : redevance croissante, rendue au démontage',()=>{
- const s=setup(['intake','press']);const before=s.plants.A.stock.components;const fee=laneFee(s,'A');assert.equal(fee,100);assert.ok(addLane(s,'A'));assert.equal(laneFee(s,'A'),800);
+ const s=setup(['intake','press']);const before=s.plants.A.stock.components;const fee=laneFee(s,'A');assert.equal(fee,1e6);assert.ok(addLane(s,'A'));assert.equal(laneFee(s,'A'),4e7);
  assert.ok(removeLane(s,'A',s.plants.A.lanes[1].id));assert.equal(s.plants.A.stock.components,before);
 });

@@ -14,6 +14,13 @@ Pour comprendre le rôle du joueur : lire [le guide des bases](GUIDE-JOUEUR.md).
 
 Chaque version garde ses propres sauvegardes. Pour passer de l’une à l’autre : **Exporter** puis **Importer** (menu ☰ sur téléphone).
 
+## Nouveautés 1.3.1 : économie recalée
+
+- Les lignes, l’extraction et l’énergie coûtent cher et suivent la production : la 2e ligne vaut 1 million, chaque suivante ×40. Il y a toujours quelque chose à viser.
+- Les maîtrises arrivent plus tôt (vers 20 000 composants), plus petites (×1,5 par niveau) et plus fréquentes.
+- Chaque ligne nomme son goulot (presse, matière ou énergie) avec le geste qui le lève. Par exemple : « la presse traite 1 lot par seconde, une deuxième presse double la cadence ».
+- Un module peut s’insérer juste après la machine choisie, depuis le catalogue ou depuis la fiche de la machine (aussi sur téléphone).
+
 ## Nouveautés 1.3 : rythme, interface futuriste, Android corrigé
 
 - Android : le haut du jeu ne passe plus sous la barre d’état (heure, batterie) ; le menu est de nouveau accessible.

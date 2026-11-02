@@ -31,8 +31,8 @@ Limite : un joueur réel lit, hésite et se trompe davantage. Mes durées sont d
 - **Les mécaniques s'imbriquent-elles logiquement ?** Oui pour les bases : petits lots rapides, puis gros lots, puis empreintes. Deux exceptions, corrigées : le synchroniseur avant la Serre, et l'aiguillage qui bloque. Reste une chose peu claire : la presse ne traite qu'un lot par seconde. Une nouvelle ligne double donc presque la production, et le jeu ne le dit nulle part.
 - **Ai-je compris ce que le jeu attendait ?** Toujours pendant le guide. Après, les pistes répondent bien à la question. Les contrats impossibles brouillaient ce message : c'est corrigé.
 
-## Suite proposée (non faite)
+## Suite (faite en 1.3.1)
 
-1. Une économie qui reste tendue : des prix d'extension (lignes, extraction) qui suivent la production, comme dans Cookie Clicker ou Antimatter Dimensions, pour qu'il y ait toujours quelque chose à viser.
-2. Afficher le goulot d'une ligne (« la presse traite 1 lot/s ») pour que l'idée « une deuxième ligne double la production » soit enseignée, pas devinée.
-3. L'ordre d'insertion des modules : un module s'insère toujours juste avant la presse. Proposer « placer après la machine choisie » éviterait des déplacements.
+1. Économie recalée : lignes, extraction et maîtrises coûtent maintenant de 15 s à 5 min de production selon la phase, contre 0 s avant (mesures dans `BALANCE.md`).
+2. Chaque ligne nomme son goulot et le geste qui le lève.
+3. Un module s'insère juste après la machine choisie.

@@ -9,7 +9,7 @@ import {compareLayouts} from '../src/bench.ts';
 
 // Fixtures use unlocked budgets to isolate the rules; these are not human playtests.
 function factory({batch=80,recovery=true}={}){
- const s=createState();s.produced=2000;s.plants.A.stock.components=10000;const l=s.plants.A.lanes[0];
+ const s=createState();s.produced=2000;s.plants.A.stock.components=1e8;const l=s.plants.A.lanes[0];
  for(const k of ['cadence','stamp','batch','weave',...(recovery?['recovery','exchanger']:[])])assert.ok(insertModule(s,'A',l.id,k));
  l.machines.find(m=>m.kind==='batch').param=batch;return s;
 }
@@ -24,9 +24,9 @@ test('branche : rôle explicite et insertion avant le routeur ; le flux atteint 
  assert.match(insertionHint(l,'exchanger'),/destination/);
 });
 
-test('diagnostic : une destination absente est prioritaire sur une saturation en amont',()=>{
+test('diagnostic : un aiguillage sans destination ne bloque plus la ligne (1.3)',()=>{
  const s=factory(),l=s.plants.A.lanes[0];insertModule(s,'A',l.id,'router');simulate(s,120);
- assert.equal(diagnosis(s,'A').kind,'router');assert.match(supplyHint(createState(),'A','oreLevel'),/Aucune pénurie/);
+ assert.notEqual(diagnosis(s,'A')?.kind,'router');assert.ok(l.machines.find(m=>m.kind==='press').processed>10);assert.match(supplyHint(createState(),'A','oreLevel'),/Aucune pénurie/);
 });
 
 test('observation : anciennes files comptées, comparaison sans mutation et facteurs de pressage réels',()=>{
