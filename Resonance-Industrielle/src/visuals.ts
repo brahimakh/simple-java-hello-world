@@ -1,4 +1,4 @@
-import {MODULES,UNLOCKS,type Kind,type PlantId} from './content.ts';
+import {MODULES,UNLOCKS,FINAL_GOAL,type Kind,type PlantId} from './content.ts';
 import {buffer,incoming,type State,type Machine} from './engine.ts';
 import {t,formatNumber as fmt,formatCompact} from './i18n.ts';
 import {routeWarning} from './insights.ts';
@@ -9,18 +9,23 @@ const paths:Record<Kind,string>={
  cadence:'M2 12h3l3-7 4 14 4-14 3 7h3',batch:'M5 3h14v18H5z M8 7h8 M8 11h8 M8 15h8 M8 18h8',
  charge:'M5 5h14v14H5z M14 7l-5 6h5l-3 5',sync:'M3 5v6l5 5h8l5-5V5 M12 16v6 M8 5v6 M16 5v6',
  recovery:'M5 8a8 8 0 1 1-1 8 M5 3v5h5 M8 12h8 m-4-4v8',exchanger:'M3 7h17 m-4-4 4 4-4 4 M21 17H4 m4-4-4 4 4 4',
- stamp:'M8 3h8v7l3 4v4H5v-4l3-4z M3 22h18 M10 6h4',weave:'M3 5l18 14 M3 19L21 5 M3 12h18 M8 3v18 M16 3v18',router:'M3 12h7l7-7h4 M10 12l7 7h4 M17 2l4 3-4 3 M17 16l4 3-4 3'
+ stamp:'M8 3h8v7l3 4v4H5v-4l3-4z M3 22h18 M10 6h4',weave:'M3 5l18 14 M3 19L21 5 M3 12h18 M8 3v18 M16 3v18',router:'M3 12h7l7-7h4 M10 12l7 7h4 M17 2l4 3-4 3 M17 16l4 3-4 3',
+ split:'M3 12h6 M9 12l6-6h6 M9 12l6 6h6 M12 3v3 M12 18v3',filter:'M3 4h18l-7 8v7l-4 2v-9z',
+ mirror:'M12 2v20 M4 6l5 6-5 6z M20 6l-5 6 5 6',furnace:'M5 21h14V9l-7-6-7 6z M9 21v-5a3 3 0 0 1 6 0v5 M12 6v3',
+ compress:'M4 4h16v16H4z M8 8l4 4 4-4 M8 16l4-4 4 4',harmonic:'M2 9c3-4 5 4 8 0s5 4 8 0 3-1 4 0 M2 15c3-4 5 4 8 0s5 4 8 0 3-1 4 0',
+ sensor:'M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0-6 0 M12 12m-8 0a8 8 0 1 0 16 0a8 8 0 1 0-16 0 M12 2v3 M12 19v3'
 };
 export function moduleSymbol(kind:Kind) {return `<svg viewBox="0 0 24 24" class="module-symbol" aria-hidden="true"><path d="${paths[kind]}"/></svg>`;}
 export function family(kind:Kind) {return ['intake'].includes(kind)?'supply':['press'].includes(kind)?'output':['recovery','exchanger'].includes(kind)?'recovery':kind==='router'?'routing':'process';}
 export function flowActive(s:State,m:Machine) {return !s.paused&&!!m.lastPacket&&s.tick-m.lastPacket.tick<=8;}
 export function progressDeck(s:State) {
- const stages=[{at:0,text:'Démarrage'},{at:10,text:'Cadence'},{at:30,text:'Empreintes'},{at:60,text:'Réseau'},{at:80,text:'Tissage'},{at:400,text:'Récupération'},{at:1000,text:'Coopération'},{at:500000,text:'Résonance'}];
- const nextUnlock=UNLOCKS.find(u=>u.at>s.produced);const goal=nextUnlock?.at??500000;
- const nextModule=Object.values(MODULES).find(m=>m.unlock===goal)?.name??(goal===1000?'Serre catalytique':'Le cœur de Résonance');
+ const stages=[{at:0,text:'Démarrage'},{at:10,text:'Cadence'},{at:80,text:'Tissage'},{at:1000,text:'Coopération'},{at:1e5,text:'Contrats'},{at:1e6,text:'Manufacture'},{at:1e8,text:'Triangle'},{at:1e9,text:'Complexe'},{at:1e12,text:'Refondation'},{at:1e15,text:'Résonance'}];
+ const nextUnlock=UNLOCKS.find(u=>u.at>s.produced);const goal=nextUnlock?.at??FINAL_GOAL;
+ const special:Record<number,string>={1000:'Serre catalytique',1e5:'Four et contrats',3e6:'Empreinte ambre',1e8:'Forge à plasma',1e12:'Refondation'};
+ const nextModule=special[goal]??Object.values(MODULES).find(m=>m.unlock===goal)?.name??'Le cœur de Résonance';
  const previous=[0,...UNLOCKS.map(u=>u.at)].filter(n=>n<goal&&n<=s.produced).at(-1)??0;
  const fraction=Math.max(0,Math.min(1,(s.produced-previous)/Math.max(1,goal-previous)));
- return `<section class="progress-deck" aria-label="Progression du laboratoire"><div class="progress-heading"><div><span class="eyebrow">LE LABORATOIRE PREND FORME</span><h2>${s.produced>=500000?'Objectif atteint · continuez à inventer':'Prochaine possibilité'} <span class="next-unlock">${esc(t(nextModule))}</span></h2></div><div class="lifetime-total"><strong data-live="produced">${formatCompact(s.produced)}</strong><small>composants cumulés</small></div></div><div class="next-progress"><progress value="${fraction}" max="1" aria-label="Prochain déblocage"></progress><span>${fmt(Math.min(s.produced,goal))} / ${fmt(goal)}</span></div><ol class="milestone-track">${stages.map((m,i)=>`<li class="${s.produced>=m.at?'achieved':''}"><span class="milestone-dot">${s.produced>=m.at?'✓':String(i+1).padStart(2,'0')}</span><div><strong>${m.text}</strong><small>${fmt(m.at)}</small></div></li>`).join('')}</ol><p class="industrial-goal">Objectif industriel : 500 000 composants cumulés. Les dépenses ne retirent aucun déblocage.</p>${s.produced>=1000?`<p class="suggestion-note">${t(`Défis réussis : ${s.challenges?.completed.length??0} / 3`)} <button data-action="nav" data-view="experiments">Voir les défis d’invention</button></p>`:''}</section>`;
+ return `<section class="progress-deck" aria-label="Progression du laboratoire"><div class="progress-heading"><div><span class="eyebrow">LE LABORATOIRE PREND FORME</span><h2>${s.produced>=FINAL_GOAL?'Objectif atteint · continuez à inventer':'Prochaine possibilité'} <span class="next-unlock">${esc(t(nextModule))}</span></h2></div><div class="lifetime-total"><strong data-live="produced">${formatCompact(s.produced)}</strong><small>composants cumulés</small></div></div><div class="next-progress"><progress value="${fraction}" max="1" aria-label="Prochain déblocage"></progress><span>${formatCompact(Math.min(s.produced,goal))} / ${formatCompact(goal)}</span></div><ol class="milestone-track">${stages.map((m,i)=>`<li class="${s.produced>=m.at?'achieved':''}"><span class="milestone-dot">${s.produced>=m.at?'✓':String(i+1).padStart(2,'0')}</span><div><strong>${m.text}</strong><small>${formatCompact(m.at)}</small></div></li>`).join('')}</ol><p class="industrial-goal">Objectif industriel : 10¹⁵ composants cumulés. Les dépenses ne retirent aucun déblocage.</p>${s.produced>=1000?`<p class="suggestion-note">${t(`Défis réussis : ${s.challenges?.completed.length??0} / 3`)} <button data-action="nav" data-view="experiments">Voir les défis d’invention</button></p>`:''}</section>`;
 }
 export function networkOverview(s:State,id:PlantId,selected:number) {
  const lanes=s.plants[id].lanes;if(!lanes.length)return '';

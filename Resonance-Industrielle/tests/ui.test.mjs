@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {Window} from 'happy-dom';
 import {createState,simulate,insertModule,encapsulate,saveConfiguration,addLane,configureRouter} from '../src/engine.ts';
-import {t,EN} from '../src/i18n.ts';
+import {t,EN,hasTranslation} from '../src/i18n.ts';
 import {serialize,SAVE_KEY} from '../src/save.ts';
 import {defaultPreferences,PREFERENCES_KEY} from '../src/onboarding.ts';
 import {startChallenge} from '../src/challenges.ts';
@@ -40,7 +40,7 @@ test('interface : premiers pas, sélection réelle, aide globale, langue révers
 function translatedScreen(ui,root='main') {
  ui.lang('fr');const french=[];const d=ui.document;const walker=d.createTreeWalker(d.querySelector(root),4);let node;
  while(node=walker.nextNode())if(!node.parentElement.closest('[data-user-text],script,style')&&/[a-zà-ÿ]{2}/i.test(node.textContent))french.push(node.textContent.trim());
- ui.lang('en');assert.deepEqual(french.filter(x=>t(x)===x&&EN[x]!==x&&!/^\d+(?: \/ 10)? (?:machines|cycles)$/.test(x)),[],root+' contains untranslated copy');
+ ui.lang('en');assert.deepEqual(french.filter(x=>t(x)===x&&EN[x]!==x&&!hasTranslation(x)),[],root+' contains untranslated copy');
 }
 
 test('interface apprentissage : réglage gratuit, observation, comparaison et choix du rôle de ligne',async()=>{
@@ -111,7 +111,7 @@ test('interface anglais : parcours avancé, noms personnels préservés et dialo
    click('resource','[data-resource="energy"]');assert.match(d.querySelector('#dialog').textContent,/Base generation/);click('close');
    click('rate');assert.match(d.querySelector('#dialog').textContent,/Average rate and peak production/);click('close');
    click('plant','[data-plant="B"]');assert.match(d.querySelector('.topbar').textContent,/Catalytic greenhouse/);
-   click('nav','[data-view="guide"]');click('detailed-rules');assert.match(d.querySelector('#dialog').textContent,/Prototype limits: six lines/);click('close');
+   click('nav','[data-view="guide"]');click('detailed-rules');assert.match(d.querySelector('#dialog').textContent,/Announced limits: six lines/);click('close');
    click('reset');assert.match(d.querySelector('#dialog').textContent,/Start a new game/);click('confirm-reset');assert.equal(d.documentElement.lang,'en');assert.match(d.querySelector('#onboarding').textContent,/1. Where does material/);
  }finally{await ui.close();}
 });
@@ -119,7 +119,7 @@ test('interface réseau : réglages réels de branche, schéma et progression vi
  const s=createState();s.produced=2000;s.plants.A.stock.components=10000;addLane(s,'A');const [a,b]=s.plants.A.lanes;insertModule(s,'A',a.id,'router');const router=a.machines.find(m=>m.kind==='router');configureRouter(s,'A',a.id,router.id,{target:b.id});s.paused=true;
  const prefs=defaultPreferences();prefs.language='en';prefs.guide.hidden=true;
  const ui=await mount({state:s,preferences:prefs});try{
-   const {document:d,click,lang}=ui;assert.equal(d.querySelectorAll('.branch-link').length,1);assert.equal(d.querySelectorAll('.milestone-track .achieved').length,7);
+   const {document:d,click,lang}=ui;assert.equal(d.querySelectorAll('.branch-link').length,1);assert.equal(d.querySelectorAll('.milestone-track .achieved').length,4);
    click('select-module',`[data-id="${router.id}"]`);assert.match(d.querySelector('.routing-settings').textContent,/Destination line/);
    const mode=d.querySelector('[data-route="mode"]');mode.value='alternate';mode.dispatchEvent(new ui.window.Event('change',{bubbles:true}));click('router-source');click('save');
    const saved=JSON.parse(ui.window.localStorage.getItem(SAVE_KEY));assert.equal(saved.plants.A.lanes[0].machines.find(m=>m.kind==='router').routing.mode,'alternate');assert.equal(saved.plants.A.lanes[1].machines[0].connected,false);

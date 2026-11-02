@@ -1,6 +1,8 @@
 import {MODULES, UNLOCKS, type Kind} from './content.ts';
 import {EXPERIMENTS} from './engine.ts';
 import {LEARNING_EN} from './learning-en.ts';
+import {MODULES_EN,UNLOCKS_EN,EXPERIMENTS_EN} from './content-en.ts';
+import {UI_EN} from './ui-en.ts';
 
 export type Language = 'fr' | 'en';
 let language:Language='fr';
@@ -57,7 +59,7 @@ export const EN:Record<string,string>={
  'Déblocage à {0} composants cumulés':'Unlocks at {0} lifetime components','Verrouillé':'Locked','Règles de {0}':'Rules for {0}',
  'INFRASTRUCTURE':'INFRASTRUCTURE','Donner de l’ampleur à vos idées':'Scale up your ideas',
  'Augmenter l’alimentation change le goulot. Les procédés restent les vôtres.':'Increasing supply moves the bottleneck. Your processes remain yours.',
- 'Extraction ×2':'Extraction ×2','Générateurs ×2':'Generators ×2','Niveau {0} / 8 · {1} → {2}/s':'Level {0} / 8 · {1} → {2}/s',
+ 'Extraction ×2':'Extraction ×2','Générateurs ×2':'Generators ×2',
  'Capacités annoncées : réserves 10¹², qualité ×10⁶, lot ≤ 160, tampon 800 par machine. Pas de perte par destruction.':'Visible capacities: stocks 10¹², quality ×10⁶, batch ≤ 160, buffer 800 per machine. Nothing is destroyed by a failed experiment.',
  'DEUX INSTALLATIONS / UNE BOUCLE':'TWO FACILITIES / ONE LOOP','La matière circule. La puissance revient.':'Material flows out. Power flows back.',
  'Matière → composants':'Material → components','+ chaleur résiduelle':'+ waste heat','Résidus → catalyseurs':'Residue → catalysts','Énergie propre indépendante':'Independent energy supply',
@@ -154,7 +156,7 @@ export const EN:Record<string,string>={
  'Comparez deux idées, cherchez ce qui ralentit la chaîne et consultez les expériences. À 1 000 composants cumulés, une seconde installation et l’encapsulation ouvrent de nouvelles possibilités.':'Compare two ideas, find what slows the chain down and check the experiments. At 1,000 lifetime components, a second facility and encapsulation open new possibilities.',
  'Choisir une expérience':'Choose an experiment','Le guide est facultatif. Vous pouvez le retrouver dans « Premiers pas ».':'The guide is optional. Find it again in “Getting started”.',
  'CAP SUR VOTRE LABORATOIRE':'YOUR LABORATORY AT A GLANCE','Qu’est-ce que le jeu attend de moi ?':'What am I supposed to do?',
- 'Construire une industrie qui produit davantage grâce à vos idées. Votre objectif final est de produire 500 000 composants cumulés. Entre-temps, de nouvelles règles ouvrent de nouveaux choix.':'Build an industry that produces more through your ideas. Your final goal is 500,000 lifetime components. Along the way, new rules open new choices.',
+ 'Construire une industrie qui produit davantage grâce à vos idées. Votre objectif final est de produire 10¹⁵ composants cumulés, en passant par le million, le milliard et le billion. Entre-temps, de nouvelles règles ouvrent de nouveaux choix.':'Build an industry that produces more through your ideas. Your final goal is 10¹⁵ lifetime components, through the million, the billion and the trillion. Along the way, new rules open new choices.',
  '1 · Observer':'1 · Observe','2 · Modifier':'2 · Modify','3 · Mesurer et garder':'3 · Measure and keep',
  'Les ressources sont dans les réserves. Les cartes les prélèvent et les traitent de gauche à droite. Une machine qui attend vous indique ce qui manque.':'Resources sit in stocks. Cards take and process them from left to right. A waiting machine tells you what is missing.',
  'Achetez un module pour changer une livraison, la taille d’un lot ou la récupération. L’ordre des modificateurs et leurs réglages comptent. Aucune recette unique n’est demandée.':'Buy a module to change a delivery, batch size or recovery. Modifier order and settings matter. There is no single required build.',
@@ -172,24 +174,9 @@ export const EN:Record<string,string>={
  'Préférence conservée pour vos prochaines sessions.':'Preference saved for future sessions.'
 };
 
-const modules:Record<Kind,[string,string]>={
- stamp:['Delivery marker','Marks an unmarked delivery with 1 imprint. A batch can only be marked once, even after amplification. The accumulator adds imprints in proportion to the material collected. Cycle: 0.1 s.'],
- weave:['Weaver','Consumes batch imprints to multiply quality by (1 + imprints), up to ×8. Without imprints: ×1. A consumed imprint cannot be reactivated. Cycle: 0.2 s.'],
- router:['Router','Routes each batch to the local continuation or to the first card after the injector of another line in the same facility. Modes: small batches, large batches, alternating, or overflow when the local output is blocked. The batch arrives on the next step, without copying. Cycle: 0.2 s. A missing or full destination stops the batch.'],
- intake:['Injector','Every 0.5 s: takes 6 or 12 material (adjustable) from local stock. Waits if stock or output is unavailable. In the greenhouse, takes residue. Maximum rate: 24 material/s per injector.'],
- cadence:['Resonator','On each delivery of ≤ 12 material, gains one harmony if the previous delivery was ≤ 2 s ago. Quality × (1 + harmonies), maximum ×5. A delivery > 12 or a gap > 2 s breaks the sequence. Cycle: 0.1 s.'],
- batch:['Accumulator','Collects material up to the chosen threshold, then delivers exactly that batch. Preserves weighted average quality. At most 1 delivery/s. The press rewards batches of 80 or more.'],
- charge:['Charging chamber','Holds each batch for the chosen duration. Quality × (1 + duration / 2). Uses 0.2 energy × material × duration. Only one batch charges at a time; the cost is reserved at the start.'],
- press:['Press','1 batch/s, up to 160 material. Foundry: material / 10 × quality × large-batch bonus (×8 at 80+) × catalysis (×4 for 1 catalyst). Cost: 0.5 energy/material. Produces residue. Greenhouse: material / 20 × quality catalysts, cost 0.25 energy/material, no batch bonus or catalysis.'],
- recovery:['Reclaimer','On Foundry cycle completion: returns 80% of the material, only once per batch. Cost: 0.05 energy/material. Cycle: 0.2 s. The press residue remains available: it represents recoverable heat.'],
- exchanger:['Exchanger','On Foundry cycle completion: recovers 80% of pressing energy, only once per batch. Cycle: 0.2 s. Charging and reclamation costs are not refunded.'],
- sync:['Synchroniser','On delivery, if local stock holds at least 10 catalysts: uses 1 catalyst and multiplies quality by 3. Otherwise waits. Cycle: 0.5 s. Also works before a catalysed press.']
-};
-for(const k of Object.keys(modules) as Kind[]){EN[MODULES[k].name]=modules[k][0];EN[MODULES[k].description]=modules[k][1];EN[MODULES[k].description.split('. ')[0]+'.']=modules[k][1].split('. ')[0]+'.';}
-const unlocks:Record<number,string>={10:'Resonator available · deliveries can resonate.',30:'Delivery marker available · each delivery can leave an imprint.',50:'Accumulator available · batch size becomes a choice.',60:'Router available · lines can cooperate.',80:'Weaver available · process order changes the result.',160:'Charging chamber available · time becomes a raw material.',400:'Recovery available · outputs can feed inputs.',1000:'Greenhouse, synchroniser and encapsulation available.'};
-UNLOCKS.forEach(u=>EN[u.text]=unlocks[u.at]);
-const experiments=[['First harmony','Produce 50 lifetime components.'],['Critical mass','Press at least one batch of 80 material.'],['Nothing wasted','Recover 500 material.'],['Industrial dialogue','Produce 30 catalysts in the greenhouse.'],['Steady state','Measure at least 300 components/s over a full 60 s window.'],['The Resonance core','Produce 500,000 lifetime components. No reset: the workshop stays open.']];
-EXPERIMENTS.forEach((e,i)=>{EN[e.name]=experiments[i][0];EN[e.description]=experiments[i][1];});
+for(const k of Object.keys(MODULES_EN) as Kind[]){EN[MODULES[k].name]=MODULES_EN[k][0];EN[MODULES[k].description]=MODULES_EN[k][1];EN[MODULES[k].description.split('. ')[0]+'.']=MODULES_EN[k][1].split('. ')[0]+'.';}
+UNLOCKS.forEach(u=>EN[u.text]=UNLOCKS_EN[u.at]);
+EXPERIMENTS.forEach(e=>{const x=EXPERIMENTS_EN[e.id];if(x){EN[e.name]=x[0];EN[e.description]=x[1];}});
 Object.assign(EN,{
   "PROTOTYPE 0.4 / AUCUN GAIN HORS LIGNE": "PROTOTYPE 0.4 / NO OFFLINE PROGRESS",
   "Banc d’essai": "Test bench",
@@ -215,7 +202,7 @@ Object.assign(EN,{
   "Prochaine possibilité": "Next possibility",
   "Prochain déblocage": "Next unlock",
   "composants cumulés": "lifetime components",
-  "Objectif industriel : 500 000 composants cumulés. Les dépenses ne retirent aucun déblocage.": "Industrial goal: 500,000 lifetime components. Spending never removes unlocks.",
+  "Objectif industriel : 10¹⁵ composants cumulés. Les dépenses ne retirent aucun déblocage.": "Industrial goal: 10¹⁵ lifetime components. Spending never removes unlocks.",
   "Démarrage": "Start",
   "Cadence": "Cadence",
   "Empreintes": "Imprints",
@@ -289,8 +276,11 @@ Object.assign(EN,{
 Object.assign(EN,{'Temps bloqué · machines actives':'Time blocked · active machines'});
 Object.assign(EN,{'Pour comparer la Serre, capturez une référence où elle est déjà débloquée.':'To compare the greenhouse, capture a reference where it is already unlocked.'});
 Object.assign(EN,LEARNING_EN);
+Object.assign(EN,UI_EN);
 Object.assign(EN,{'PROTOTYPE 0.5 / AUCUN GAIN HORS LIGNE':'PROTOTYPE 0.5 / NO OFFLINE GAINS','Menu':'Menu','Export impossible ici : copiez votre partie depuis l’ordinateur.':'Export unavailable here: copy your game from a computer.','♪ Son actif':'♪ Sound on','♪ Son coupé':'♪ Sound off','NOUVELLE POSSIBILITÉ':'NEW POSSIBILITY','Voir le module':'Show the module','Record de lot':'Batch record','OBJECTIF INDUSTRIEL':'INDUSTRIAL GOAL','Le cœur de Résonance bat':'The heart of Resonance beats','500 000 composants cumulés. L’atelier reste ouvert : continuez à inventer.':'500,000 lifetime components. The workshop stays open: keep inventing.','ORDRE DE GRANDEUR':'ORDER OF MAGNITUDE','Plus de {0} composants/s':'Over {0} components/s','Votre débit moyen vient de gagner un chiffre. Qu’est-ce qui l’a rendu possible ?':'Your average rate just gained a digit. What made it possible?'});
 const escapeRE=(s:string)=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+// True when a canonical French string has an English form, directly or through a pattern.
+export function hasTranslation(text:string){const x=text.trim();return x in EN||patterns.some(p=>p.regex.test(x));}
 const patterns=Object.entries(EN).filter(([k])=>k.includes('{0}')).sort((a,b)=>b[0].length-a[0].length).map(([key,value])=>({regex:new RegExp('^'+key.split(/\{\d+\}/).map(escapeRE).join('(.+?)')+'$','u'),value,raw:key.startsWith('Invention «')}));
 export function t(text:string):string {
  if(language==='fr')return text;

@@ -1,0 +1,63 @@
+/* 0.6 screens: notebook, contracts, patents, triangle, sharing, display options and visual themes. */
+#app{zoom:var(--zoom,1)}
+.count-pill{display:inline-block;padding:5px 11px;border:1px solid #91ddc055;border-radius:999px;color:var(--teal);font-size:12px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.variant-pill{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:#e4b18022;color:var(--orange);font-size:11px}
+.chart-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.log-chart{width:100%;height:auto;display:block;margin:10px 0}
+.log-chart .grid-line{stroke:#ffffff14;stroke-width:1}
+.log-chart .axis-label{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.log-chart .log-line{fill:none;stroke:var(--teal);stroke-width:2.2;stroke-linejoin:round}
+.log-chart .ghost-line{fill:none;stroke:#e4b180aa;stroke-width:1.5;stroke-dasharray:5 4}
+.log-chart .timeline-dot{fill:#ffd479;stroke:#101719;stroke-width:1.5}
+.ghost-note{display:inline-block;padding:6px 10px;border-radius:6px;background:#efa39118;color:var(--red);font-size:12px}
+.ghost-note.ahead{background:#91ddc018;color:var(--teal)}
+.tier-row{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tier-row b{color:var(--text);font-weight:600;margin-right:4px}
+.discovery-grid,.badge-grid,.patent-grid,.contract-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin:12px 0}
+.discovery{padding:12px;border:1px dashed #3c5254;border-radius:8px;min-width:0}
+.discovery h4{margin:4px 0 0;font-size:13px;color:var(--muted);font-weight:500}
+.discovery.found{border:1px solid #ffd47955;background:linear-gradient(145deg,#ffd4790d,transparent)}
+.discovery.found h4{color:var(--text);font-weight:600}
+.discovery.found .eyebrow{color:#ffd479}
+.discovery p{margin:6px 0 0;font-size:12px;color:var(--muted);line-height:1.45}
+.badge{padding:10px 12px;border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:4px;opacity:.65}
+.badge.earned{opacity:1;border-color:#ffd47966;background:#ffd4790a}
+.badge.earned strong{color:#ffd479}
+.badge small,.patent small{color:var(--muted);line-height:1.4}
+.theme-row{display:flex;flex-wrap:wrap;gap:8px}
+.theme-row button.active{border-color:var(--teal);color:var(--teal)}
+.contracts h3{margin-top:18px}
+.contract,.patent{padding:14px;border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.contract h3{margin:0;font-size:14px;line-height:1.35}
+.contract.active{border-color:#91ddc077;background:#91ddc00c}
+.contract p{margin:0;font-size:12px;color:var(--muted)}
+.patent.owned{border-color:#91ddc055}
+.patent button{align-self:flex-start}
+.cooperation-flow.triangle{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cooperation-flow.triangle .locked{opacity:.45}
+.transfer-list{display:grid;gap:8px;margin:14px 0}
+.transfer-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:8px}
+.transfer-row small{display:block;color:var(--muted);margin-top:2px}
+.share-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:12px 0}
+.code-box{width:100%;box-sizing:border-box;font-family:ui-monospace,Consolas,monospace;font-size:12px;background:#101c1e;color:var(--text);border:1px solid #45605a;border-radius:6px;padding:10px;margin:10px 0;resize:vertical;word-break:break-all}
+.variant-list{display:grid;gap:8px;margin-top:12px}
+.variant-list .wide{width:100%;text-align:left}
+.offer-actions{gap:6px}
+.estimate-result{font-size:20px}
+
+/* Visual themes, unlocked by badges. Filters keep every component consistent without duplicating the palette. */
+:root[data-skin="neon"]{filter:saturate(1.7) hue-rotate(-28deg) contrast(1.08)}
+:root[data-skin="blueprint"]{filter:hue-rotate(38deg) saturate(1.35)}
+:root[data-skin="paper"]{filter:invert(.92) hue-rotate(180deg) sepia(.12)}
+:root.high-contrast{--muted:#c9d6d4;--border:#5f7a76}
+:root.high-contrast{filter:contrast(1.2)}
+:root.high-contrast .node,:root.high-contrast .panel{border-width:2px}
+
+@media (max-width:760px){
+ .cooperation-flow.triangle{grid-template-columns:1fr}
+ .discovery-grid,.badge-grid,.patent-grid,.contract-grid{grid-template-columns:1fr 1fr}
+ .menu-button{display:inline-block}
+}
+@media (max-width:420px){.discovery-grid,.badge-grid,.patent-grid,.contract-grid{grid-template-columns:1fr}}
+.contract p{text-wrap:pretty}
+@media (max-width:760px){.topbar>div{flex-wrap:nowrap}.mobile-hud strong{font-size:17px}}

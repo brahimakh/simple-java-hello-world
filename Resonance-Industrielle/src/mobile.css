@@ -1,5 +1,5 @@
 /* Phone layout: bottom tab bar, compact sticky header, horizontally scrolling strips, machine details in a bottom sheet. */
-.mobile-hud,.plant-switch,.menu-button,.sheet-close{display:none}
+.mobile-hud,.plant-switch,.sheet-close{display:none}
 button,select,a{touch-action:manipulation}
 
 @media (max-width:760px){
@@ -21,13 +21,13 @@ button,select,a{touch-action:manipulation}
  .topbar>div:first-child{display:none}
  .topbar>div{width:100%;display:flex;align-items:center;gap:8px;justify-content:flex-end}
  .topbar .language-picker,.topbar .sound-button,.topbar .session-time,.topbar .engine-status{display:none}
- .mobile-hud{display:flex;gap:14px;align-items:baseline;margin-right:auto;font-variant-numeric:tabular-nums}
+ .mobile-hud{display:flex;gap:10px;min-width:0;align-items:baseline;margin-right:auto;font-variant-numeric:tabular-nums}
  .mobile-hud strong{font-size:20px;font-weight:600;color:var(--teal)}
  .mobile-hud span:last-child strong{color:var(--text);font-size:16px}
  .mobile-hud small{color:var(--muted);margin-left:2px}
  .mobile-hud i{font-style:normal;color:var(--muted);margin-right:4px}
  .plant-switch{display:flex;border:1px solid var(--border);border-radius:7px;overflow:hidden}
- .plant-switch button{border:0;border-radius:0;padding:7px 9px;font-size:11px;min-height:36px}
+ .plant-switch button{border:0;border-radius:0;padding:7px 11px;font-size:16px;min-height:38px;min-width:38px}
  .plant-switch button.active{background:#91ddc022;color:var(--teal)}
  .pause-button,.menu-button{min-height:38px;min-width:42px;padding:6px 10px}
  .menu-button{display:inline-block;font-size:18px}
@@ -48,7 +48,7 @@ button,select,a{touch-action:manipulation}
  .progress-deck{padding:14px;margin-bottom:12px}
  .progress-heading h2{font-size:15px}
  .lifetime-total strong{font-size:20px}
- .milestone-track{display:flex;overflow-x:auto;gap:14px;padding-bottom:6px;scrollbar-width:none}
+ .milestone-track,.suggestion-note{display:none!important}
  .milestone-track::-webkit-scrollbar{display:none}
  .milestone-track li{flex:0 0 auto}
  .industrial-goal{display:none}
